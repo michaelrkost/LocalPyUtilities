@@ -11,6 +11,29 @@ def getDate(date):
     d = int(date[6:8])
     dd = datetime.date(y, m, d)
     return dd
+# ==============================================================
+# Expiry Utilities
+def getExpiries():
+    """Get about 18 months of Fridays
+
+    Keyword arguments:
+    none
+    """
+   # today
+    today = datetime.date.today()
+    # get day multiple
+    one_day = datetime.timedelta(days=1)
+    # go out about 18 months
+    out18Months = today + (one_day * 548)
+
+    expiries = []
+
+    while today <= out18Months:
+        today = third_friday(today.year, today.month)
+        expiries.append(today.strftime("%b%d'%y"))
+        today = today + (one_day * 20)
+
+    return expiries
 
 # ==============================================================
 # Thursday Utilities
@@ -112,4 +135,4 @@ def third_friday(year, month):
     return third
 
 if __name__ == "__main__":
-    isFriday()
+    getExpiries()
