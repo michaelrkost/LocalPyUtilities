@@ -3,42 +3,52 @@ from localUtilities import ibPyUtils, dateUtils
 from ib_insync import *
 import sys
 
-
-
-def qualify_index_option_chain(ib, index):
+def qualify_option_chain(ib, aContract, rights, exchange,
+                               strikePriceRange=10, strikePriceMultiple=5):
     print("<<in qualify_index_option_chain >>  ")
     # Fully qualify the given contracts in-place.
     # This will fill in the missing fields in the contract, especially the conId.
     # list of options
-    listOptionChainSPX = ib.reqSecDefOptParams(index.symbol, '', index.secType, index.conId)
-    print(listOptionChainSPX)
-    # filter out for SMART
-    # this should give us all the Thursday Expiries
-    listSmartOptionChainSPX = next(c for c in listOptionChainSPX
-                                   if c.exchange == 'SMART')
-    print(listSmartOptionChainSPX)
+    listOptionChain = ib.reqSecDefOptParams(aContract.symbol, '', aContract.secType, aContract.conId)
+    print(listOptionChain)
+    # filter out for SMART ????
+    listSmartOptionChain = next(c for c in listOptionChain
+                                  if c.exchange == 'SMART')
+    # print("listSmartOptionChain: \n", listSmartOptionChain)
 
-    [tickerSPX] = ib.reqTickers(index)
-
+    [aTicker] = ib.reqTickers(aContract)
+    print('++++++++++++++++++++++++++++++++')
     # Get the Strikes as defined by current price, strikePriceRange and strikePriceMultiple
-    strikesSPX = ibPyUtils.getStrikes(listSmartOptionChainSPX, tickerSPX.last, 10, 5)
-    print(tickerSPX.last)
-    print(strikesSPX)
+    strikes = ibPyUtils.getStrikes(listSmartOptionChain, aTicker.close,
+                                   strikePriceRange, strikePriceMultiple)
+    print('aTicker.close:  ', aTicker.close)
+    print('strikes: ', strikes)
 
     # Get the SPX expirations set
-    # as picked from aMonth iWidget
-    sortedExpirations = sorted(exp for exp in listSmartOptionChainSPX.expirations
-                            if dateUtils.isThursday(exp))
-    print(sortedExpirations)
+    # to narrow to Friday or Thursdays use isThursday/isFriday
+    # if dateUtils.isFriday(exp))
+    sortedExpirations = sorted(exp for exp in listSmartOptionChain.expirations)
 
+    print("sortedExpirations: ", sortedExpirations)
 
+    # Build requested options based on expriy and price range
+    contracts = [Option(aContract.symbol, expiration, strike, right, exchange='SMART')
+            for right in rights for expiration in sortedExpirations for strike in strikes]
+    # Qualify the options
+    ib.qualifyContracts(*contracts)
+    print("Contracts: \n", contracts)
+
+    toIntStrikes = strikes
+    toIntStrikes = [int(i) for i in toIntStrikes]
+    print("toIntStrikes:  ", toIntStrikes)
+    return contracts
 
 
 
 if __name__ == "__main__":
     ib = IB()
     ib.connect('127.0.0.1', 4002, clientId=5)
-    a_underlying = Stock('FB', 'SMART',  primaryExchange='NASDAQ')
+    a_underlying = Stock('NFLX', 'ISLAND', currency='USD', primaryExchange='ISLAND')
     the_underlying = ib.qualifyContracts(a_underlying)
-    qualify_index_option_chain(ib, the_underlying.pop())
+    qualify_option_chain_close(ib, the_underlying.pop(), 'C', 20, 5)
     print("the cat's pajamas - meow!!")

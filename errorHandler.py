@@ -20,5 +20,5 @@ def onError(reqId, errorCode, errorString, contract):
    if errorCode in errorDict:
         errorDict[errorCode](reqId, errorCode, errorString, contract)
    else:
-       print("Blah")
+       print('Error not in "Error Dictionary" => errorCode: ', errorCode,"   ", errorString,)
 
