@@ -120,8 +120,6 @@ def getNearestExpiryFromToday():
     '''
     todayDate = date.today()
     nextExpiry = dateUtils.third_friday(todayDate.year, todayDate.month)
-    print('todayDate:\t', todayDate)
-    print('nextExpiry:\t', nextExpiry)
 
     # get day multiple
     oneDayTimedelta = datetime.timedelta(days=1)
@@ -130,17 +128,12 @@ def getNearestExpiryFromToday():
     daysTillExpiry = nextExpiry - (todayDate + oneDayTimedelta)
 
     useThisExpriy = nextExpiry
-    print('Before IF useThisExpriy:\t ', useThisExpriy)
-    print('number of days till Expiry:  ', daysTillExpiry.days)
 
     # if the current month Expiry is less than or equal 15 days out -> return Next Month
     if daysTillExpiry <= (oneDayTimedelta * 15):
         useThisExpriy = dateUtils.third_friday(todayDate.year, todayDate.month + 1)
 
-    print('After IF  useThisExpriy:\t ', useThisExpriy)
-
     theExpiryStr = dateUtils.getDateString(dateUtils.third_friday(useThisExpriy.year, useThisExpriy.month))
-    print(theExpiryStr)
 
     return theExpiryStr
 
