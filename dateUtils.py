@@ -223,5 +223,22 @@ def daysToExpiry(theExpiry):
 
     return (getDate(theExpiry) - today).days
 
+def getTodayStr(): #Todo refactor Today in this module
+    return datetime.date.today().strftime("%a, %b %d")
+
+def get30DaysOutStr():
+
+    to30DaysOut = datetime.date.today() + datetime.timedelta(30)
+
+    return to30DaysOut.strftime("%a, %b %d")
+
+def get45DaysOutStr():
+
+    to45DaysOut = datetime.date.today() + datetime.timedelta(45)
+
+    return to45DaysOut.strftime("%a, %b %d")
+
+
+
 if __name__ == "__main__":
-    print(getMonthExpiries())
+    print(getTodayStr())
