@@ -102,6 +102,11 @@ def reqMarketData_Setup(aTableWidget):
     # set the type of Price Data to receive
     #   - Frozen market data is the last data recorded at market close.
     #   - Last market data is the last data set, which may be empty after hours
+    # To receive the last know bid/ask price before the market close, switch to market data type 2
+    # from the API before requesting market data. API frozen data requires TWS/IBG v.962 or higher
+    # and the same market data subscriptions necessary for real time streaming data.
+
+    #todo - this needs to use live or frozen - it is only set up for frozen
     aTableWidget.ib.reqMarketDataType(marketDataType(aTableWidget.radioButton_MktDataType_Frozen))
     logger.logger.info("frozenVS:  %s", aTableWidget.radioButton_MktDataType_Frozen.isChecked())
 

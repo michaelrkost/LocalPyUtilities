@@ -238,6 +238,9 @@ def get45DaysOutStr():
 
     return to45DaysOut.strftime("%a, %b %d")
 
+def daysInYear():
+    return 365
+
 
 
 if __name__ == "__main__":
