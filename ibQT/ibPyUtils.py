@@ -7,6 +7,12 @@ from datetime import date,timedelta
 
 from decimal import Decimal
 
+def myround(x, base=5):
+    return base * round(x/base)
+
+def myroundPrec(x, prec=2, base=.05):
+  return round(base * round(float(x)/base),prec)
+
 def getStrikes(optionChain, marketPrice, strikePriceRange = 20, strikePriceMultiple = 5 ):
     """Get range of Option Strike prices as integers.
 

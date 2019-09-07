@@ -1,7 +1,7 @@
-from localUtilities import ibPyUtils, dateUtils
+from localUtilities.ibQT import ibPyUtils
 
 from ib_insync import *
-import sys
+
 
 def qualify_option_chain(ib, aContract, rights, exchange,
                                strikePriceRange=10, strikePriceMultiple=5):
@@ -44,11 +44,14 @@ def qualify_option_chain(ib, aContract, rights, exchange,
     return contracts
 
 
+def qualify_option_chain_close(ib, param, param1, param2, param3):
+    pass
+
 
 if __name__ == "__main__":
     ib = IB()
     ib.connect('127.0.0.1', 4002, clientId=5)
     a_underlying = Stock('NFLX', 'ISLAND', currency='USD', primaryExchange='ISLAND')
     the_underlying = ib.qualifyContracts(a_underlying)
-    qualify_option_chain_close(ib, the_underlying.pop(), 'C', 20, 5)
-    print("the cat's pajamas - meow!!")
+    z=qualify_option_chain_close(ib, the_underlying.pop(), 'C', 20, 5)
+    print("the cat's pajamas - meow!!", z)

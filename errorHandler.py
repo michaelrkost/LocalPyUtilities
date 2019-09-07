@@ -3,6 +3,9 @@
 def error200 (reqId, errorCode, errorString, contract):
     print("200 <<>> 200",reqId, errorCode, errorString, contract)
 
+def error300(reqId, errorCode, errorString, contract):
+    print("200 <<>> 200", reqId, errorCode, errorString, contract)
+
 def error321 (reqId, errorCode, errorString, contract):
     print("321 <<>> 321")
 
@@ -11,6 +14,7 @@ def error10061(reqId, errorCode, errorString, contract):
 
 errorDict = {
     200 : error200,
+    300:  error300,
     321 : error321,
     10061 : error10061
 }
