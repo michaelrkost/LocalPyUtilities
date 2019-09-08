@@ -98,15 +98,15 @@ def getMinMaxVols(yahooEarningDf, startday, writer):
 
         framesMax = [dfExpiryMax, dfNextFriMax]
         framesMin = [dfExpiryMin, dfNextFriMin]
-
-        maxDF = pd.concat(framesMax, names=["Company"], keys=[aSymbol])
-        minDF = pd.concat(framesMin, names=["Company"], keys=[aSymbol])
-
-        maxDFList.append(maxDF)
-        minDFList.append(minDF)
+        #todo - add the symbol name to the new dataframe as a column
+        maxDF = pd.concat(framesMax) #,  keys=[aSymbol])
+        minDF = pd.concat(framesMin) #,  keys=[aSymbol])
 
         maxDF.to_excel(writer, sheet_name=aSymbol)
         minDF.to_excel(writer, sheet_name=aSymbol, startcol=7)
+
+        maxDFList.append(maxDF)
+        minDFList.append(minDF)
 
        # Close the Pandas Excel writer and output the Excel file.
     writer.save()
