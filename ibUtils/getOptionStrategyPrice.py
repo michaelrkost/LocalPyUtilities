@@ -116,7 +116,7 @@ def getMinMaxPricePercent(earningsPastStock, earningsPastImpVol, yahooEarningsDF
 
     return yahooEarningsDF
 
-def getEqualLenList(createdList, primaryList):
+def getEqualLenList(createdList, primaryList, aType=0):
     """
     We are going to add createdList to DF primaryList,
     This functions makes sure these are the same size
@@ -131,7 +131,7 @@ def getEqualLenList(createdList, primaryList):
     """
     #todo can pass in variable to allow for differet types of updates / here using 0
     if len(createdList) != len(primaryList):
-        createdList.extend([0 for i in range(len(primaryList) - len(createdList) )])
+        createdList.extend([aType for i in range(len(primaryList) - len(createdList) )])
 
     return createdList
 

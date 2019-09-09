@@ -8,6 +8,8 @@ from pathlib import Path
 sys.path.append('/home/michael/jupyter/local-packages')
 
 from localUtilities import dateUtils
+from localUtilities.ibUtils import getOptionPrice
+
 
 
 pd.set_option('display.max_rows', 1000)
@@ -70,40 +72,49 @@ def getStrikes(aPrice):
 
     return strikePlus, strikeMinus
 
-def getMinMaxVols(yahooEarningDf, startday, writer):
+def getMinMaxVols(ib, yahooEarningDf, startday, writer):
 
     maxDFList = []
     minDFList = []
+    aMaxRight = 'C'
+    aMinRight ='P'
 
     for i in range(0, len(yahooEarningDf)):
         aSymbol = yahooEarningDf.loc[i,].Symbol
         aMaxPrice = yahooEarningDf.loc[i,]['Max$MoveCl']
         maxMoveTuples = getOptionVolume(aSymbol, float(yahooEarningDf.loc[i,]['Max$MoveCl'][1:]), startday)
         minMoveTuples = getOptionVolume(aSymbol, float(yahooEarningDf.loc[i,]['Min$MoveCl'][1:]), startday)
-        nextFriIndexMax = pd.MultiIndex.from_product([[dateUtils.month3Format(maxMoveTuples[2].expiry[:1].values[0])],
+        nextFriIndexMax = pd.MultiIndex.from_product([[maxMoveTuples[2].expiry[:1].values[0]],
                                                       list(maxMoveTuples[2].Strike)], names=['Expiry', 'Strikes'])
-        expiryIndexMax = pd.MultiIndex.from_product([[dateUtils.month3Format(maxMoveTuples[3].expiry[:1].values[0])],
+        expiryIndexMax = pd.MultiIndex.from_product([[maxMoveTuples[3].expiry[:1].values[0]],
                                                      list(maxMoveTuples[3].Strike)], names=['Expiry', 'Strikes'])
 
-        nextFriIndexMin = pd.MultiIndex.from_product([[dateUtils.month3Format(minMoveTuples[2].expiry[:1].values[0])],
+        nextFriIndexMin = pd.MultiIndex.from_product([[minMoveTuples[2].expiry[:1].values[0]],
                                                       list(minMoveTuples[2].Strike)], names=['Expiry', 'Strikes'])
-        expiryIndexMin = pd.MultiIndex.from_product([[dateUtils.month3Format(minMoveTuples[3].expiry[:1].values[0])],
+        expiryIndexMin = pd.MultiIndex.from_product([[minMoveTuples[3].expiry[:1].values[0]],
                                                      list(minMoveTuples[3].Strike)], names=['Expiry', 'Strikes'])
 
         dfExpiryMax = pd.DataFrame(list(maxMoveTuples[3].Call), index=expiryIndexMax, columns=['Call Volume'])
         dfNextFriMax = pd.DataFrame(list(maxMoveTuples[2].Call), index=nextFriIndexMax, columns=['Call Volume'])
 
+        dfExpiryMax = getOptionPrice.getStockOptionPrice(ib, aSymbol, dfExpiryMax, aMaxRight, yahooEarningDf.loc[i,].close)
+        dfNextFriMax = getOptionPrice.getStockOptionPrice(ib, aSymbol, dfNextFriMax, aMaxRight, yahooEarningDf.loc[i,].close)
+
         dfExpiryMin = pd.DataFrame(list(minMoveTuples[3].Put), index=expiryIndexMin, columns=['Put Volume'])
         dfNextFriMin = pd.DataFrame(list(minMoveTuples[2].Put), index=nextFriIndexMin, columns=['Put Volume'])
 
+        dfExpiryMin = getOptionPrice.getStockOptionPrice(ib, aSymbol, dfExpiryMin, aMinRight, yahooEarningDf.loc[i,].close)
+        dfNextFriMin = getOptionPrice.getStockOptionPrice(ib, aSymbol, dfNextFriMin, aMinRight, yahooEarningDf.loc[i,].close)
+
         framesMax = [dfExpiryMax, dfNextFriMax]
         framesMin = [dfExpiryMin, dfNextFriMin]
+
         #todo - add the symbol name to the new dataframe as a column
         maxDF = pd.concat(framesMax) #,  keys=[aSymbol])
         minDF = pd.concat(framesMin) #,  keys=[aSymbol])
 
         maxDF.to_excel(writer, sheet_name=aSymbol)
-        minDF.to_excel(writer, sheet_name=aSymbol, startcol=7)
+        minDF.to_excel(writer, sheet_name=aSymbol, startcol=10)
 
         maxDFList.append(maxDF)
         minDFList.append(minDF)

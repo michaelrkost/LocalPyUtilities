@@ -79,7 +79,7 @@ def addMarketData(ib, earningsDF):
 
     # Request Live Market Data Type // 2=Frozen
     # get generic tick types
-    ib.reqMarketDataType(1)
+    ib.reqMarketDataType(2)
 
     # add info
     # earningsDF['close'] = np.nan
