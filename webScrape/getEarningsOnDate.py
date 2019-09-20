@@ -22,11 +22,17 @@ def getEarningsForWeek(startday):
     anEarningsDF: a DF of companies for the earnings week
     """
     anEarningsDF = pd.DataFrame(columns=['Symbol', 'Earnings_Date', 'Company', 'Earnings Call Time'])
+    #Start Monday go to Friday /
     for x in range(5):
+        #todo  - move this first aDay out of this loop
         aDay = dateUtils.getDateFromISO8601(startday)
         aDay = aDay + datetime.timedelta(days=x)
         aNewEarningsDF = getEarningsOnDate(dateUtils.getDateStringDashSeprtors(aDay))
-        anEarningsDF = anEarningsDF.append(aNewEarningsDF)
+        try:
+            anEarningsDF = anEarningsDF.append(aNewEarningsDF)
+        except TypeError:
+            print("No Earnings on: ", dateUtils.getDateFromISO8601(aDay))
+            continue
         print('Working Day: ', aDay)
 
     return  anEarningsDF.reset_index(drop=True)
@@ -40,9 +46,9 @@ def getEarningsOnDate(aDay):
 
     Returns
     -------
-
+    DF w/ Symbol', 'Earnings_Date', 'Company', 'Earnings Call Time'
     """
-
+    # Yahoo earnings page
     aURL = "https://finance.yahoo.com/calendar/earnings?day=" + aDay
     result = requests.get(aURL)
 
@@ -71,15 +77,18 @@ def getEarningsOnDate(aDay):
     earningsDataDF = pd.DataFrame(columns=['Symbol', 'Earnings_Date', 'Company', 'Earnings Call Time'])
     oneEarningDateDF = pd.DataFrame(columns=['Symbol', 'Earnings_Date', 'Company', 'Earnings Call Time'])
 
+    # get earnings per page
+    # just on page
     if numPages < 1:
         oneEarningDateDF = getEarningPage(aURL, earningsDataDF, aDay)
+    # more than one page
     else:
         for i in range(numPages):
             aNewURL = aURL + "&offset=" + str(i*100) + '&size=100'
             oneEarningDateDF = oneEarningDateDF.append(getEarningPage(aNewURL, earningsDataDF, aDay))
             #capture all earnings data in DF
             earningsDataDF.drop(earningsDataDF.index, inplace=True)
-
+    # reset the index and return
     oneEarningDateDF = oneEarningDateDF.reset_index(drop=True)
     return oneEarningDateDF
 
@@ -106,7 +115,7 @@ def getEarningPage(aURL, earningsDataDF, aDay, numPages=0):
                     elif aria_label == "Earnings Call Time":
                         ect = td_tag.get_text('td')
 
-                # create a dictionary from <td> scrape data
+                # create a dictionary from <td> scraped data
                 aRow = {'Symbol': [sym],
                         'Company': [co],
                         'Earnings Call Time': [ect],
