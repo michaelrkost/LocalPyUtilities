@@ -369,3 +369,49 @@ def getOptionStraddlePrice(ib, qualityContracts, chain):
     # Todo - need to update to return close price when market closed else return last
     return tickers[0].close + tickers[1].close
 
+def calcHistoricIVnPrice(ib, contract, durationStrDays = '253 D', setBarSizeSetting = '1 day'):
+    """
+    Get Historic IV and Price data ----
+    add daysAroundEarnings Days forward - this will be used to count back and plot time
+    durationString,The amount of time (or Valid Duration String units) to go back from the request's given end date and time.
+
+    Historical data is obtained from the the TWS via the IBApi.EClient.reqHistoricalData function. Every request needs:
+        tickerId:       A unique identifier which will serve to identify the incoming data.
+        contract:       The IBApi.Contract you are interested in.
+        endDateTime:    The request's end date and time (the empty string indicates current present moment).
+        durationString: The amount of time (or Valid Duration String units) to go back from the request's given end date and time.
+        barSizeSetting: The data's granularity or Valid Bar Sizes
+        whatToShow:     The type of data to retrieve. See Historical Data Types
+                           TRADES, HISTORICAL_VOLATILITY, OPTION_IMPLIED_VOLATILITY,....FEE_RATE
+        useRTH:         Whether (1) or not (0) to retrieve data generated only within Regular Trading Hours (RTH)
+        formatDate:     The format in which the incoming bars' date should be presented. Note that for day bars: only yyyyMMdd format is available.
+        keepUpToDate:   Whether a subscription is made to return updates of unfinished real time bars as they are available (True),
+                        or all data is returned on a one-time basis (False).
+                        Available starting with API v973.03+ and TWS v965+. If True: and endDateTime cannot be specified.
+
+    Parameters
+    ----------
+    ib : ib instance
+
+    durationStrDays; '253 D' / How far back from daysPassEarnings - one trading year
+    setBarSizeSetting: '1 day' / Bar size
+
+    Returns
+    -------
+    HistoricVolStock
+    ImpVol
+
+        """
+
+    # Get Historical price (earningsPastStock) and Implied Volatility (earningsPastImpVol) Data
+    # endDateTime='' (the empty string indicates current present moment)
+    # todo get historic data for HistVolatility
+    trades = util.df(ib.reqHistoricalData(contract, endDateTime='', durationStr=durationStrDays,barSizeSetting=setBarSizeSetting,
+                                                                  whatToShow='TRADES', useRTH=True))
+    optionImpVol = util.df(ib.reqHistoricalData(contract, endDateTime='', durationStr='1 D',barSizeSetting=setBarSizeSetting,
+                                                                  whatToShow='OPTION_IMPLIED_VOLATILITY', useRTH=True))
+
+
+    returnImpVol = optionImpVol.close[0]
+
+    return trades, returnImpVol

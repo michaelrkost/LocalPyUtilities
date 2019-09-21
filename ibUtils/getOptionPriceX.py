@@ -226,6 +226,7 @@ def buildEarnDF(ib, qualityContracts, aStockSymbol, maxPriceMoveCl, minPriceMove
     # minMDF['minModelGreeksImpliedVol'] = minModelGreeksImpliedVol
     # minMDF['minModelGreeksOptPrice'] = minModelGreeksOptPrice
 
+
     frames = [maxMDF, minMDF]
     return  pd.concat(frames, sort=False)
 

@@ -80,7 +80,7 @@ def addMarketData(ib, earningsDF):
     Parameters
     ----------
     ib : instance of ib_insyc
-    earningsDF : DF of 'Symbol', 'Earnings_Date', 'Company', 'Earnings Call Time'
+    earningsDF : DF of 'Symbol', 'EarningmktDatas_Date', 'Company', 'Earnings Call Time'
 
     Returns
     -------

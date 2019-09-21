@@ -31,7 +31,7 @@ def getEarningsForWeek(startday):
         try:
             anEarningsDF = anEarningsDF.append(aNewEarningsDF)
         except TypeError:
-            print("No Earnings on: ", dateUtils.getDateFromISO8601(aDay))
+            print("No Earnings on: ", aDay)
             continue
         print('Working Day: ', aDay)
 
@@ -70,7 +70,7 @@ def getEarningsOnDate(aDay):
                     print(aspan.text)
                     numPages = math.ceil(int(aspan.text[aspan.text.find(front) + 2: aspan.text.find(back)])/100)
     except TypeError:
-        print('no earnings')
+        print('No earnings found.')
         return 0
 
     # Creating an empty Dataframe with column names only
