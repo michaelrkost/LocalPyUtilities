@@ -10,8 +10,6 @@ sys.path.append('/home/michael/jupyter/local-packages')
 from localUtilities import dateUtils
 from localUtilities.ibUtils import getOptionPrice
 
-
-
 pd.set_option('display.max_rows', 1000)
 
 #=========================================================================
@@ -72,7 +70,7 @@ def getStrikes(aPrice):
 
     return strikePlus, strikeMinus
 
-def getMinMaxVols(ib, yahooEarningDf, startday, writer):
+def getMinMaxVolsSaveAsExcel(ib, yahooEarningDf, startday, writer):
 
     maxDFList = []
     minDFList = []
@@ -81,6 +79,7 @@ def getMinMaxVols(ib, yahooEarningDf, startday, writer):
 
     for i in range(0, len(yahooEarningDf)):
         aSymbol = yahooEarningDf.loc[i,].Symbol
+        print('aSymbol: ', aSymbol)
         aMaxPrice = yahooEarningDf.loc[i,]['Max$MoveCl']
         maxMoveTuples = getOptionVolume(aSymbol, float(yahooEarningDf.loc[i,]['Max$MoveCl'][1:]), startday)
         minMoveTuples = getOptionVolume(aSymbol, float(yahooEarningDf.loc[i,]['Min$MoveCl'][1:]), startday)
@@ -120,23 +119,37 @@ def getMinMaxVols(ib, yahooEarningDf, startday, writer):
         minDFList.append(minDF)
 
        # Close the Pandas Excel writer and output the Excel file.
-    writer.save()
+    #writer.save()
 
     return
 
-def saveDiary2Excel(yahooEarningDf, startday):
+def saveDiary2Excel(ib, yahooEarningDf, startday):
 
-    theDirectory = '/home/michael/jupyter/earningDateData/' + 'Companies/' + startday + '/'
+    theBaseCompaniesDirectory = '/home/michael/jupyter/earningDateData/Companies/'
+    companyEarningsWeek = theBaseCompaniesDirectory + startday + '/'
+    csvSuffix = '.csv'
     excelSuffix = '.xlsx'
-    outExcelFile = theDirectory + 'weekOf-' + startday + excelSuffix
+
+    # Get saved Summary data
+    earningWeekDir = Path(companyEarningsWeek)
+
+    # Save Week Summary
+    companySummaryListFile = 'SummaryOfWeek-' + startday + csvSuffix
+
+    yahooEarningsDF = pd.read_csv(earningWeekDir / companySummaryListFile, index_col=0)
+
+    # Setup Excel output
+    outExcelFile = companyEarningsWeek + 'weekOf-' + startday + excelSuffix
 
     # Create a Pandas Excel writer using XlsxWriter as the engine
     writer = pd.ExcelWriter(outExcelFile, engine='xlsxwriter')
 
+    getMinMaxVolsSaveAsExcel(ib, yahooEarningDf, startday, writer)  # anExcelWriter)
+
     # Convert the dataframe to an XlsxWriter Excel object.
-    yahooEarningDf.to_excel(writer, sheet_name='Week of ' + startday)
+    # yahooEarningDf.to_excel(writer, sheet_name='Week of ' + startday)
 
     # Close the Pandas Excel writer and output the Excel file.
-    #writer.save()
+    writer.save()
 
-    return writer
+    return
