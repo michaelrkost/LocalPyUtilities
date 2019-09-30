@@ -273,7 +273,7 @@ def getEstimatedPercentMovefor1Day(ib, qualityContracts, chain):
     Returns the one day expected % move at 86%
 
         Parameters
-        ----------
+        ----------Error 162, reqId 4:
         ib : ib_insyc instance
         qualityContracts : qualifed quality contracts
         chain : Option thain

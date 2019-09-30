@@ -1,8 +1,9 @@
-
 import sys
+
 sys.path.append('/home/michael/jupyter/local-packages')
 
 import pandas as pd
+import numpy as np
 
 # Save the data
 from pathlib import Path
@@ -10,18 +11,57 @@ from pathlib import Path
 theBaseCompaniesDirectory = '/home/michael/jupyter/earningDateData/Companies/'
 csvSuffix = '.csv'
 
+
 # create diary
+# ============================================================================
+def saveCsvSummary(yahooEarningsOfInterestDF, allYahooEarningsForWeekDF, startday):
+    """
+    This will save the data as CSV from the Yahoo Earnings Page scrape
+    1) yahooEarningsOfInterestDF - Companies w/ liquidity defined as Open Option interest >6000 or so
+    2) allYahooEarningsForWeekDF - all the companies that have earnings calls this week
+
+    Parameters
+    ----------
+    yahooEarningsOfInterestDF : Companies w/ liquididty defined as Open Option interest >6000 or so
+    allYahooEarningsForWeekDF : all the companies that have earnings calls this week
+    startday : beginning of week
+
+    Returns - nothing
+    -------
+
+    """
+
+    # build the new directory path
+    companyEarningsWeekDir = theBaseCompaniesDirectory + startday + '/'
+    # make the directory if it does not exist / .mkdir does not return anything
+    Path(companyEarningsWeekDir).mkdir(parents=True, exist_ok=True)
+
+    # create file names as stings
+    # All = all the earnings this week
+    companyListFileAll = 'AllEarningsfromWeekOf-' + startday + csvSuffix
+    # Interest = the companies with liquidity
+    companyListFileInterest = 'EarningOfInterestforweekOf-' + startday + csvSuffix
+
+    allPath = Path(companyEarningsWeekDir + companyListFileAll)
+    interestPath = Path(companyEarningsWeekDir + companyListFileInterest)
+
+    yahooEarningsOfInterestDF.to_csv(interestPath)
+    allYahooEarningsForWeekDF.to_csv(allPath)
+
+    return
+
 #============================================================================
-def createSummary(startday):
-    print('in createExcel')
+def createWeeklySummary(startday):
+    print('in createWeeklySummary')
     # Get saved data
     companyEarningsWeek = startday + '/'
-    companyListFile = 'weekOf-' + startday + csvSuffix
-    earningWeekDir = Path(theBaseCompaniesDirectory + companyEarningsWeek)
+    companyListFile = 'EarningOfInterestforweekOf-' + startday + csvSuffix
+    x = theBaseCompaniesDirectory + companyEarningsWeek
+    earningWeekDir = Path(x)
 
     yahooEarningsDF = pd.read_csv(earningWeekDir / companyListFile, index_col=0)
 
-    createWeekSummary(yahooEarningsDF, earningWeekDir)
+    getVolAndUpdateMoveDelta(yahooEarningsDF, earningWeekDir)
 
     # Save Week Summary
     companySummaryListFile = 'SummaryOfWeek-' + startday + csvSuffix
@@ -31,7 +71,7 @@ def createSummary(startday):
 
     return yahooEarningsDF
 
-def createWeekSummary(yahooEarningsDF, earningWeekDir):
+def getVolAndUpdateMoveDelta(yahooEarningsDF, earningWeekDir):
     print('in createWeekSummary')
     # Get % IV Delta
     yahooEarningsDF['IV_Delta'] = yahooEarningsDF.impliedVolatility - yahooEarningsDF.histVolatility
@@ -55,11 +95,19 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
 
     for row in yahooEarningsDF.itertuples():
         aCompanyFile = row.Symbol + csvSuffix
-        anEarningWeeksCompany = pd.read_csv(earningWeekDir / aCompanyFile, index_col=0)
-        maxPercentDelta.append(anEarningWeeksCompany['Max%Delta'].max())
-        minPercentDelta.append(anEarningWeeksCompany['Min%Delta'].min())
-        maxPercentDeltaABS.append(max(abs(anEarningWeeksCompany['Min%Delta'].min()),
-                                    anEarningWeeksCompany['Max%Delta'].max()))
+        filePath = earningWeekDir / aCompanyFile
+        print(filePath)
+        ckForFile = Path(filePath)
+        if ckForFile.is_file():
+            anEarningWeeksCompany = pd.read_csv(earningWeekDir / aCompanyFile, index_col=0)
+            maxPercentDelta.append(anEarningWeeksCompany['Max%Delta'].max())
+            minPercentDelta.append(anEarningWeeksCompany['Min%Delta'].min())
+            maxPercentDeltaABS.append(max(abs(anEarningWeeksCompany['Min%Delta'].min()),
+                                        anEarningWeeksCompany['Max%Delta'].max()))
+        else:
+            maxPercentDelta.append(np.nan)
+            minPercentDelta.append(np.nan)
+            maxPercentDeltaABS.append(np.nan)
 
     yahooEarningsDF['Max%Delta'] = maxPercentDelta
     yahooEarningsDF['Min%Delta'] = minPercentDelta
@@ -99,7 +147,5 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
 
 
     return yahooEarningsDF
-
-
 
 

@@ -30,11 +30,36 @@ def getOccVolume(symbol):
     return df
 
 def getOptionVolume(aSymbol, aPrice, startDay):
-    # todo - if next week equals next expiry pust out next expiry
+    """
+
+    Parameters
+    ----------
+    aSymbol : Stock
+    aPrice : the Max or Min move for a closing price
+    startDay : Earnings week
+
+    Returns
+    -------
+    Tuples: ([0] strikePlus, [1] strikeMinus, [2] aOccVolumeDFNextWeek, [3] aOccVolumeDFNextMontlyExpiry)
+        strikePlus/strikeMinus: Strike bounds Plus/Minus from aPrice - to id Min/Max parameters
+        aOccVolumeDFNextWeek: Option Volume for next week
+        aOccVolumeDFNextMontlyExpiry: Option Volume for next Monthly Expiry
+    """
+    # todo - if next week equals next expiry push out next expiry
+    print('\n\n-------------------IN--------------------------------')
+    print('aPrice:  ', aPrice)
     # get OCC Volume for aSymbol
     aOccVolumeDF = getOccVolume(aSymbol)
 
-    strikePlus, strikeMinus = getStrikes(aPrice)
+
+    strikePlus, strikeMinus = getStrikes(aPrice, aOccVolumeDF, startDay)
+
+    print('strikePlus:  ', strikePlus)
+    print('strikeMinus', strikeMinus)
+
+    # get lowest and highest value strike
+    print('min== ', type(aOccVolumeDF))
+
 
     # get list of OCC strikes between <= strikePlus and >= StrikeMinus
     strikes = [strike for strike in aOccVolumeDF.Strike
@@ -45,13 +70,26 @@ def getOptionVolume(aSymbol, aPrice, startDay):
     # Get the Volume for Next Friday Option Strikes
     aOccVolumeDFNextWeek = aOccVolumeDF.loc[(aOccVolumeDF.expiry ==
                                             dateUtils.nextFridayOrgFormat(dateUtils.getDateFromISO8601(startDay)))]
+
+
+    print('Next Friday: ' , dateUtils.nextFridayOrgFormat(dateUtils.getDateFromISO8601(startDay)))
+    print('type Next Friday: ' , type(dateUtils.nextFridayOrgFormat(dateUtils.getDateFromISO8601(startDay))))
+
+    print('getNextThirdFridayFromDate: ', dateUtils.getNextThirdFridayFromDate(dateUtils.getDateFromISO8601(startDay)))
+    print('type getNextThirdFridayFromDate: ', type(dateUtils.getNextThirdFridayFromDate(dateUtils.getDateFromISO8601(startDay))))
+
     # Get the Volume for Next Friday Monthly Option Strikes
     aOccVolumeDFNextMontlyExpiry = aOccVolumeDF.loc[aOccVolumeDF.expiry ==
-                                             dateUtils.third_fridayFromOrgFormat(dateUtils.getDateFromISO8601(startDay))]
+                                                    dateUtils.getNextThirdFridayFromDate(dateUtils.getDateFromISO8601(startDay))]
+
+    print('\naOccVolumeDFNextMontlyExpiry  ', aOccVolumeDFNextMontlyExpiry)
+    print('\naOccVolumeDFNextWeek  ', aOccVolumeDFNextWeek)
+
+    print('\n\n--------------------------OUT-------------------------\n\n')
 
     return (strikePlus, strikeMinus, aOccVolumeDFNextWeek, aOccVolumeDFNextMontlyExpiry)
 
-def getStrikes(aPrice):
+def getStrikes(aPrice, aOccVolumeDF, startDay):
 
     # Compute interested Strike Prices
     # if price >= then $40 Get to the next round at +/- 5
@@ -61,12 +99,51 @@ def getStrikes(aPrice):
         strikeMinus = (5 * round(aPrice / 5)) - 10
         # print('strikePlus', strikePlus)
         # print('strikeMinus', strikeMinus)
-    else:
+    elif aPrice >= 20:
         strikePlus = (2 * round(aPrice / 2)) + 5
         strikeMinus = (2 * round(aPrice / 2)) - 5
+    else:
+        strikePlus = (2 * round(aPrice / 2)) + 2
+        strikeMinus = (2 * round(aPrice / 2)) - 2
 
-    # print('strikePlus', strikePlus)
-    # print('strikeMinus', strikeMinus)
+    strikePlus, strikeMinus = checkStrikePrices(strikePlus, strikeMinus, aOccVolumeDF, startDay)
+
+    return strikePlus, strikeMinus
+
+def checkStrikePrices(strikePlus, strikeMinus, aOccVolumeDF, startDay):
+
+    aOccVolumeDFpd = pd.DataFrame(aOccVolumeDF)
+
+    nextThrdFri = dateUtils.getNextThirdFridayFromDate(dateUtils.getDateFromISO8601(startDay))
+    nexFriday = dateUtils.nextFridayOrgFormat(dateUtils.getDateFromISO8601(startDay))
+
+    listOfExpiryNextThrdFriday = aOccVolumeDFpd.loc[aOccVolumeDFpd['expiry'] == nextThrdFri]
+    listOfExpiryNextFriday = aOccVolumeDFpd.loc[aOccVolumeDFpd['expiry'] == nexFriday]
+
+    # print('\n\nlistOfExpiryNextFriday Describe', listOfExpiryNextFriday.describe(), '\n\n\n')
+    print('\n\nnexFriday======', listOfExpiryNextFriday, '\n\n\n')
+    print('min', listOfExpiryNextFriday.Strike.min())
+    if listOfExpiryNextFriday.Strike.min() < strikeMinus:
+        strikeMinus=listOfExpiryNextFriday.Strike.min()
+
+    if listOfExpiryNextFriday.Strike.max() < strikePlus:
+        strikeMinus=listOfExpiryNextFriday.Strike.min()
+
+
+
+    #todo - you left off here 9/29/19
+    #   need to ensure that the Plus or minus is a strike in aOccVolDF
+
+    # print('\n\naOccVolumeDFpd======', aOccVolumeDFpd, '\n\n\n')
+
+    # # get list of OCC strikes between <= strikePlus and >= StrikeMinus
+    # strikes = [strike for strike in aOccVolumeDF.Strike
+    #            if (aOccVolumeDF.expiry == dateUtils.nextFridayOrgFormat(dateUtils.getDateFromISO8601(startDay)))]
+    #
+    # strikes = [strike for strike in aOccVolumeDF.Strike
+    #            if (strike >= strikeMinus and strike <= strikePlus)]
+    #
+    # print('Strikes:  ', strikes)
 
     return strikePlus, strikeMinus
 
@@ -78,15 +155,31 @@ def getMinMaxVolsSaveAsExcel(ib, yahooEarningDf, startday, writer):
     aMinRight ='P'
 
     for i in range(0, len(yahooEarningDf)):
+        print('i:  ', i , '   len= ', len(yahooEarningDf))
         aSymbol = yahooEarningDf.loc[i,].Symbol
-        print('aSymbol: ', aSymbol)
+        print('aSymbol in getMinMaxVolsSaveAsExcel: ', aSymbol)
         aMaxPrice = yahooEarningDf.loc[i,]['Max$MoveCl']
+        #todo handle if getOptionVol return empty
+
+        # getOptionVol returns
+        # Tuple: ([0] strikePlus, [1] strikeMinus, [2] aOccVolumeDFNextWeek, [3] aOccVolumeDFNextMontlyExpiry)
+        print('MAX---------------------\n\n')
         maxMoveTuples = getOptionVolume(aSymbol, float(yahooEarningDf.loc[i,]['Max$MoveCl'][1:]), startday)
+        print('\n\n\nMIN---------------------\n\n')
         minMoveTuples = getOptionVolume(aSymbol, float(yahooEarningDf.loc[i,]['Min$MoveCl'][1:]), startday)
+        #
+        print('\n\nminMoveTuples', minMoveTuples)
+        print('\n\nmaxMoveTuples', maxMoveTuples)
+        print('\n\nlist value: ', list(minMoveTuples), '\n\n')
+
         nextFriIndexMax = pd.MultiIndex.from_product([[maxMoveTuples[2].expiry[:1].values[0]],
                                                       list(maxMoveTuples[2].Strike)], names=['Expiry', 'Strikes'])
         expiryIndexMax = pd.MultiIndex.from_product([[maxMoveTuples[3].expiry[:1].values[0]],
                                                      list(maxMoveTuples[3].Strike)], names=['Expiry', 'Strikes'])
+
+        # print('\n\nlist(minMoveTuples[2].Strike)', list(minMoveTuples[2].Strike))
+        print('\n\nminMoveTuples[2].expiry[:1].values[0]', minMoveTuples[2].expiry[:1].values[0])
+        print('\n\nlist value: ', list(minMoveTuples), '\n\n')
 
         nextFriIndexMin = pd.MultiIndex.from_product([[minMoveTuples[2].expiry[:1].values[0]],
                                                       list(minMoveTuples[2].Strike)], names=['Expiry', 'Strikes'])
@@ -123,7 +216,7 @@ def getMinMaxVolsSaveAsExcel(ib, yahooEarningDf, startday, writer):
 
     return
 
-def saveDiary2Excel(ib, yahooEarningDf, startday):
+def saveDiary2Excel(ib, startday):
 
     theBaseCompaniesDirectory = '/home/michael/jupyter/earningDateData/Companies/'
     companyEarningsWeek = theBaseCompaniesDirectory + startday + '/'
@@ -136,15 +229,21 @@ def saveDiary2Excel(ib, yahooEarningDf, startday):
     # Save Week Summary
     companySummaryListFile = 'SummaryOfWeek-' + startday + csvSuffix
 
+    # read in summary file based on startday
     yahooEarningsDF = pd.read_csv(earningWeekDir / companySummaryListFile, index_col=0)
 
-    # Setup Excel output
+    # Setup Excel output file
     outExcelFile = companyEarningsWeek + 'weekOf-' + startday + excelSuffix
 
     # Create a Pandas Excel writer using XlsxWriter as the engine
     writer = pd.ExcelWriter(outExcelFile, engine='xlsxwriter')
 
-    getMinMaxVolsSaveAsExcel(ib, yahooEarningDf, startday, writer)  # anExcelWriter)
+    # Summary Sheet Name
+    summarySheetName = 'Week of ' + startday + ' earnings'
+    # output summary Page
+    yahooEarningsDF.to_excel(writer, sheet_name=summarySheetName)
+
+    getMinMaxVolsSaveAsExcel(ib, yahooEarningsDF, startday, writer)  # anExcelWriter)
 
     # Convert the dataframe to an XlsxWriter Excel object.
     # yahooEarningDf.to_excel(writer, sheet_name='Week of ' + startday)

@@ -12,6 +12,7 @@ import datetime
 
 def getEarningsForWeek(startday):
     """
+    This is the function that is called to start the Yahoo page scraping.
 
     Parameters
     ----------
@@ -22,11 +23,13 @@ def getEarningsForWeek(startday):
     anEarningsDF: a DF of companies for the earnings week
     """
     anEarningsDF = pd.DataFrame(columns=['Symbol', 'Earnings_Date', 'Company', 'Earnings Call Time'])
-    #Start Monday go to Friday /
+
+    # Week start date
+    aStartDay = dateUtils.getDateFromISO8601(startday)
+
+    #Start Monday go to Friday
     for x in range(5):
-        #todo  - move this first aDay out of this loop
-        aDay = dateUtils.getDateFromISO8601(startday)
-        aDay = aDay + datetime.timedelta(days=x)
+        aDay = aStartDay + datetime.timedelta(days=x)
         aNewEarningsDF = getEarningsOnDate(dateUtils.getDateStringDashSeprtors(aDay))
         try:
             anEarningsDF = anEarningsDF.append(aNewEarningsDF)
@@ -39,10 +42,10 @@ def getEarningsForWeek(startday):
 
 def getEarningsOnDate(aDay):
     """
-
+    Get Yahoo earnings for week starting @ aDay
     Parameters
     ----------
-    aDay : The day to
+    aDay : first day of week
 
     Returns
     -------
@@ -70,7 +73,7 @@ def getEarningsOnDate(aDay):
                     print(aspan.text)
                     numPages = math.ceil(int(aspan.text[aspan.text.find(front) + 2: aspan.text.find(back)])/100)
     except TypeError:
-        print('No earnings found.')
+        print('No earnings found.')    # todo  - move this first aDay out of this loop
         return 0
 
     # Creating an empty Dataframe with column names only

@@ -23,6 +23,7 @@ functions:
     * isFriday('20180406') - See if date is a Friday
     * nextFriday(date) - get next Friday
     * nextFridayExpiryFormat(date) - Returns the next Friday date for Friday Options close in format: 20180718
+    * nextFridayOrgFormat(datetime) returns str format: '20180718'
     * third_friday(year, month) - Return datetime.date for monthly Friday option expiration given year and month
     * daysToExpiry('20180718') - Days between today and theExpiry
     * getTodayStr() - returns formatted 'Sun, Aug 11'
@@ -31,7 +32,8 @@ functions:
     * monToDigits('aug') - from 3 letter name(case insensitive) return 2 digits
     * toExpiryStr(2019, 'dec', 8) - integers for day and year, Str 3 day Month - 'dec' - case insensitive
                                     return Option expiry date str format '20191208'
-
+    * getNextThirdFridayFromDate(aDate) - Return str for next monthly 3rd Friday option expiration given aDate(Date)
+    * breakDateToSting('20191004') - return tuple ( YYYY, MM, DD)
 
 """
 
@@ -345,20 +347,32 @@ def third_friday(year, month):
     return third
 
 
-def third_fridayFromOrgFormat(aDate):
+def getNextThirdFridayFromDate(aDate):
     """
-    Return datetime.date for next monthly Friday option expiration given year and month
+    Return str for next monthly 3rd Friday option expiration given Date.
+
+    Take into account
+        - end of year month & year change
+        - today is past this months third Friday / go to next month
 
     Keyword arguments:
-    aDate -- format '20190919
+    aDate -- 'datetime.date' / '2019-12-30
 
+    Returns:
+        str: "2020-01-17"
     """
-    # The 15th is the lowest third day in the month
 
-    # print('aDate: ', aDate)
-    third = third_friday(aDate.year, aDate.month)
+    # if this months 3rd friday has passed
+    if third_friday(aDate.year, aDate.month) < datetime.date.today():
+        third = third_friday(aDate.year, nextMonthDate(aDate))
+    # if  Dec  need to get to next year
+    elif aDate.month == 12:
+        third = third_friday(aDate.year + 1 , nextMonthDate(aDate))
+    # ok - just get this months 3rd Friday
+    else:
+        third = third_friday(aDate.year, aDate.month)
 
-    return datetime.datetime.strftime(third, "%Y%m%d")
+    return datetime.date.strftime(third, "%Y%m%d")
 
 def daysToExpiry(theExpiry):
     """
@@ -390,6 +404,11 @@ def get45DaysOutStr():
 def daysInYear():
     return 365
 
+def nextMonthDate(aDate):
+
+    return (aDate.month + 1) % 12
+
+
 def monToDigits(aMon):
     mon = aMon.upper()
     if   mon == "JAN": return '01'
@@ -404,7 +423,6 @@ def monToDigits(aMon):
     elif mon == "OCT": return '10'
     elif mon == "NOV": return '11'
     elif mon == "DEC": return '12'
-    else: raise ValueError
 
 
 def toExpiryStr(aYear, aMonth, aDay):
@@ -415,6 +433,22 @@ def toExpiryStr(aYear, aMonth, aDay):
         aDayStr = str(aDay)
 
     return theYearStr + monToDigits(aMonth) + aDayStr
+
+def breakDateToSting(dateStr):
+    """
+    Parameters
+    ----------
+    dateStr : a Date String '20191004'
+
+    Returns
+    -------
+    return a 3 String tuple ( 'YYYY', 'MM', 'DD')
+    """
+
+    aYear = dateStr[0:4]
+    aMonth = dateStr[4:6]
+    aDay = dateStr[6:8]
+    return aYear, aMonth, aDay
 
 if __name__ == "__main__":
     print(getTodayStr())
