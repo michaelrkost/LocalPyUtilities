@@ -46,20 +46,12 @@ def getOptionVolume(aSymbol, aPrice, startDay):
         aOccVolumeDFNextMontlyExpiry: Option Volume for next Monthly Expiry
     """
     # todo - if next week equals next expiry push out next expiry
-    print('\n\n-------------------IN--------------------------------')
-    print('aPrice:  ', aPrice)
+
     # get OCC Volume for aSymbol
     aOccVolumeDF = getOccVolume(aSymbol)
 
 
     strikePlus, strikeMinus = getStrikes(aPrice, aOccVolumeDF, startDay)
-
-    print('strikePlus:  ', strikePlus)
-    print('strikeMinus', strikeMinus)
-
-    # get lowest and highest value strike
-    print('min== ', type(aOccVolumeDF))
-
 
     # get list of OCC strikes between <= strikePlus and >= StrikeMinus
     strikes = [strike for strike in aOccVolumeDF.Strike
@@ -72,20 +64,9 @@ def getOptionVolume(aSymbol, aPrice, startDay):
                                             dateUtils.nextFridayOrgFormat(dateUtils.getDateFromISO8601(startDay)))]
 
 
-    print('Next Friday: ' , dateUtils.nextFridayOrgFormat(dateUtils.getDateFromISO8601(startDay)))
-    print('type Next Friday: ' , type(dateUtils.nextFridayOrgFormat(dateUtils.getDateFromISO8601(startDay))))
-
-    print('getNextThirdFridayFromDate: ', dateUtils.getNextThirdFridayFromDate(dateUtils.getDateFromISO8601(startDay)))
-    print('type getNextThirdFridayFromDate: ', type(dateUtils.getNextThirdFridayFromDate(dateUtils.getDateFromISO8601(startDay))))
-
     # Get the Volume for Next Friday Monthly Option Strikes
     aOccVolumeDFNextMontlyExpiry = aOccVolumeDF.loc[aOccVolumeDF.expiry ==
                                                     dateUtils.getNextThirdFridayFromDate(dateUtils.getDateFromISO8601(startDay))]
-
-    print('\naOccVolumeDFNextMontlyExpiry  ', aOccVolumeDFNextMontlyExpiry)
-    print('\naOccVolumeDFNextWeek  ', aOccVolumeDFNextWeek)
-
-    print('\n\n--------------------------OUT-------------------------\n\n')
 
     return (strikePlus, strikeMinus, aOccVolumeDFNextWeek, aOccVolumeDFNextMontlyExpiry)
 
@@ -120,30 +101,13 @@ def checkStrikePrices(strikePlus, strikeMinus, aOccVolumeDF, startDay):
     listOfExpiryNextThrdFriday = aOccVolumeDFpd.loc[aOccVolumeDFpd['expiry'] == nextThrdFri]
     listOfExpiryNextFriday = aOccVolumeDFpd.loc[aOccVolumeDFpd['expiry'] == nexFriday]
 
-    # print('\n\nlistOfExpiryNextFriday Describe', listOfExpiryNextFriday.describe(), '\n\n\n')
-    print('\n\nnexFriday======', listOfExpiryNextFriday, '\n\n\n')
-    print('min', listOfExpiryNextFriday.Strike.min())
-    if listOfExpiryNextFriday.Strike.min() < strikeMinus:
+
+    if listOfExpiryNextFriday.Strike.min() > strikeMinus:
         strikeMinus=listOfExpiryNextFriday.Strike.min()
 
-    if listOfExpiryNextFriday.Strike.max() < strikePlus:
-        strikeMinus=listOfExpiryNextFriday.Strike.min()
+    if listOfExpiryNextFriday.Strike.max() > strikePlus:
+        strikePlus=listOfExpiryNextFriday.Strike.max()
 
-
-
-    #todo - you left off here 9/29/19
-    #   need to ensure that the Plus or minus is a strike in aOccVolDF
-
-    # print('\n\naOccVolumeDFpd======', aOccVolumeDFpd, '\n\n\n')
-
-    # # get list of OCC strikes between <= strikePlus and >= StrikeMinus
-    # strikes = [strike for strike in aOccVolumeDF.Strike
-    #            if (aOccVolumeDF.expiry == dateUtils.nextFridayOrgFormat(dateUtils.getDateFromISO8601(startDay)))]
-    #
-    # strikes = [strike for strike in aOccVolumeDF.Strike
-    #            if (strike >= strikeMinus and strike <= strikePlus)]
-    #
-    # print('Strikes:  ', strikes)
 
     return strikePlus, strikeMinus
 
@@ -155,31 +119,29 @@ def getMinMaxVolsSaveAsExcel(ib, yahooEarningDf, startday, writer):
     aMinRight ='P'
 
     for i in range(0, len(yahooEarningDf)):
-        print('i:  ', i , '   len= ', len(yahooEarningDf))
         aSymbol = yahooEarningDf.loc[i,].Symbol
-        print('aSymbol in getMinMaxVolsSaveAsExcel: ', aSymbol)
+
+        print('working: ', aSymbol )
+
         aMaxPrice = yahooEarningDf.loc[i,]['Max$MoveCl']
         #todo handle if getOptionVol return empty
 
         # getOptionVol returns
         # Tuple: ([0] strikePlus, [1] strikeMinus, [2] aOccVolumeDFNextWeek, [3] aOccVolumeDFNextMontlyExpiry)
-        print('MAX---------------------\n\n')
-        maxMoveTuples = getOptionVolume(aSymbol, float(yahooEarningDf.loc[i,]['Max$MoveCl'][1:]), startday)
-        print('\n\n\nMIN---------------------\n\n')
-        minMoveTuples = getOptionVolume(aSymbol, float(yahooEarningDf.loc[i,]['Min$MoveCl'][1:]), startday)
-        #
-        print('\n\nminMoveTuples', minMoveTuples)
-        print('\n\nmaxMoveTuples', maxMoveTuples)
-        print('\n\nlist value: ', list(minMoveTuples), '\n\n')
+
+        try:
+            maxMoveTuples = getOptionVolume(aSymbol, float(yahooEarningDf.loc[i,]['Max$MoveCl'][1:]), startday)
+            minMoveTuples = getOptionVolume(aSymbol, float(yahooEarningDf.loc[i,]['Min$MoveCl'][1:]), startday)
+        except ValueError:
+            print('     ', ValueError, 'In getOptionInfo.getMinMaxVolsSaveAsExcel')
+            print('Max Price = ', yahooEarningDf.loc[i,]['Max$MoveCl'][1:])
+            print('Min Price = ', yahooEarningDf.loc[i,]['Min$MoveCl'][1:])
+            continue
 
         nextFriIndexMax = pd.MultiIndex.from_product([[maxMoveTuples[2].expiry[:1].values[0]],
                                                       list(maxMoveTuples[2].Strike)], names=['Expiry', 'Strikes'])
         expiryIndexMax = pd.MultiIndex.from_product([[maxMoveTuples[3].expiry[:1].values[0]],
                                                      list(maxMoveTuples[3].Strike)], names=['Expiry', 'Strikes'])
-
-        # print('\n\nlist(minMoveTuples[2].Strike)', list(minMoveTuples[2].Strike))
-        print('\n\nminMoveTuples[2].expiry[:1].values[0]', minMoveTuples[2].expiry[:1].values[0])
-        print('\n\nlist value: ', list(minMoveTuples), '\n\n')
 
         nextFriIndexMin = pd.MultiIndex.from_product([[minMoveTuples[2].expiry[:1].values[0]],
                                                       list(minMoveTuples[2].Strike)], names=['Expiry', 'Strikes'])
