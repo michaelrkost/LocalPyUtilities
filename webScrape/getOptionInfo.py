@@ -101,12 +101,12 @@ def checkStrikePrices(strikePlus, strikeMinus, aOccVolumeDF, startDay):
     listOfExpiryNextThrdFriday = aOccVolumeDFpd.loc[aOccVolumeDFpd['expiry'] == nextThrdFri]
     listOfExpiryNextFriday = aOccVolumeDFpd.loc[aOccVolumeDFpd['expiry'] == nexFriday]
 
-
+    #todo make sure the +2 amnd -2 are good adjustments
     if listOfExpiryNextFriday.Strike.min() > strikeMinus:
-        strikeMinus=listOfExpiryNextFriday.Strike.min()
+        strikeMinus=listOfExpiryNextFriday.Strike.min() +2
 
-    if listOfExpiryNextFriday.Strike.max() > strikePlus:
-        strikePlus=listOfExpiryNextFriday.Strike.max()
+    if listOfExpiryNextFriday.Strike.max() < strikePlus:
+        strikePlus=listOfExpiryNextFriday.Strike.max() -2
 
 
     return strikePlus, strikeMinus
@@ -167,9 +167,14 @@ def getMinMaxVolsSaveAsExcel(ib, yahooEarningDf, startday, writer):
         maxDF = pd.concat(framesMax) #,  keys=[aSymbol])
         minDF = pd.concat(framesMin) #,  keys=[aSymbol])
 
+        #todo # Get the xlsxwriter objects from the dataframe writer object.
+        # workbook  = writer.book
+        # worksheet = writer.sheets['Sheet1']
+        addMinMaxDFsToExcel(maxDF, minDF, yahooEarningDf.loc[i,], aSymbol, writer)
         maxDF.to_excel(writer, sheet_name=aSymbol)
         minDF.to_excel(writer, sheet_name=aSymbol, startcol=10)
 
+        #todo why are we saving this?
         maxDFList.append(maxDF)
         minDFList.append(minDF)
 
@@ -177,6 +182,20 @@ def getMinMaxVolsSaveAsExcel(ib, yahooEarningDf, startday, writer):
     #writer.save()
 
     return
+
+def addMinMaxDFsToExcel(maxDF, minDF, yahooEarningDfRow, aSymbol, writer):
+
+    # add yahooEarningsDFRow with Header
+    # add some color to Header
+    # keep track of Excel Rows
+
+    # skip some rows
+
+    # get CSV earnings info for aSymbol
+    # keep track of Excel Rows
+
+    maxDF.to_excel(writer, sheet_name=aSymbol)
+    minDF.to_excel(writer, sheet_name=aSymbol, startcol=10)
 
 def saveDiary2Excel(ib, startday):
 
@@ -191,7 +210,7 @@ def saveDiary2Excel(ib, startday):
     # Save Week Summary
     companySummaryListFile = 'SummaryOfWeek-' + startday + csvSuffix
 
-    # read in summary file based on startday
+    # read in CSV summary file based on startday
     yahooEarningsDF = pd.read_csv(earningWeekDir / companySummaryListFile, index_col=0)
 
     # Setup Excel output file
