@@ -63,7 +63,6 @@ def getOptionVolume(aSymbol, aPrice, startDay):
     aOccVolumeDFNextWeek = aOccVolumeDF.loc[(aOccVolumeDF.expiry ==
                                             dateUtils.nextFridayOrgFormat(dateUtils.getDateFromISO8601(startDay)))]
 
-
     # Get the Volume for Next Friday Monthly Option Strikes
     aOccVolumeDFNextMontlyExpiry = aOccVolumeDF.loc[aOccVolumeDF.expiry ==
                                                     dateUtils.getNextThirdFridayFromDate(dateUtils.getDateFromISO8601(startDay))]
@@ -128,6 +127,7 @@ def getMinMaxVolsSaveAsExcel(ib, yahooEarningDf, startday, writer):
 
         # getOptionVol returns
         # Tuple: ([0] strikePlus, [1] strikeMinus, [2] aOccVolumeDFNextWeek, [3] aOccVolumeDFNextMontlyExpiry)
+        # [2] aOccVolumeDFNextWeek - may be empty if only Monthly options
 
         try:
             maxMoveTuples = getOptionVolume(aSymbol, float(yahooEarningDf.loc[i,]['Max$MoveCl'][1:]), startday)
@@ -138,24 +138,51 @@ def getMinMaxVolsSaveAsExcel(ib, yahooEarningDf, startday, writer):
             print('Min Price = ', yahooEarningDf.loc[i,]['Min$MoveCl'][1:])
             continue
 
-        nextFriIndexMax = pd.MultiIndex.from_product([[maxMoveTuples[2].expiry[:1].values[0]],
-                                                      list(maxMoveTuples[2].Strike)], names=['Expiry', 'Strikes'])
+        print('maxMoveTuples = \n', maxMoveTuples)
+        print('minMoveTuples = \n', minMoveTuples)
+
+        # print('maxMoveTuples[2] = \n', maxMoveTuples[2].expiry[:1].values[0])
+        # print('minMoveTuples[2] = \n', minMoveTuples[2].expiry[:1].values[0])
+
+        print('maxMoveTuples[2].empty: ', maxMoveTuples[2].empty)
+
+        if maxMoveTuples[2].empty:
+            nextFriIndexMax = pd.MultiIndex.from_product([[maxMoveTuples[3].expiry[:1].values[0]],
+                                                          list(maxMoveTuples[3].Strike)], names=['Expiry', 'Strikes'])
+
+            nextFriIndexMin = pd.MultiIndex.from_product([[minMoveTuples[3].expiry[:1].values[0]],
+                                                          list(minMoveTuples[3].Strike)], names=['Expiry', 'Strikes'])
+
+            dfNextFriMax = pd.DataFrame(list(maxMoveTuples[3].Call), index=nextFriIndexMax, columns=['Call Volume'])
+
+            dfNextFriMin = pd.DataFrame(list(minMoveTuples[3].Put), index=nextFriIndexMin, columns=['Put Volume'])
+
+        else:
+            nextFriIndexMax = pd.MultiIndex.from_product([[maxMoveTuples[2].expiry[:1].values[0]],
+                                                          list(maxMoveTuples[2].Strike)], names=['Expiry', 'Strikes'])
+
+            nextFriIndexMin = pd.MultiIndex.from_product([[minMoveTuples[2].expiry[:1].values[0]],
+                                                          list(minMoveTuples[2].Strike)], names=['Expiry', 'Strikes'])
+
+            dfNextFriMax = pd.DataFrame(list(maxMoveTuples[2].Call), index=nextFriIndexMax, columns=['Call Volume'])
+
+            dfNextFriMin = pd.DataFrame(list(minMoveTuples[2].Put), index=nextFriIndexMin, columns=['Put Volume'])
+
+
         expiryIndexMax = pd.MultiIndex.from_product([[maxMoveTuples[3].expiry[:1].values[0]],
                                                      list(maxMoveTuples[3].Strike)], names=['Expiry', 'Strikes'])
 
-        nextFriIndexMin = pd.MultiIndex.from_product([[minMoveTuples[2].expiry[:1].values[0]],
-                                                      list(minMoveTuples[2].Strike)], names=['Expiry', 'Strikes'])
         expiryIndexMin = pd.MultiIndex.from_product([[minMoveTuples[3].expiry[:1].values[0]],
                                                      list(minMoveTuples[3].Strike)], names=['Expiry', 'Strikes'])
 
         dfExpiryMax = pd.DataFrame(list(maxMoveTuples[3].Call), index=expiryIndexMax, columns=['Call Volume'])
-        dfNextFriMax = pd.DataFrame(list(maxMoveTuples[2].Call), index=nextFriIndexMax, columns=['Call Volume'])
+
 
         dfExpiryMax = getOptionPrice.getStockOptionPrice(ib, aSymbol, dfExpiryMax, aMaxRight, yahooEarningDf.loc[i,].close)
         dfNextFriMax = getOptionPrice.getStockOptionPrice(ib, aSymbol, dfNextFriMax, aMaxRight, yahooEarningDf.loc[i,].close)
 
         dfExpiryMin = pd.DataFrame(list(minMoveTuples[3].Put), index=expiryIndexMin, columns=['Put Volume'])
-        dfNextFriMin = pd.DataFrame(list(minMoveTuples[2].Put), index=nextFriIndexMin, columns=['Put Volume'])
+
 
         dfExpiryMin = getOptionPrice.getStockOptionPrice(ib, aSymbol, dfExpiryMin, aMinRight, yahooEarningDf.loc[i,].close)
         dfNextFriMin = getOptionPrice.getStockOptionPrice(ib, aSymbol, dfNextFriMin, aMinRight, yahooEarningDf.loc[i,].close)

@@ -250,7 +250,7 @@ def getHistoricIVnPrice(ib, contract, yahooEarningsDF,  daysPassEarnings = 60, d
 #===============================================================
 def getEstimatedPriceMovefor1Day(ib, qualityContracts, chain):
     """
-    Returns the one day expected price move at 86%
+    Returns the one day expected price move at 84%
 
         Parameters
         ----------
@@ -270,7 +270,7 @@ def getEstimatedPriceMovefor1Day(ib, qualityContracts, chain):
 
 def getEstimatedPercentMovefor1Day(ib, qualityContracts, chain):
     """
-    Returns the one day expected % move at 86%
+    Returns the one day expected % move at 84%
 
         Parameters
         ----------Error 162, reqId 4:
