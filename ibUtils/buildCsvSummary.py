@@ -127,8 +127,13 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
     yahooEarningsDF['Min$MoveCl'] = yahooEarningsDF['Min$MoveCl'].astype(float).map("${:.2f}".format)
 
     # Shorten some Column names and format the column
-    yahooEarningsDF.rename(columns={'avOptionVolume': 'OptVolume'}, inplace=True)
-    yahooEarningsDF['OptVolume'] = yahooEarningsDF['OptVolume'].astype(int)
+    # yahooEarningsDF.rename(columns={'avOptionVolume': 'OptVolume'}, inplace=True)
+    yahooEarningsDF.rename(columns={'PutFridayOpenInterest': 'PutOpenIntst'}, inplace=True)
+    yahooEarningsDF.rename(columns={'CallFridayOpenInterest': 'CallOpenIntst'}, inplace=True)
+    # yahooEarningsDF['OptVolume'] = yahooEarningsDF['OptVolume'].astype(int)
+
+    yahooEarningsDF['PutOpenIntst'] = yahooEarningsDF['PutOpenIntst'].astype(int)
+    yahooEarningsDF['CallOpenIntst'] = yahooEarningsDF['CallOpenIntst'].astype(int)
 
     yahooEarningsDF.rename(columns={'impliedVolatility': 'impVol'}, inplace=True)
     yahooEarningsDF.rename(columns={'impliedVolatility': 'impVol'}, inplace=True)
@@ -141,7 +146,7 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
 
     # rearrange columns
     yahooEarningsDF = yahooEarningsDF[['Earnings_Date', 'Symbol', 'Company', 'Time', 'close', 'last',
-           'OptVolume', 'histVolatility', 'impVol', 'IV_Delta',
+           'PutOpenIntst', 'CallOpenIntst', 'histVolatility', 'impVol', 'IV_Delta',
            'Max%Delta', 'Min%Delta', 'Max%Move','Exp$Range',  'Max$Move', 'Max$MoveCl',
            'Min$MoveCl']]
 
