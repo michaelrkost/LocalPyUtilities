@@ -96,6 +96,19 @@ def getEarningsOnDate(aDay):
     return oneEarningDateDF
 
 def getEarningPage(aURL, earningsDataDF, aDay, numPages=0):
+    """
+    Yahoo will have a number of pages of earnings, here we get Yahoo earnings on specific page
+    Parameters
+    ----------
+    aURL : URL for the specific earnings page
+    earningsDataDF: the DF to keep earnings
+    aDay: the earning day
+    numPages: not used #todo remove numPages
+
+    Returns
+    -------
+    DF w/ Symbol', 'Earnings_Date', 'Company', 'Earnings Call Time'
+    """
 
     result = requests.get(aURL)
 

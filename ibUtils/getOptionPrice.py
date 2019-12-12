@@ -7,7 +7,7 @@ from py_lets_be_rational.exceptions import BelowIntrinsicException
 sys.path.append('/home/michael/jupyter/local-packages')
 
 import math
-from ib_insync import *
+from ib_insync import *  #todo remove ib_insync dependency
 
 # Get my Utilities (localUtilities)
 from localUtilities import dateUtils
@@ -23,7 +23,7 @@ from py_vollib.black.greeks.analytical import *
 
 # **************************************************************************
 
-def getStockOptionPrice(ib, aStockSymbol, strikesDF, aRight, closeCLPrice, exchange = 'SMART'):
+def getStockOptionPrice(ib, aStockSymbol, strikesDF, aRight, closeCLPrice, exchange = 'SMART', ):
         """
         getStockOptionPrices
 
@@ -83,7 +83,13 @@ def getStockOptionPrice(ib, aStockSymbol, strikesDF, aRight, closeCLPrice, excha
             K = aContract.strike
             sigma = 0 # not using here as this is the IV
             flag =  (lambda x: 'c' if aRight == 'C' else 'p')(aRight) # need in lower case
-            t = relativedelta(dateUtils.getDate(anExpiry), datetime.now()).days/365 # get time in years
+
+            # print(' relativedelta(dateUtils.getDate(anExpiry), datetime.now()) ', (relativedelta(dateUtils.getDate(anExpiry), datetime.now()).days))
+
+            #todo this does not work on expiry day because anExpiry and .now are Zero day - get divide by zero error
+            t   = relativedelta(dateUtils.getDate(anExpiry), datetime.now()).days/365 # get time in years
+
+
             r = .02  #todo - update this calculation for treasury bonds
 
             # if calculate IV if there is an option price / ticker.close
@@ -91,7 +97,7 @@ def getStockOptionPrice(ib, aStockSymbol, strikesDF, aRight, closeCLPrice, excha
                 iv = np.nan
             else:
                 try:
-                    # print(ticker.close, F, K, r, t, flag)
+                    print('ticker.close: ', ticker.close, ' F: ', F, ' K: ', K, ' r: ', r, ' t: ', t, ' flag ',flag)
                     iv = implied_volatility(ticker.close, F, K, r, t, flag)
                 except BelowIntrinsicException:
                     print('     ', BelowIntrinsicException, '       getStockOptionPrice')

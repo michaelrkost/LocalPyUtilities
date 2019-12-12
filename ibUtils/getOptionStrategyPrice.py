@@ -52,6 +52,9 @@ def getMinMaxPricePercent(earningsPastStock, earningsPastImpVol, yahooEarningsDF
         dayBeforeEarnings = theEarningDate - datetime.timedelta(days=2)
         # So this should be the day from one day before Earnings + theDays // default theDays to 10
         onEarningDateForward = theEarningDate + datetime.timedelta(days=theDays)
+        # print('dayBeforeEarnings:  ', dayBeforeEarnings)
+        # print('onEarningDateForward:  ', onEarningDateForward)
+        # print('theDays:  ', theDays)
 
         # Create new dataframe from old // example -> old[['A', 'C', 'D']].copy()
         # Create a new DF subset[columns = date,close] of ePSPrice

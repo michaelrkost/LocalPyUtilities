@@ -11,7 +11,8 @@ import os
 import sys
 sys.path.append('/home/michael/jupyter/local-packages')
 
-from ib_insync import *
+from ib_insync import * #todo remove ib_insync dependency
+
 from localUtilities.ibUtils import getOptionStrategyPrice as strat
 from localUtilities.webScrape import getOptionInfo
 
@@ -73,7 +74,7 @@ def addFrozenMarketData(ib, earningsDF):
     return earningsDF
 
 
-def addMarketData(ib, earningsDF, startday):
+def addMarketDataIB(ib, earningsDF, startday):
     """
     Add Market Data / 'histVolatility', 'impliedVolatility', 'avOptionVolume','Expected_Range' /
     to companies in passed DF
@@ -120,7 +121,7 @@ def addMarketData(ib, earningsDF, startday):
         aticker = ib.ticker(contract)
 
         putsOpenInterest, callsOpenInterest = getOptionInfo.getOptionVolumeNextFriExpiryCount(row.Symbol, startday)
-        print('putsOpenInterest: ', putsOpenInterest, 'callsOpenInterest: ', callsOpenInterest)
+        # print('putsOpenInterest: ', putsOpenInterest, 'callsOpenInterest: ', callsOpenInterest)
 
         earningsDF.at[row.Index, 'histVolatility'] = mktData.histVolatility
         earningsDF.at[row.Index, 'impliedVolatility'] = mktData.impliedVolatility
@@ -131,6 +132,50 @@ def addMarketData(ib, earningsDF, startday):
 
         ib.sleep(2)
         ib.cancelMktData(mktData.contract)
+
+    #remove companies w/ less that 500 in Call Open Interest
+    earningsDFOptionVolGood = earningsDF[(earningsDF['CallFridayOpenInterest'] >= 500)]
+
+    return earningsDFOptionVolGood.reset_index(drop=True), earningsDF
+
+def addMarketData(earningsDF, startday):
+    """
+    Add Market Data / 'histVolatility', 'impliedVolatility', 'avOptionVolume','Expected_Range' /
+    to companies in passed DF
+
+    Parameters
+    ----------
+    earningsDF: DF of 'Symbol', 'EarningmktDatas_Date', 'Company', 'Earnings Call Time'
+    startday: the starting date
+
+    Returns
+    -------
+    DF w/ Market Data for companies w/ greater than some number, say 5000,
+    in Option Volume - worthwhile causes
+    """
+
+    earningsDF['histVolatility'] = np.nan
+    earningsDF['impliedVolatility'] = np.nan
+    earningsDF['PutFridayOpenInterest'] = np.nan
+    earningsDF['CallFridayOpenInterest'] = np.nan
+    earningsDF['Expected_Range'] = np.nan
+
+    lenDF = len(earningsDF)
+
+    for row in earningsDF.itertuples():
+        print(row.Symbol, ' -  ', lenDF,  end=", ")
+        lenDF = lenDF - 1
+
+        putsOpenInterest, callsOpenInterest = getOptionInfo.getOptionVolumeNextFriExpiryCount(row.Symbol, startday)
+        # print('putsOpenInterest: ', putsOpenInterest, 'callsOpenInterest: ', callsOpenInterest)
+
+        # earningsDF.at[row.Index, 'histVolatility'] = mktData.histVolatility
+        # earningsDF.at[row.Index, 'impliedVolatility'] = mktData.impliedVolatility
+        earningsDF.at[row.Index, 'PutFridayOpenInterest'] = putsOpenInterest
+        earningsDF.at[row.Index, 'CallFridayOpenInterest'] = callsOpenInterest
+        # earningsDF.at[row.Index, 'Expected_Range'] = strat.getExpectedPriceRangeTillNextExpiryDays( earningsDF.at[row.Index, 'last'] ,
+        #                                                                                            mktData.impliedVolatility)
+
 
     #remove companies w/ less that 500 in Call Open Interest
     earningsDFOptionVolGood = earningsDF[(earningsDF['CallFridayOpenInterest'] >= 500)]

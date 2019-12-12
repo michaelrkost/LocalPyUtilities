@@ -73,7 +73,7 @@ def getDateFromISO8601(date):
 
         Parameters
         ----------
-        date         -- Date in ISO 8601 string formatted: '20180406'
+        date         -- Date in ISO 8601 string formatted: '2018-04-06'
 
         Returns
         -------
