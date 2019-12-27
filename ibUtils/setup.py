@@ -12,7 +12,8 @@ from localUtilities import dateUtils
 
 from yahoofinancials import YahooFinancials
 
-from localUtilities.ibUtils import getStrategyPrice as strat, getOptionInfo
+from localUtilities.ibUtils import getStrategyPrice as strat
+from localUtilities.ibUtils import getOptionInfo
 from localUtilities.webScrape import getMarketData
 
 import numpy as np
@@ -50,7 +51,7 @@ def addMarketData(earningsDF, startday):
     lenDF = len(earningsDF)
 
     for row in earningsDF.itertuples():
-        print(row.Symbol, ' @  ', lenDF,  end=", ")
+        # print(row.Symbol, ' @  ', lenDF,  end=", ")
         lenDF = lenDF - 1
 
         putsOpenInterest, callsOpenInterest = getOptionInfo.getOptionVolumeNextFriExpiryCount(row.Symbol, startday)
@@ -73,7 +74,7 @@ def addMarketData(earningsDF, startday):
                                                                                                    float(dict_MktData['IMPLIED VOLATILITY']))
         #print(earningsDF)
 
-    print('Done.....')
+    print('Done - setup.addMarketData....')
     #remove companies w/ less that 500 in Call Open Interest
     earningsDFOptionVolGood = earningsDF[(earningsDF['CallFridayOpenInterest'] >= 500)]
 
