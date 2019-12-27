@@ -1,9 +1,12 @@
 """
-module: getOptionStrategyPrice
+module: dateUtils
 
 This file is intended to be imported as a module and contains the following
 functions:
 
+    * goOutXWeekdays(startDay, nextXDays) - Get the next nextXDays weekdays - no weekends
+                                            nextXDays: if positive go forward in time / Negative go backwards
+    * getWorkdaysBetween(start, end) - get workdays(not Weekends) from start to end - return list datetime
     * ensureItsaWeekDay(date) - checks if previous date is a weekend - if so return previous weekday
     * getDate('20180718') - return datetime.date
     * getDateFromISO8601('2019-08-19') - return datetime.date
@@ -40,7 +43,125 @@ functions:
 #=============================================================
 import datetime
 
+# Stock Market Holidays 2020/2021
+stockMarketHolidays = [datetime.date(2016, 1, 1),
+                       datetime.date(2016, 1, 18),
+                       datetime.date(2016, 2, 15),
+                       datetime.date(2016, 3, 25),
+                       datetime.date(2016, 5, 30),
+                       datetime.date(2016, 7, 4),
+                       datetime.date(2016, 9, 5),
+                       datetime.date(2016, 11, 24),
+                       datetime.date(2016, 12, 26),
+                       datetime.date(2017, 1, 1),
+                       datetime.date(2017, 1, 16),
+                       datetime.date(2017, 2, 20),
+                       datetime.date(2017, 4, 14),
+                       datetime.date(2017, 5, 29),
+                       datetime.date(2017, 7, 4),
+                       datetime.date(2017, 9, 4),
+                       datetime.date(2017, 11, 23),
+                       datetime.date(2017, 12, 25),
+                       datetime.date(2018, 1, 1),
+                       datetime.date(2018, 1, 15),
+                       datetime.date(2018, 2, 19),
+                       datetime.date(2018, 3, 30),
+                       datetime.date(2018, 5, 28),
+                       datetime.date(2018, 7, 4),
+                       datetime.date(2018, 9, 3),
+                       datetime.date(2018, 11, 22),
+                       datetime.date(2018, 12, 25),
+                       datetime.date(2019, 1, 1),
+                       datetime.date(2019, 1, 21),
+                       datetime.date(2019, 2, 18),
+                       datetime.date(2019, 4, 19),
+                       datetime.date(2019, 5, 27),
+                       datetime.date(2019, 7, 4),
+                       datetime.date(2019, 9, 2),
+                       datetime.date(2019, 11, 28),
+                       datetime.date(2019, 12, 25),
+                       datetime.date(2020, 1, 1), 
+                       datetime.date(2020, 1, 20),
+                       datetime.date(2020, 2, 17),
+                       datetime.date(2020, 4, 10),
+                       datetime.date(2020, 5, 25),
+                       datetime.date(2020, 7, 3),
+                       datetime.date(2020, 9, 7),
+                       datetime.date(2020, 11, 26),
+                       datetime.date(2020, 12, 25),
+                       datetime.date(2021, 1, 1),
+                       datetime.date(2021, 1, 18),
+                       datetime.date(2021, 2, 15),
+                       datetime.date(2021, 4, 2),
+                       datetime.date(2021, 5, 31),
+                       datetime.date(2021, 7, 5),
+                       datetime.date(2021, 9, 6),
+                       datetime.date(2021, 11, 25),
+                       datetime.date(2021, 12, 24)]
+
 #=============================================================
+def goOutXWeekdays(startDate, nextXDays, excluded=(6, 7)):
+    """
+     Get the nextXDays forward or backwards - a positive number moves forward
+     while a negative number returns nextXDays backwards
+     and bypass weekends and Stock Market Holidays
+
+     using isoweekday() where weekends are integers 6 and 7
+
+
+    Parameters
+    ----------
+    aDate : the day in datetime
+    nextXDays: how many days to go out
+
+    Returns
+    -------
+    returnDate /  a weekday
+
+    """
+    # no movement so return the startDate
+    if nextXDays == 0:
+        return startDate
+    # if positive nextXDay number go forward in time
+    elif nextXDays > 0:
+        count = 1
+        while count <= nextXDays:
+            startDate += datetime.timedelta(days=1)
+            if startDate.isoweekday() not in excluded and startDate not in stockMarketHolidays:
+                count += 1
+        return startDate
+    # Negative nextXDay number so go backwards in time
+    else:
+        count = -1
+        while count >= nextXDays:
+            startDate -= datetime.timedelta(days=1)
+            if startDate.isoweekday() not in excluded and startDate not in stockMarketHolidays:
+                count -= 1
+        return startDate
+
+
+def workdaysBetween(start, end, excluded=(6, 7)):
+    """
+     Get the workdays days between start and end - no weekends
+
+    Parameters
+    ----------
+    start : the starting day in datetime
+    end: last day in series
+
+    Returns
+    -------
+    days - list of datatime days with no weekends
+
+    """
+
+    days = []
+    while start.date() <= end.date():
+        if start.isoweekday() not in excluded:
+            days.append(start)
+        start += datetime.timedelta(days=1)
+    return days
+
 
 def ensureItsaWeekDay(aDate):
     """

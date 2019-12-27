@@ -68,7 +68,7 @@ def getPastEarnings(stock="AAPL"):
     earningsDataDF['Earnings_Date'] = earningsDataDF.Earnings_Date.apply(
         lambda date: datetime.datetime.strptime(date, '%b %d, %Y, %I %p %Z'))
 
-    # Drop future dates and reindex
+    # Drop future earnings dates and reindex
     earningsDataDF.drop(earningsDataDF[earningsDataDF['Earnings_Date'] > datetime.datetime.today()].index, inplace=True)
     earningsDataDF = earningsDataDF.reset_index(drop=True)
 

@@ -11,7 +11,7 @@ from ib_insync import *  #todo remove ib_insync dependency
 
 # Get my Utilities (localUtilities)
 from localUtilities import dateUtils
-from localUtilities.ibUtils import getOptionStrategyPrice
+from localUtilities.ibUtils import getStrategyPrice
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -115,7 +115,7 @@ def getStockOptionPrice(ib, aStockSymbol, strikesDF, aRight, closeCLPrice, excha
 
         strikesDF['last'] = lastPrice
         strikesDF['close'] = closePrice
-        strikesDF['impVolList'] = getOptionStrategyPrice.getEqualLenList(impVolList, strikesDF, np.nan)
+        strikesDF['impVolList'] = getStrategyPrice.getEqualLenList(impVolList, strikesDF, np.nan)
 
         # print('aStockSymbol: ', aStockSymbol, '\n', strikesDF)
         return strikesDF

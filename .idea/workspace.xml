@@ -2,15 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9168f15b-1beb-4361-868e-613183b3a7c6" name="Default" comment="">
+      <change afterPath="$PROJECT_DIR$/ibUtils/getOptionStrategyPriceIB.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ibUtils/setupIB.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/webScrape/getMarketData.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/localUtilities.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/localUtilities.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dateUtils.py" beforeDir="false" afterPath="$PROJECT_DIR$/dateUtils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ibUtils/getOptionPrice.py" beforeDir="false" afterPath="$PROJECT_DIR$/ibUtils/getOptionPrice.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ibUtils/getOptionStrategyPrice.py" beforeDir="false" afterPath="$PROJECT_DIR$/ibUtils/getOptionStrategyPrice.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ibUtils/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/ibUtils/setup.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/webScrape/getEarningsOnDate.py" beforeDir="false" afterPath="$PROJECT_DIR$/webScrape/getEarningsOnDate.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webScrape/getOptionInfo.py" beforeDir="false" afterPath="$PROJECT_DIR$/webScrape/getOptionInfo.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -51,14 +50,19 @@
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/ibUtils" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
     <property name="node.js.path.for.package.tslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="web.server" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/ibUtils" />
+    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -72,7 +76,20 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.showVersions">
+  <component name="RunManager" selected="Python Remote Debug.LocalDebugerr">
+    <configuration name="LocalDebugerr" type="PyRemoteDebugConfigurationType" factoryName="Python Remote Debug">
+      <module name="localUtilities" />
+      <option name="PORT" value="0" />
+      <option name="HOST" value="127.0.0.1" />
+      <PathMappingSettings>
+        <option name="pathMappings">
+          <list />
+        </option>
+      </PathMappingSettings>
+      <option name="REDIRECT_OUTPUT" value="true" />
+      <option name="SUSPEND_AFTER_CONNECT" value="true" />
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="localUtilities" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -142,6 +159,7 @@
     <list>
       <item itemvalue="Python.isFriday" />
       <item itemvalue="Python.showVersions" />
+      <item itemvalue="Python Remote Debug.LocalDebugerr" />
     </list>
     <recent_temporary>
       <list>
@@ -166,6 +184,13 @@
       <workItem from="1575841706626" duration="3524000" />
       <workItem from="1576107039428" duration="41000" />
       <workItem from="1576107098423" duration="2531000" />
+      <workItem from="1576158878506" duration="10945000" />
+      <workItem from="1576193931300" duration="1018000" />
+      <workItem from="1576241615309" duration="873000" />
+      <workItem from="1576242503298" duration="1145000" />
+      <workItem from="1576246206804" duration="599000" />
+      <workItem from="1576262729583" duration="7340000" />
+      <workItem from="1576331111336" duration="15424000" />
     </task>
     <servers />
   </component>

@@ -1,8 +1,6 @@
 import requests
 import pandas as pd
-import html5lib
 
-import os
 import sys
 from pathlib import Path 
 sys.path.append('/home/michael/jupyter/local-packages')
@@ -370,7 +368,7 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
 
     return
 
-def saveDiary2Excel(ib, startday):
+def saveDiary2Excel(startday):
 
     companyEarningsWeek = theBaseCompaniesDirectory + startday + '/'
 
