@@ -36,10 +36,10 @@ def getOccVolume(symbol):
     try:
         df = pd.read_html(r.content)[0]
     except ValueError:
-        print('     ', ValueError, 'In getOptionInfo.getOccVolume')
-        print('              Symbol: ', symbol)
+        # print('     ', ValueError, 'In getOptionInfo.getOccVolume')
+        # print('              Symbol: ', symbol)
         df = pd.DataFrame()
-        print('              df.empty: ', df.empty)
+        # print('              df.empty: ', df.empty)
         return df
     df.columns = df.columns.droplevel()
     # Combine Cents/Decimal in Strike price
@@ -71,10 +71,10 @@ If there are no options for Friday goto Monthly else return O
     aOccVolumeDF = getOccVolume(aSymbol)
     # if aOccVolumeDF is empty send back 0 and empty DF
     if aOccVolumeDF.empty:
-        print('returning Empty')
+        print(aSymbol + ':  No OCC Option Volume')
         return (0, 0)
-    else:
-        print('not returing empty')
+    # else:
+    #     print(aSymbol + ':  OCC Option Volumes')
 
 
     # Get the Volume for Next Friday Option Strikes

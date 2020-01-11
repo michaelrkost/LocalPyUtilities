@@ -100,15 +100,16 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
     stocksPastEarningsDF['Volume'] = np.nan
     stocksPastEarningsDF['Low'] = np.nan
     stocksPastEarningsDF['Close'] = np.nan
-
-    stocksPastEarningsDF['EDClosePrice'] = np.nan
-    stocksPastEarningsDF['EDPlus1ClosePrice'] = np.nan
-    stocksPastEarningsDF['EDMinus1ClosePrice'] = np.nan
-    stocksPastEarningsDF['EDPlus4ClosePrice'] = np.nan
-    stocksPastEarningsDF['EDMinusPlus4ClosePrice'] = np.nan
-    stocksPastEarningsDF['EDMinusPlus1ClosePrice'] = np.nan
-    stocksPastEarningsDF['EDPlus4ClosePriceDiffPercent'] = np.nan
-    stocksPastEarningsDF['EDPlus1ClosePriceDiffPercent'] = np.nan
+    # Closing Prices of Interest
+    stocksPastEarningsDF['EDClose'] = np.nan          # Earning Day Closing Price
+    stocksPastEarningsDF['EDFwd1DayClose'] = np.nan   # Earning Day Forward 1 Day - Closing Price
+    stocksPastEarningsDF['EDBak1DayClose'] = np.nan   # Earning Day Back 1 Day - Closing Price
+    stocksPastEarningsDF['EDFwd4DayClose'] = np.nan   # Earning Day Forward 4 Days - Closing Price
+    # Deltas on Closing Prices of Interest
+    stocksPastEarningsDF['EDDiffFwd4Close'] = np.nan # Earning Day Subtract the Forward 4 Days Closing Price
+    stocksPastEarningsDF['EDDiffFwd1Close'] = np.nan # Earning Day Subtract the Forward 1 Day Closing Price
+    stocksPastEarningsDF['EDFwd1DayClosePercentDelta'] = np.nan # Earning Day % Delta the Forward 1 Day Closing Price
+    stocksPastEarningsDF['EDFwd4DayClosePercentDelta'] = np.nan # Earning Day % Delta the Forward 4 Day Closing Price
 
 
     theStock = stocksPastEarningsDF.Symbol[0]
@@ -116,7 +117,7 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
     yahoo_financials = YahooFinancials(theStock)
 
     for earnDateRow in stocksPastEarningsDF.itertuples():
-        print(earnDateRow.Symbol, ' / theStock: ', theStock,  ' @  ', lenDF, 'earnDateRow.Index: ',  earnDateRow.Index, end=", ")
+        # print(earnDateRow.Symbol, ' / theStock: ', theStock,  ' @  ', lenDF, 'earnDateRow.Index: ',  earnDateRow.Index, end=", ")
         lenDF = lenDF - 1
 
         # set start and end Date
@@ -150,30 +151,47 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
             print('     ', KeyError, '       setup.addPastMarketData')
             continue
 
-        stocksPastEarningsDF = getEarningsPriceMoves(earnDateRow, historical_stock_pricesDF, stocksPastEarningsDF)
+        stocksPastEarningsDF = getDaysPastEarningsClosePrices(earnDateRow, historical_stock_pricesDF, stocksPastEarningsDF)
+        stocksPastEarningsDF = calcPriceDeltas((stocksPastEarningsDF))
 
-
-    # calculate price and persent deltas
-    stocksPastEarningsDF['EDMinusPlus4ClosePrice'] = stocksPastEarningsDF['EDPlus4ClosePrice'] - stocksPastEarningsDF['EDClosePrice']
-    stocksPastEarningsDF['EDMinusPlus1ClosePrice'] = stocksPastEarningsDF['EDPlus1ClosePrice'] - stocksPastEarningsDF['EDClosePrice']
-
-    stocksPastEarningsDF['EDPlus4ClosePriceDiffPercent'] = 1-(stocksPastEarningsDF['EDClosePrice'] / stocksPastEarningsDF['EDPlus4ClosePrice'])
-    stocksPastEarningsDF['EDPlus1ClosePriceDiffPercent'] = 1-(stocksPastEarningsDF['EDClosePrice'] / stocksPastEarningsDF['EDPlus1ClosePrice'])
-    
-    print('\nDone.........')
 
     return stocksPastEarningsDF
 
+def calcPriceDeltas(stocksPastEarningsDF):
+    """
+    Calculate past earnings Price and Percent Deltas from  historical_stock_prices
 
-def getEarningsPriceMoves(earnDateRow_In, historical_stock_pricesDF_In, stockPastEarningsDF_In, daysAroundEarnings=10):
+    Parameters
+    ----------
+    stockPastEarningsDF:    a pandas DF historic stock prices from yahoofinancials
+
+
+    Returns
+    -------
+    # updated stockPastEarningsDF
+    stocksPastEarningsDF
+
+    """
+
+    # calculate price and persent deltas
+    stocksPastEarningsDF['EDFwd1DayClosePercentDelta'] = 1 - (stocksPastEarningsDF['EDClose'] / stocksPastEarningsDF['EDFwd1DayClose'])
+    stocksPastEarningsDF['EDDiffFwd1Close'] = stocksPastEarningsDF['EDFwd1DayClose'] - stocksPastEarningsDF['EDClose']
+
+    stocksPastEarningsDF['EDFwd4DayClosePercentDelta'] = 1 - (stocksPastEarningsDF['EDClose'] / stocksPastEarningsDF['EDFwd4DayClose'])
+    stocksPastEarningsDF['EDDiffFwd4Close'] = stocksPastEarningsDF['EDFwd4DayClose'] - stocksPastEarningsDF['EDClose']
+
+
+    return stocksPastEarningsDF
+
+def getDaysPastEarningsClosePrices(earnDateRow, historical_stock_pricesDF, stockPastEarningsDF, daysAroundEarnings=10):
     """
     Get earning closing price data from  historical_stock_prices for days before / after ----
 
     Parameters
     ----------
-    earnDateRow_In : current row in yahooEarningsDF / aStock
-    historical_stock_pricesDF_In: Get historic stock prices from yahoofinancials :             Stock symbol string
-    stockPastEarningsDF_In:    a pandas DF of scraped companies and earnings data
+    earnDateRow : current row in yahooEarningsDF / aStock
+    historical_stock_pricesDF:  historic stock prices from yahoofinancials :             Stock symbol string
+    stockPastEarningsDF:    companies and earnings data
     daysAroundEarnings: Number for Number of Days before / after Earnings date
 
     Returns
@@ -182,21 +200,25 @@ def getEarningsPriceMoves(earnDateRow_In, historical_stock_pricesDF_In, stockPas
     yahooEarningsDF
         """
 
-    # get current earningsdate
-    earningsDate = earnDateRow_In.Earnings_Date.date()
-    stockPastEarningsDF_In.at[earnDateRow_In.Index, 'EDClosePrice'] = historical_stock_pricesDF_In.close[earningsDate]
+    # get current earnings date
+    # Earning Day Closing Price
+    earningsDate = earnDateRow.Earnings_Date.date()
+    stockPastEarningsDF.at[earnDateRow.Index, 'EDClose'] = historical_stock_pricesDF.close[earningsDate]
 
     # the day before earnings date
+    # Earning Day Back 1 Day - Closing Price
     theEDMinus1Date = dateUtils.goOutXWeekdays(earningsDate, -1)
-    stockPastEarningsDF_In.at[earnDateRow_In.Index, 'EDMinus1ClosePrice'] = historical_stock_pricesDF_In.close[theEDMinus1Date]
+    stockPastEarningsDF.at[earnDateRow.Index, 'EDBak1DayClose'] = historical_stock_pricesDF.close[theEDMinus1Date]
 
     # the day after earnings date
+    # Earning Day Forward 1 Day - Closing Price
     theEDPlus1Date = dateUtils.goOutXWeekdays(earningsDate, 1)
-    stockPastEarningsDF_In.at[earnDateRow_In.Index, 'EDPlus1ClosePrice'] = historical_stock_pricesDF_In.close[theEDPlus1Date]
+    stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd1DayClose'] = historical_stock_pricesDF.close[theEDPlus1Date]
 
     # plus 4 days after earnings date
+    # Earning Day Forward 4 Days Closing Price
     theEDplus4Date = dateUtils.goOutXWeekdays(earningsDate, 4)
-    stockPastEarningsDF_In.at[earnDateRow_In.Index, 'EDPlus4ClosePrice'] = historical_stock_pricesDF_In.close[theEDplus4Date]
+    stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd4DayClose'] = historical_stock_pricesDF.close[theEDplus4Date]
 
-    return stockPastEarningsDF_In
+    return stockPastEarningsDF
 

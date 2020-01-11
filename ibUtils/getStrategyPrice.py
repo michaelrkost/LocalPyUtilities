@@ -146,8 +146,8 @@ def getExpectedPriceRangeTillNextExpiryDays(underlyingPrice, impVol):
     -------
 
     """
-    print('underlyingPrice: ', type(underlyingPrice))
-    print('impVol: ', type(impVol))
+    # print('underlyingPrice: ', type(underlyingPrice))
+    # print('impVol: ', type(impVol))
 
     try:
         priceTimesImpvol = underlyingPrice * impVol
