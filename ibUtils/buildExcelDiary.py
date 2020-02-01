@@ -32,17 +32,25 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
     outExcelFile = companyEarningsWeek + 'SummaryWeekOf-' + startday + excelSuffix
 
     # Create a Pandas Excel writer using XlsxWriter as the engine
-    # assuming Path is setup
+    # assuming Path is setup to outExcelFile
     writer = pd.ExcelWriter(outExcelFile, engine='xlsxwriter')
 
     summaryWorkbook = writer.book
     fmt = summaryWorkbook.add_format()
 
-    # Summary Sheet Name
+    # create first tab as Summary Earnings
+    # turn off the header so it can be formatted
     yahooEarningsDF.to_excel(writer, sheet_name='Summary Earnings')
+    worksheet = writer.sheets['Summary Earnings']
 
-    for i in range(0, len(yahooEarningsDF)):
-        # get the symbol and transpose data to fit Horizontally, creat sheet
+    # number of Stocks / i.e. Rows in Summary Earnings Tab
+    len_yahooEarningsDF = len(yahooEarningsDF)
+
+    # write out each Stock Symbol info from the stock CSV file into an excel tab
+    for i in range(0, len_yahooEarningsDF):
+        # from yahooEarningsDF get the symbol and then transpose data to fit Horizontally, creat sheet
+        # this is the Stock Tab top 3 rows that include Current Earnings info as well as other info like
+        #     options volume, expected price changes, and delta price IV - etc
         aSymbol = yahooEarningsDF.loc[i,].Symbol
         theHeader = yahooEarningsDF.loc[i,].to_frame()
         theHeaderTransposed = theHeader.T
@@ -50,25 +58,24 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
 
         inCsvFile_aSymbol = companyEarningsWeek + aSymbol + csvSuffix
         yahooEarningsDf_aSymbol = pd.read_csv(inCsvFile_aSymbol, index_col=0)
+        # start adding to data to tab after the Current Earnings info - see above
         startRow = 3
-
+        # get date
         yahooEarningsDF.at[i, "Earnings_Date"] = dateUtils.getDateFromISO8601(yahooEarningsDF.loc[i,].Earnings_Date)
-
+        # add the data
         yahooEarningsDf_aSymbol.to_excel(writer, sheet_name= aSymbol,  startrow=startRow)
 
-    # Convert the dataframe to an XlsxWriter Excel object.
-    # yahooEarningDf.to_excel(writer, sheet_name='Week of ' + startday)
 
-    # format Earnings_Date Column C Row to len(yahooEarningsDF)+1
+    # cellRowFormat = summaryWorkbook.add_format({'bold': True, 'bg_color': 'red'})  #hex ccffcc  / R:204 G: 255 B: 204
+    # cellLtGreenFormat = summaryWorkbook.add_format({'bold': True, 'bg_color': '#CCFFCC'})
+    # cellColFormat.set_shrink()
+    #
+    percentFormat  = summaryWorkbook.add_format({'num_format': '0.0%'})
+    currencyFormat = summaryWorkbook.add_format({'num_format': '$#,##0.00'})
 
-    worksheet = writer.sheets['Summary Earnings']
-
-    cellRowFormat = summaryWorkbook.add_format({'bold': True, 'bg_color': 'green'})
-    cellColFormat = summaryWorkbook.add_format()
-    cellColFormat.set_shrink()
-
-    worksheet.set_column(0, 20, 15 ,cellColFormat)
-    worksheet.set_row(0, 15, cellRowFormat)
+    worksheet.set_column('H:J', 10, percentFormat)
+    worksheet.set_column('N:N', 10, currencyFormat)
+    worksheet.set_column('O:V', 10, percentFormat)
 
     # Close the Pandas Excel writer and output the Excel file.
     writer.save()

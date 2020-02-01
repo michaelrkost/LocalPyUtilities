@@ -70,8 +70,8 @@ def getEarningsOnDate(aDay):
         for div_tag in soup.find_all('div', {'id': 'fin-cal-table'}):
             for aspan in div_tag.find('h3'):
                 for anotherSPan in aspan.find_all('span', {'data-reactid': '8'}):
-                    print(aspan.text)
                     numPages = math.ceil(int(aspan.text[aspan.text.find(front) + 2: aspan.text.find(back)])/100)
+                    print(aspan.text)
     except TypeError:
         print('No earnings found.')    # todo  - move this first aDay out of this loop
         return 0

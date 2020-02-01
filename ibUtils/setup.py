@@ -54,7 +54,7 @@ def addMarketData(earningsDF, startday):
         # print(row.Symbol, ' @  ', lenDF,  end=", ")
         lenDF = lenDF - 1
 
-        putsOpenInterest, callsOpenInterest = getOptionInfo.getOptionVolumeNextFriExpiryCount(row.Symbol, startday)
+        putsOpenInterest, callsOpenInterest = getOptionInfo.getOptionVolumeNextFriExpiryCount(row.Symbol, startday,lenDF)
         dict_MktData = getMarketData.getMarketDataFromOptionistics(row.Symbol)
 
         # todo can append the dictionary to the DF as well.
@@ -127,6 +127,17 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
         startDateTime = dateUtils.getDateStringDashSeprtors(earnDateRow.Earnings_Date
                                                             -datetime.timedelta(days=daysAroundEarnings))
 
+        # Drop future earnings dates
+        if earnDateRow.Earnings_Date + datetime.timedelta(days=daysAroundEarnings) > datetime.datetime.today():
+            # todo can append the dictionary to the DF as well.
+            stocksPastEarningsDF.at[earnDateRow.Index, 'High']   = np.nan
+            stocksPastEarningsDF.at[earnDateRow.Index, 'Open']   = np.nan
+            stocksPastEarningsDF.at[earnDateRow.Index, 'Volume'] = np.nan
+            stocksPastEarningsDF.at[earnDateRow.Index, 'Low']    = np.nan
+            stocksPastEarningsDF.at[earnDateRow.Index, 'Close']  = np.nan
+            stocksPastEarningsDF.at[earnDateRow.Index, 'Last']   = np.nan
+            continue
+
         # Get historic stock prices from yahoofinancials within daysAroundEarnings timeframe
         historical_stock_prices = yahoo_financials.get_historical_price_data(startDateTime, endDateTime, 'daily')
         historical_stock_pricesDF = pd.DataFrame(historical_stock_prices[theStock]['prices'])
@@ -134,7 +145,6 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
         # recreate index as the 'date' column for price
         historical_stock_pricesDF['date'] = historical_stock_pricesDF['formatted_date'].apply(
             dateUtils.getDateFromISO8601)
-
         historical_stock_pricesDF = historical_stock_pricesDF.set_index("date", drop=False)
         # historical_stock_prices.index = pd.to_datetime(historical_stock_prices.index)
 

@@ -52,7 +52,7 @@ def getOccVolume(symbol):
     return df
 
 
-def getOptionVolumeNextFriExpiryCount(aSymbol, startDay):
+def getOptionVolumeNextFriExpiryCount(aSymbol, startDay, lenDF):
     """
 Calculate the next Friday total Call / Put Open Interest
 If there are no options for Friday goto Monthly else return O
@@ -71,7 +71,7 @@ If there are no options for Friday goto Monthly else return O
     aOccVolumeDF = getOccVolume(aSymbol)
     # if aOccVolumeDF is empty send back 0 and empty DF
     if aOccVolumeDF.empty:
-        print(aSymbol + ':  No OCC Option Volume')
+        print(lenDF, '-  ' + aSymbol + ':  No OCC Option Volume')
         return (0, 0)
     # else:
     #     print(aSymbol + ':  OCC Option Volumes')

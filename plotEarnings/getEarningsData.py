@@ -5,7 +5,14 @@ import numpy as np
 import pandas as pd
 
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Cursor
+
 import matplotlib.dates as mdates
+
+import mplcursors
+
+import matplotlib
+#matplotlib.use('Agg')
 
 # Save the data
 from pathlib import Path
@@ -99,16 +106,26 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, the
 
     ax1.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
 
-    ax1.plot(earningsMdate_np, earnings1DayMove_np, color=color1DayStockMove,
+    ax1.legend(bbox_to_anchor=(1.1, 1.1))
+
+    fig.autofmt_xdate()
+
+    label1Day = ax1.plot(earningsMdate_np, earnings1DayMove_np, color=color1DayStockMove,
              label=ax1LegendLabel1Day, linestyle='--', marker='o')
-    ax1.plot(earningsMdate_np, earnings4DayMove_np, color=color4DayStockMove,
+    label4Day = ax1.plot(earningsMdate_np, earnings4DayMove_np, color=color4DayStockMove,
              label=ax1LegendLabel4Day, linestyle='-', marker='D')
-    plt.axhline(y=0, color='gold', linestyle=':', label=zeroPointLabel)
 
     # build Legend for 2 Xaxis
     lines1, labels1 = ax1.get_legend_handles_labels()
     # lines2, labels2 = ax2.get_legend_handles_labels()
     ax1.legend(bbox_to_anchor=(1.1, 1.1))
 
-    # fig.autofmt_xdate()
-    # plt.show()
+    fig.autofmt_xdate()
+
+    plt.axhline(y=0, color='maroon', linestyle=':', label=zeroPointLabel)
+    plt.grid()
+
+
+    # cursor = Cursor(ax1, horizOn=True, vertOn=True, color='green')
+
+    plt.show()

@@ -76,14 +76,10 @@ def getVolAndUpdateMoveDelta(yahooEarningsDF, earningWeekDir):
     print('in createWeekSummary')
     # Get % IV Delta
     yahooEarningsDF['IV_Delta'] = yahooEarningsDF.impliedVolatility - yahooEarningsDF.histVolatility
-    yahooEarningsDF['IV_Delta'] = yahooEarningsDF['IV_Delta'].astype(float).map("{:.1%}".format)
 
     # For "Earnings Call Time" column remove all but "before" or "after"
     yahooEarningsDF['Earnings Call Time'] = yahooEarningsDF['Earnings Call Time'].str[:5]
     yahooEarningsDF.rename(columns={'Earnings Call Time': 'Time'}, inplace=True)
-
-    yahooEarningsDF.histVolatility = yahooEarningsDF.histVolatility.astype(float).map("{:.1%}".format)
-    yahooEarningsDF.impliedVolatility = yahooEarningsDF.impliedVolatility.astype(float).map("{:.1%}".format)
 
     return updateDiary(yahooEarningsDF, earningWeekDir) #returns updated yahooEarningsDF
 
@@ -108,7 +104,8 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
     maxFwd4PriceDeltaABS = []
 
     stdFwd4 = []
-    sdtFwd1 = []
+    stdFwd1 = []
+    stdFwd1Fwd4 = []
 
     varFwd4 = []
     varFwd1 = []
@@ -155,7 +152,10 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
                                         anEarningWeeksCompany['EDDiffFwd1Close'].max()))
 
             stdFwd4.append(anEarningWeeksCompany['EDFwd4DayClosePercentDelta'].std())
-            sdtFwd1.append(anEarningWeeksCompany['EDFwd1DayClosePercentDelta'].std())
+            stdFwd1.append(anEarningWeeksCompany['EDFwd1DayClosePercentDelta'].std())
+
+            stdFwd1Fwd4_concat = pd.concat([anEarningWeeksCompany['EDFwd1DayClosePercentDelta'], anEarningWeeksCompany['EDFwd4DayClosePercentDelta']])
+            stdFwd1Fwd4.append(stdFwd1Fwd4_concat.std())
 
             varFwd4.append(anEarningWeeksCompany['EDFwd4DayClosePercentDelta'].var())
             varFwd1.append(anEarningWeeksCompany['EDFwd1DayClosePercentDelta'].var())
@@ -188,10 +188,11 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
             maxFwd4PriceDeltaABS.append(np.nan)
 
             stdFwd4.append(np.nan)
-            sdtFwd1.append(np.nan)
+            stdFwd1.append(np.nan)
+            stdFwd1Fwd4.append(np.nan)
 
             stdFwd4.append(np.nan)
-            sdtFwd1.append(np.nan)
+            stdFwd1.append(np.nan)
 
             varFwd4.append(np.nan)
             varFwd1.append(np.nan)
@@ -223,7 +224,9 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
     yahooEarningsDF['maxFwd4PriceDeltaABS'] = maxFwd4PriceDeltaABS
 
     yahooEarningsDF['stdFwd4%'] = stdFwd4
-    yahooEarningsDF['sdtFwd1%'] = sdtFwd1
+    yahooEarningsDF['stdFwd1%'] = stdFwd1
+    # get the Sample Population Standard Deviation for FWD1 and FWD4
+    yahooEarningsDF['stdFwd1Fwd4%'] = stdFwd1Fwd4
 
     yahooEarningsDF['varFwd4%'] = varFwd4
     yahooEarningsDF['varFwd1%'] = varFwd1
@@ -237,51 +240,14 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
     # yahooEarningsDF['modeFwd4%'] = modeFwd4
     # yahooEarningsDF['modeFwd1%'] = modeFwd1
 
-    yahooEarningsDF = cleanUpFormats(yahooEarningsDF)
+    yahooEarningsDF = yahooEarningsDF.sort_values(by=['stdFwd1Fwd4%'], ascending=False)
+
+    yahooEarningsDF = cleanUpColumns(yahooEarningsDF)
 
     return yahooEarningsDF
 
 
-def cleanUpFormats(yahooEarningsDF):
-
-    # yahooEarningsDF['Max%Delta'] = yahooEarningsDF['Max%Delta'].map("{:.2%}".format)
-    # yahooEarningsDF['Min%Delta'] = yahooEarningsDF['Min%Delta'].map("{:.2%}".format)
-    # yahooEarningsDF['Max%Move'] = yahooEarningsDF['Max%Move'].map("{:.2%}".format)
-    # yahooEarningsDF['Max%$MoveOnClose'] = yahooEarningsDF['Max%$MoveOnClose'].astype(float).map("${:.2f}".format)
-    #
-    # yahooEarningsDF['Max$MoveCl'] = yahooEarningsDF['Max$MoveCl'].astype(float).map("${:.2f}".format)
-    # yahooEarningsDF['Min$MoveCl'] = yahooEarningsDF['Min$MoveCl'].astype(float).map("${:.2f}".format)
-
-    yahooEarningsDF['maxFwd4PercentDelta']    = yahooEarningsDF['maxFwd4PercentDelta'].map("{:.2%}".format)
-    yahooEarningsDF['minFwd4PercentDelta']    = yahooEarningsDF['minFwd4PercentDelta'].map("{:.2%}".format)
-    yahooEarningsDF['maxFwd4PercentDeltaABS'] = yahooEarningsDF['maxFwd4PercentDeltaABS'].map("{:.2%}".format)
-
-    yahooEarningsDF['maxFwd1PercentDelta']    = yahooEarningsDF['maxFwd1PercentDelta'].map("{:.2%}".format)
-    yahooEarningsDF['minFwd1PercentDelta']    = yahooEarningsDF['minFwd1PercentDelta'].map("{:.2%}".format)
-    yahooEarningsDF['maxFwd1PercentDeltaABS'] = yahooEarningsDF['maxFwd1PercentDeltaABS'].map("{:.2%}".format)
-
-    yahooEarningsDF['maxFwd1PriceDelta']    = yahooEarningsDF['maxFwd1PriceDelta'].astype(float).map("${:.2f}".format)
-    yahooEarningsDF['minFwd1PriceDelta']    = yahooEarningsDF['minFwd1PriceDelta'].astype(float).map("${:.2f}".format)
-    yahooEarningsDF['maxFwd1PriceDeltaABS'] = yahooEarningsDF['maxFwd1PriceDeltaABS'].astype(float).map("${:.2f}".format)
-
-    yahooEarningsDF['maxFwd4PriceDelta']    = yahooEarningsDF['maxFwd4PriceDelta'].astype(float).map("${:.2f}".format)
-    yahooEarningsDF['minFwd4PriceDelta']    = yahooEarningsDF['minFwd4PriceDelta'].astype(float).map("${:.2f}".format)
-    yahooEarningsDF['maxFwd4PriceDeltaABS'] = yahooEarningsDF['maxFwd4PriceDeltaABS'].astype(float).map("${:.2f}".format)
-
-    yahooEarningsDF['stdFwd4%']    = yahooEarningsDF['stdFwd4%'].map("{:.2%}".format)
-    yahooEarningsDF['sdtFwd1%']    = yahooEarningsDF['sdtFwd1%'].map("{:.2%}".format)
-
-    yahooEarningsDF['varFwd4%']    = yahooEarningsDF['varFwd4%'].map("{:.2%}".format)
-    yahooEarningsDF['varFwd1%']    = yahooEarningsDF['varFwd1%'].map("{:.2%}".format)
-
-    yahooEarningsDF['meanFwd4%']   = yahooEarningsDF['meanFwd4%'].map("{:.2%}".format)
-    yahooEarningsDF['meanFwd1%']   = yahooEarningsDF['meanFwd1%'].map("{:.2%}".format)
-
-    yahooEarningsDF['medianFwd4%'] = yahooEarningsDF['medianFwd4%'].map("{:.2%}".format)
-    yahooEarningsDF['medianFwd1%'] = yahooEarningsDF['medianFwd1%'].map("{:.2%}".format)
-
-    # yahooEarningsDF['modeFwd4%']   = yahooEarningsDF['modeFwd4%'].map("{:.2%}".format)
-    # yahooEarningsDF['modeFwd1%']   = yahooEarningsDF['modeFwd1%'].map("{:.2%}".format)
+def cleanUpColumns(yahooEarningsDF):
 
     # Shorten some Column names and format the column
     yahooEarningsDF.rename(columns={'PutFridayOpenInterest': 'PutOpenIntst'}, inplace=True)
@@ -294,20 +260,12 @@ def cleanUpFormats(yahooEarningsDF):
     yahooEarningsDF.rename(columns={'histVolatility': 'histVol'}, inplace=True)
 
     yahooEarningsDF.rename(columns={'Expected_Range': 'Exp$Range'}, inplace=True)
-    yahooEarningsDF['Exp$Range'] = yahooEarningsDF['Exp$Range'].astype(float).map("${:.2f}".format)
-
-    yahooEarningsDF['Close'] = yahooEarningsDF['Close'].astype(float).map("${:.2f}".format)
-    yahooEarningsDF['Last'] = yahooEarningsDF['Last'].astype(float).map("${:.2f}".format)
 
     # rearrange columns
     yahooEarningsDF = yahooEarningsDF[['Symbol', 'Company', 'Earnings_Date', 'Time', 'Volume',
-                                       'High', 'Low', 'Last', 'Open', 'Close', 'Last', 'histVol',
-                                       'impVol', 'IV_Delta', 'Option_Volume', 'PutOpenIntst',
-                                       'CallOpenIntst', 'Exp$Range', 'maxFwd4PercentDelta', 'minFwd4PercentDelta',
-                                       'maxFwd4PercentDeltaABS', 'maxFwd1PercentDeltaABS', 'maxFwd1PercentDelta',
-                                       'minFwd1PercentDelta', 'maxFwd1PriceDelta', 'minFwd1PriceDelta',
-                                       'maxFwd1PriceDeltaABS', 'maxFwd4PriceDeltaABS', 'maxFwd4PriceDelta',
-                                       'minFwd4PriceDelta', 'stdFwd4%', 'sdtFwd1%', 'varFwd4%', 'varFwd1%',
-                                       'meanFwd4%', 'meanFwd1%', 'medianFwd4%', 'medianFwd1%']]
+                                       'Close', 'histVol','impVol', 'IV_Delta', 'Option_Volume', 'PutOpenIntst',
+                                       'CallOpenIntst', 'Exp$Range', 'maxFwd4PercentDelta','maxFwd4PercentDeltaABS',
+                                       'maxFwd1PercentDelta', 'minFwd1PercentDelta', 'maxFwd1PercentDeltaABS', 'stdFwd4%', 'stdFwd1%', 'stdFwd1Fwd4%']]
+
 
     return yahooEarningsDF
