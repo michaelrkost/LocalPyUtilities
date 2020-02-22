@@ -86,17 +86,17 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     formatter.formats = ["%b-%d-%Y"]
 
     # Set colors and labels  Earnings Move ----------------
-    color1DayStockMove = 'tab:blue'
+    color1DayStockMove = 'gold'
     color4DayStockMove = 'darkorange'
     xLabel = 'Earnings Dates'
-    xLabelColor = 'maroon'
-    yLabelStockDeltaColor = 'tab:blue'
+    xLabelColor = 'slategray'
+    yLabelStockDeltaColor = color4DayStockMove
     yLabel1DayStockMove = 'Stock % Delta @ 1 Day Close Price'
     yLabel4DayStockMove = 'Stock % Delta @ 4 Day Close Price'
     yLabelStockDeltaTitle = 'Stock % Delta'
     ax1LegendLabel1Day = "1-Day % Move"
     ax1LegendLabel4Day = "4-Day % Move"
-    zeroPointLabel = '@ 0.0'
+    zeroPointLabel = '@ $0.0 Move'
 
     # set title
     theTitle = theStock + '  -- 1-Day VS 4-Days Past Earnings $ Delta & EPS Estimate/Reported/Suprise'
@@ -104,6 +104,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     # Set colors and labels  EPS Move
     colorReportedEPS = 'forestgreen'
     colorEstimatedEPS = 'dodgerblue'
+    colorSupriseEPS = 'firebrick'
     colorLabel = 'green'
     #,'EPS_Estimate','Reported_EPS','Surprise(%)
     ax2LegendReportedEPS  = "Reported EPS"
@@ -137,12 +138,12 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     earningsMovePlt.set_xlabel(xLabel, color=xLabelColor)
     earningsMovePlt.set_ylabel(yLabelStockDeltaTitle, color=yLabelStockDeltaColor)
     earningsEpsPlt.set_ylabel('EPS', color=colorLabel)
-    earningsEpsSuprisePlt.set_ylabel('Suprise %', color='red')
+    earningsEpsSuprisePlt.set_ylabel('Suprise %', color=colorSupriseEPS)
     # Set tick
     earningsMovePlt.tick_params(axis='y', labelcolor=yLabelStockDeltaColor)
     earningsMovePlt.tick_params(axis='x', labelcolor=xLabelColor)
     earningsEpsPlt.tick_params(axis='y', labelcolor=colorLabel)
-    earningsEpsSuprisePlt.tick_params(axis='y', labelcolor='red')
+    earningsEpsSuprisePlt.tick_params(axis='y', labelcolor=colorSupriseEPS)
 
     lines2, labels2 = earningsEpsPlt.get_legend_handles_labels()
     # build Legend for 2nd Xaxis
@@ -152,11 +153,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     earningsMovePlt.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
     fig.autofmt_xdate()
 
-
-    # plot Surprise EPS Data ---------------------------
-    #earningsEpsSuprisePlt.scatter(earningsMdate_np, earningsDayEPS['Surprise(%)'], label=ax2LegendEstimatedEPS, color='red', marker="D")
-
-    #plt.grid() # not needed at this point
+    plt.grid(color=colorSupriseEPS) # not needed at this point
 
     # plot 1Day and 4Day move
     label1Day = earningsMovePlt.plot(earningsMdate_np, earnings1DayMove_np, color=color1DayStockMove,
@@ -165,19 +162,18 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
              label=ax1LegendLabel4Day, linestyle='-', marker='o')
 
     # Add dotted line for $0 - Price move
-    horzLine = earningsMovePlt.axhline(y=0, color='maroon', linestyle=':', label=zeroPointLabel)
+    horzLine = earningsMovePlt.axhline(y=0, color=color1DayStockMove, linestyle=':', label=zeroPointLabel)
 
     xBar1 = earningsEpsPlt.bar(earningsMdate_np+6, earningsDayEPS.Reported_EPS, 4, label=ax2LegendReportedEPS, color=colorReportedEPS)
-    xBar2 = earningsEpsPlt.bar(earningsMdate_np-2, earningsDayEPS.EPS_Estimate, 4, label=ax2LegendEstimatedEPS, color=colorEstimatedEPS)
-    xBar3 = earningsEpsSuprisePlt.bar(earningsMdate_np+12, earningsDayEPS['Surprise(%)'], 4, label=ax2LegendSupriseEPS, color='red')
+    xBar2 = earningsEpsPlt.bar(earningsMdate_np-1, earningsDayEPS.EPS_Estimate, 4, label=ax2LegendEstimatedEPS, color=colorEstimatedEPS)
+    xBar3 = earningsEpsSuprisePlt.bar(earningsMdate_np+12, earningsDayEPS['Surprise(%)'], 4, label=ax2LegendSupriseEPS, color=colorSupriseEPS)
 
     lines = [label1Day[0],label4Day[0], horzLine, xBar2[0], xBar1[0], xBar3[0]]
     lineLabel = [label1Day[0]._label, label4Day[0]._label,horzLine._label,  xBar2._label, xBar1._label, xBar3._label]
     # set legend to top right
     earningsMovePlt.legend(lines, lineLabel, bbox_to_anchor=(0, 1.1))
 
-
-    cursor = Cursor(earningsMovePlt, horizOn=True, vertOn=True, color='green')
+    #cursor = Cursor(earningsMovePlt, useblit=True, color='red', linewidth=2) #, horizOn=True, vertOn=True, color='green')
 
     plt.show()
 
