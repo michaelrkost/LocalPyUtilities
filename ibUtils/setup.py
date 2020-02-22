@@ -57,6 +57,11 @@ def addMarketData(earningsDF, startday):
         putsOpenInterest, callsOpenInterest = getOptionInfo.getOptionVolumeNextFriExpiryCount(row.Symbol, startday,lenDF)
         dict_MktData = getMarketData.getMarketDataFromOptionistics(row.Symbol)
 
+        # Check if there is data from Optionistics -
+        # Empty dictionaries evaluate to False in Python
+        # - so if no data then break loop
+        if not dict_MktData: continue
+
         # todo can append the dictionary to the DF as well.
         earningsDF.at[row.Index, 'High'] = dict_MktData['HIGH']
         earningsDF.at[row.Index, 'Open'] = dict_MktData['OPEN']
@@ -140,11 +145,19 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
 
         # Get historic stock prices from yahoofinancials within daysAroundEarnings timeframe
         historical_stock_prices = yahoo_financials.get_historical_price_data(startDateTime, endDateTime, 'daily')
-        historical_stock_pricesDF = pd.DataFrame(historical_stock_prices[theStock]['prices'])
+
+        try:
+            historical_stock_pricesDF = pd.DataFrame(historical_stock_prices[theStock]['prices'])
+        except KeyError:
+            print('Stock: ', theStock)
+            print('prices:  ', historical_stock_prices)
+            print('     ', KeyError, '       setup.addPastMarketData')
+            continue
 
         # recreate index as the 'date' column for price
         historical_stock_pricesDF['date'] = historical_stock_pricesDF['formatted_date'].apply(
             dateUtils.getDateFromISO8601)
+
         historical_stock_pricesDF = historical_stock_pricesDF.set_index("date", drop=False)
         # historical_stock_prices.index = pd.to_datetime(historical_stock_prices.index)
 
@@ -215,20 +228,24 @@ def getDaysPastEarningsClosePrices(earnDateRow, historical_stock_pricesDF, stock
     earningsDate = earnDateRow.Earnings_Date.date()
     stockPastEarningsDF.at[earnDateRow.Index, 'EDClose'] = historical_stock_pricesDF.close[earningsDate]
 
-    # the day before earnings date
-    # Earning Day Back 1 Day - Closing Price
-    theEDMinus1Date = dateUtils.goOutXWeekdays(earningsDate, -1)
-    stockPastEarningsDF.at[earnDateRow.Index, 'EDBak1DayClose'] = historical_stock_pricesDF.close[theEDMinus1Date]
+    try:
+        # the day before earnings date
+        # Earning Day Back 1 Day - Closing Price
+        theEDMinus1Date = dateUtils.goOutXWeekdays(earningsDate, -1)
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDBak1DayClose'] = historical_stock_pricesDF.close[theEDMinus1Date]
 
-    # the day after earnings date
-    # Earning Day Forward 1 Day - Closing Price
-    theEDPlus1Date = dateUtils.goOutXWeekdays(earningsDate, 1)
-    stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd1DayClose'] = historical_stock_pricesDF.close[theEDPlus1Date]
+        # the day after earnings date
+        # Earning Day Forward 1 Day - Closing Price
+        theEDPlus1Date = dateUtils.goOutXWeekdays(earningsDate, 1)
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd1DayClose'] = historical_stock_pricesDF.close[theEDPlus1Date]
 
-    # plus 4 days after earnings date
-    # Earning Day Forward 4 Days Closing Price
-    theEDplus4Date = dateUtils.goOutXWeekdays(earningsDate, 4)
-    stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd4DayClose'] = historical_stock_pricesDF.close[theEDplus4Date]
+        # plus 4 days after earnings date
+        # Earning Day Forward 4 Days Closing Price
+        theEDplus4Date = dateUtils.goOutXWeekdays(earningsDate, 4)
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd4DayClose'] = historical_stock_pricesDF.close[theEDplus4Date]
+    except KeyError:
+        print('     KeyError', KeyError, '       setup.getDaysPastEarningsClosePrices')
+        print('     earningsDate:', earningsDate)
 
     return stockPastEarningsDF
 

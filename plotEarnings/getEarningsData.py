@@ -21,6 +21,11 @@ theBaseCompaniesDirectory = '/home/michael/jupyter/earningDateData/Companies/'
 csvSuffix = '.csv'
 excelSuffix = '.xlsx'
 
+def make_patch_spines_invisible(ax):
+    ax.set_frame_on(True)
+    ax.patch.set_visible(False)
+    for sp in ax.spines.values():
+        sp.set_visible(False)
 
 def getWeeklyExcelSummary(startday, theStock):
     print('in getWeeklyExcelSummary')
@@ -30,15 +35,12 @@ def getWeeklyExcelSummary(startday, theStock):
     companyListFile = 'SummaryWeekOf-' + startday + excelSuffix
     theFilePath = theBaseCompaniesDirectory + companyEarningsWeek + companyListFile
     # earningWeekDir = Path(theFilePath)
-#TODo Complete next
-# Complete the loop to get the theStock and then pass to getWeeklyStockTabSummary
+    #TODo Complete next
+    # Complete the loop to get the theStock and then pass to getWeeklyStockTabSummary
 
     return getWeeklyStockTabSummary(theFilePath, theStock)
 
-
 def getWeeklyStockTabSummary(theFilePath, theSymbol):
-
-
 
     # Get theSymbol excel TAB and put in DF
     excelEarningsDateDF = pd.read_excel(theFilePath, theSymbol)
@@ -49,83 +51,133 @@ def getWeeklyStockTabSummary(theFilePath, theSymbol):
 
     # pull out the headers then save the remaining Past Earnings DF
     headers = excelPastEarningsDateDF.iloc[0]
+    # add the headers to DF
     excelPastEarningsDateDF = pd.DataFrame(excelPastEarningsDateDF.values[1:], columns=headers)
 
     # reindex new DF
     excelPastEarningsDateDF.reindex
 
     # create to np array to display in matplotlib!!!!
+    # Past earnings
     earningsMdate_np = excelPastEarningsDateDF.Earnings_Date.values
     earnings1DayMove_np = excelPastEarningsDateDF.EDFwd1DayClosePercentDelta.values
     earnings4DayMove_np = excelPastEarningsDateDF.EDFwd4DayClosePercentDelta.values
 
-#need to set up index with Datetime
+    #need to set up index with Datetime
     earnings1DayCandlestick =  excelPastEarningsDateDF[['Earnings_Date','Open','High','Low', 'Close', 'Volume']]
-    # # earnings1DayCandlestick["Date"] = earnings1DayCandlestick.Earnings_Date.map.to_datetime()
-    # earnings1DayCandlestick = pd.to_datetime(earnings1DayCandlestick['Earnings_Date'] )#+ ' ' + earnings1DayCandlestick['time'], format=format)
-    # earnings1DayCandlestick = earnings1DayCandlestick.set_index('Earnings_Date', drop=False)
+    # Get EPS data
+    earningsDayEPS =  excelPastEarningsDateDF[['Earnings_Date','EPS_Estimate','Reported_EPS','Surprise(%)']]
+
     earnings1DayCandlestick.set_index(pd.DatetimeIndex(earnings1DayCandlestick['Earnings_Date']))
-    # earnings1DayCandlestick.reindex
+    earningsDayEPS.set_index(pd.DatetimeIndex(earningsDayEPS['Earnings_Date']))
 
     # Convert date string to a datenum using dateutil.parser.parse().
     earningsMdate_np = mdates.datestr2num(earningsMdate_np)  # np.core.defchararray.rstrip(earningsDate_np, 10))
 
-    returnList = [earnings1DayMove_np, earnings4DayMove_np, earningsMdate_np, earnings1DayCandlestick]
+    returnList = [earnings1DayMove_np, earnings4DayMove_np, earningsMdate_np, earnings1DayCandlestick, earningsDayEPS]
 
     return returnList
 
-def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, theStock):
+def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS, theStock):
+
+    # Set date formatter
     locator = mdates.AutoDateLocator()
     formatter = mdates.ConciseDateFormatter(locator)
     formatter.formats = ["%b-%d-%Y"]
 
+    # Set colors and labels  Earnings Move ----------------
     color1DayStockMove = 'tab:blue'
     color4DayStockMove = 'darkorange'
     xLabel = 'Earnings Dates'
     xLabelColor = 'maroon'
-    yLabelColor = 'darkgreen'
+    yLabelStockDeltaColor = 'tab:blue'
     yLabel1DayStockMove = 'Stock % Delta @ 1 Day Close Price'
     yLabel4DayStockMove = 'Stock % Delta @ 4 Day Close Price'
-    yLabel = 'Stock % Delta'
+    yLabelStockDeltaTitle = 'Stock % Delta'
     ax1LegendLabel1Day = "1-Day % Move"
     ax1LegendLabel4Day = "4-Day % Move"
     zeroPointLabel = '@ 0.0'
 
-    # single Plot
-    # theStock = excelPastEarningsDateDF.iloc[0,0]
-    fig, ax1 = plt.subplots(figsize=(15, 6))
+    # set title
+    theTitle = theStock + '  -- 1-Day VS 4-Days Past Earnings $ Delta & EPS Estimate/Reported/Suprise'
 
-    theTitle = theStock + '  -- 1-Day VS 4-Days / Past Earnings $ Delta'
+    # Set colors and labels  EPS Move
+    colorReportedEPS = 'forestgreen'
+    colorEstimatedEPS = 'dodgerblue'
+    colorLabel = 'green'
+    #,'EPS_Estimate','Reported_EPS','Surprise(%)
+    ax2LegendReportedEPS  = "Reported EPS"
+    ax2LegendEstimatedEPS = "Estimated EPS"
+    ax2LegendSupriseEPS   = "Surprise(%)"
 
-    ax1.set_title(theTitle)
+    # setup plotting ----------------------------
+    # single Plot for Earnings price moves // Main Plot
+    fig, earningsMovePlt = plt.subplots(figsize=(15, 6))
+    # Setup Plot for a second axes that shares the same x-axis for EPS
+    earningsEpsPlt = earningsMovePlt.twinx()
+    # Setup Plot for a third axes that shares the same x-axis for earning surprise
+    earningsEpsSuprisePlt = earningsMovePlt.twinx()
 
-    ax1.set_xlabel(xLabel, color=xLabelColor)
-    ax1.set_ylabel(yLabel, color=yLabelColor)
-    ax1.tick_params(axis='y', labelcolor=yLabelColor)
-    ax1.tick_params(axis='x', labelcolor=xLabelColor)
+#=========================================================================================
 
-    ax1.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    # Offset the right spine of Suprise ---------------------------
+    # The ticks and label have already been
+    # placed on the right by twinx above.
+    earningsEpsSuprisePlt.spines["right"].set_position(("axes", 1.05))
+    # Having been created by twinx, earningsMovePlt has its frame off, so the line of its
+    # detached spine is invisible.  First, activate the frame but make the patch
+    # and spines invisible.
+    make_patch_spines_invisible(earningsEpsSuprisePlt)
+    # Second, show the right spine.
+    earningsEpsSuprisePlt.spines["right"].set_visible(True)
 
-    ax1.legend(bbox_to_anchor=(1.1, 1.1))
+    # set titles/labels/ticks ----------------------
+    earningsMovePlt.set_title(theTitle)
+    # Set labels
+    earningsMovePlt.set_xlabel(xLabel, color=xLabelColor)
+    earningsMovePlt.set_ylabel(yLabelStockDeltaTitle, color=yLabelStockDeltaColor)
+    earningsEpsPlt.set_ylabel('EPS', color=colorLabel)
+    earningsEpsSuprisePlt.set_ylabel('Suprise %', color='red')
+    # Set tick
+    earningsMovePlt.tick_params(axis='y', labelcolor=yLabelStockDeltaColor)
+    earningsMovePlt.tick_params(axis='x', labelcolor=xLabelColor)
+    earningsEpsPlt.tick_params(axis='y', labelcolor=colorLabel)
+    earningsEpsSuprisePlt.tick_params(axis='y', labelcolor='red')
 
+    lines2, labels2 = earningsEpsPlt.get_legend_handles_labels()
+    # build Legend for 2nd Xaxis
+    lines1, labels1 = earningsMovePlt.get_legend_handles_labels()
+
+    # set xaxis format -------------------------------
+    earningsMovePlt.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
     fig.autofmt_xdate()
 
-    label1Day = ax1.plot(earningsMdate_np, earnings1DayMove_np, color=color1DayStockMove,
+
+    # plot Surprise EPS Data ---------------------------
+    #earningsEpsSuprisePlt.scatter(earningsMdate_np, earningsDayEPS['Surprise(%)'], label=ax2LegendEstimatedEPS, color='red', marker="D")
+
+    #plt.grid() # not needed at this point
+
+    # plot 1Day and 4Day move
+    label1Day = earningsMovePlt.plot(earningsMdate_np, earnings1DayMove_np, color=color1DayStockMove,
              label=ax1LegendLabel1Day, linestyle='--', marker='o')
-    label4Day = ax1.plot(earningsMdate_np, earnings4DayMove_np, color=color4DayStockMove,
-             label=ax1LegendLabel4Day, linestyle='-', marker='D')
+    label4Day = earningsMovePlt.plot(earningsMdate_np, earnings4DayMove_np, color=color4DayStockMove,
+             label=ax1LegendLabel4Day, linestyle='-', marker='o')
 
-    # build Legend for 2 Xaxis
-    lines1, labels1 = ax1.get_legend_handles_labels()
-    # lines2, labels2 = ax2.get_legend_handles_labels()
-    ax1.legend(bbox_to_anchor=(1.1, 1.1))
+    # Add dotted line for $0 - Price move
+    horzLine = earningsMovePlt.axhline(y=0, color='maroon', linestyle=':', label=zeroPointLabel)
 
-    fig.autofmt_xdate()
+    xBar1 = earningsEpsPlt.bar(earningsMdate_np+6, earningsDayEPS.Reported_EPS, 4, label=ax2LegendReportedEPS, color=colorReportedEPS)
+    xBar2 = earningsEpsPlt.bar(earningsMdate_np-2, earningsDayEPS.EPS_Estimate, 4, label=ax2LegendEstimatedEPS, color=colorEstimatedEPS)
+    xBar3 = earningsEpsSuprisePlt.bar(earningsMdate_np+12, earningsDayEPS['Surprise(%)'], 4, label=ax2LegendSupriseEPS, color='red')
 
-    plt.axhline(y=0, color='maroon', linestyle=':', label=zeroPointLabel)
-    plt.grid()
+    lines = [label1Day[0],label4Day[0], horzLine, xBar2[0], xBar1[0], xBar3[0]]
+    lineLabel = [label1Day[0]._label, label4Day[0]._label,horzLine._label,  xBar2._label, xBar1._label, xBar3._label]
+    # set legend to top right
+    earningsMovePlt.legend(lines, lineLabel, bbox_to_anchor=(0, 1.1))
 
 
-    # cursor = Cursor(ax1, horizOn=True, vertOn=True, color='green')
+    cursor = Cursor(earningsMovePlt, horizOn=True, vertOn=True, color='green')
 
     plt.show()
+

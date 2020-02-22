@@ -27,7 +27,12 @@ def getMarketDataFromOptionistics(symbol):
     for div_tag in soup.find_all('div', {'id': 'mainbody'}):
         table = soup.find_all('table', {'class': 'quotem'})
     #got it - now put it in a DF
-    df = pd.read_html(str(table))
+        try: 
+            df = pd.read_html(str(table))
+        except ValueError:
+            print('str(table): ', dict())
+            print('     ValueError', ValueError, '       getMarketData.getMarketDataFromOptionistics')
+            return dict()
 
     # get the last stock price
     lastStockPrice = df[0][6][0]

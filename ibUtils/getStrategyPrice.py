@@ -137,6 +137,13 @@ def getExpectedPriceRangeTillNextExpiryDays(underlyingPrice, impVol):
     Get the expected price range of an underlying at the next
     monthly expiry.
 
+    using:
+    (Stock Price * IV)/SQRT(Days to Expiry/#Days in a Year)
+
+    suggest using: #todo update to this Expected Price Range
+    (Stock Price * IV)/SQRT(#Days in a Year)
+
+
     Parameters
     ----------
     underlyingPrice : price of the underlying stock

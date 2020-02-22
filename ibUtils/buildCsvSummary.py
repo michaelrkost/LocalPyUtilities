@@ -263,8 +263,9 @@ def cleanUpColumns(yahooEarningsDF):
 
     # rearrange columns
     yahooEarningsDF = yahooEarningsDF[['Symbol', 'Company', 'Earnings_Date', 'Time', 'Volume',
+                                       
                                        'Close', 'histVol','impVol', 'IV_Delta', 'Option_Volume', 'PutOpenIntst',
-                                       'CallOpenIntst', 'Exp$Range', 'maxFwd4PercentDelta','maxFwd4PercentDeltaABS',
+                                       'CallOpenIntst', 'Exp$Range', 'maxFwd4PercentDelta','minFwd4PercentDelta', 'maxFwd4PercentDeltaABS',
                                        'maxFwd1PercentDelta', 'minFwd1PercentDelta', 'maxFwd1PercentDeltaABS', 'stdFwd4%', 'stdFwd1%', 'stdFwd1Fwd4%']]
 
 
