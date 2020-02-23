@@ -162,7 +162,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
              label=ax1LegendLabel4Day, linestyle='-', marker='o')
 
     # Add dotted line for $0 - Price move
-    horzLine = earningsMovePlt.axhline(y=0, color=color1DayStockMove, linestyle=':', label=zeroPointLabel)
+    horzLine = earningsMovePlt.axhline(y=0, color='gold', linestyle=':', label=zeroPointLabel)
 
     xBar1 = earningsEpsPlt.bar(earningsMdate_np+6, earningsDayEPS.Reported_EPS, 4, label=ax2LegendReportedEPS, color=colorReportedEPS)
     xBar2 = earningsEpsPlt.bar(earningsMdate_np-1, earningsDayEPS.EPS_Estimate, 4, label=ax2LegendEstimatedEPS, color=colorEstimatedEPS)

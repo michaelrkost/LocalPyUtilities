@@ -38,6 +38,9 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
     summaryWorkbook = writer.book
     fmt = summaryWorkbook.add_format()
 
+    yahooEarningsDF.sort_values(by=['Symbol'], inplace=True)
+    yahooEarningsDF = yahooEarningsDF.reset_index(drop=True)
+
     # create first tab as Summary Earnings
     # turn off the header so it can be formatted
     yahooEarningsDF.to_excel(writer, sheet_name='Summary Earnings')
@@ -75,7 +78,7 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
 
     worksheet.set_column('H:J', 10, percentFormat)
     worksheet.set_column('N:N', 10, currencyFormat)
-    worksheet.set_column('O:V', 10, percentFormat)
+    worksheet.set_column('O:AC', 10, percentFormat)
 
     # Close the Pandas Excel writer and output the Excel file.
     writer.save()

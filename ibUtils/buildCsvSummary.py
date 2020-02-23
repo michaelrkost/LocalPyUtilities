@@ -237,11 +237,6 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
     yahooEarningsDF['medianFwd4%'] = medianFwd4
     yahooEarningsDF['medianFwd1%'] = medianFwd1
 
-    # yahooEarningsDF['modeFwd4%'] = modeFwd4
-    # yahooEarningsDF['modeFwd1%'] = modeFwd1
-
-    yahooEarningsDF = yahooEarningsDF.sort_values(by=['stdFwd1Fwd4%'], ascending=False)
-
     yahooEarningsDF = cleanUpColumns(yahooEarningsDF)
 
     return yahooEarningsDF
@@ -263,10 +258,11 @@ def cleanUpColumns(yahooEarningsDF):
 
     # rearrange columns
     yahooEarningsDF = yahooEarningsDF[['Symbol', 'Company', 'Earnings_Date', 'Time', 'Volume',
-                                       
                                        'Close', 'histVol','impVol', 'IV_Delta', 'Option_Volume', 'PutOpenIntst',
                                        'CallOpenIntst', 'Exp$Range', 'maxFwd4PercentDelta','minFwd4PercentDelta', 'maxFwd4PercentDeltaABS',
-                                       'maxFwd1PercentDelta', 'minFwd1PercentDelta', 'maxFwd1PercentDeltaABS', 'stdFwd4%', 'stdFwd1%', 'stdFwd1Fwd4%']]
+                                       'maxFwd1PercentDelta', 'minFwd1PercentDelta', 'maxFwd1PercentDeltaABS',
+                                       'meanFwd1%', 'stdFwd1%', 'varFwd1%', 'medianFwd1%',  'stdFwd1Fwd4%',
+                                       'meanFwd4%', 'stdFwd4%', 'varFwd4%',  'medianFwd4%']]
 
 
     return yahooEarningsDF
