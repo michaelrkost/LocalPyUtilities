@@ -97,7 +97,11 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
 
     maxFwd1PriceDelta = []
     minFwd1PriceDelta = []
-    maxFwd1PriceDeltaABS = []
+    max1DayABSPriceDelta = []
+
+    std25MinusClose =[]
+    std25PlusClose =[]
+    std25TimesClose = []
     
     maxFwd4PriceDelta = []
     minFwd4PriceDelta = []
@@ -105,6 +109,7 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
 
     stdFwd4 = []
     stdFwd1 = []
+    std25Fwd1 = []
     stdFwd1Fwd4 = []
 
     varFwd4 = []
@@ -125,7 +130,7 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
         print(filePath)
         ckForFile = Path(filePath)
         if ckForFile.is_file():
-            # get CSV file with data
+            # get company's CSV file with data
             anEarningWeeksCompany = pd.read_csv(earningWeekDir / aCompanyFile, index_col=0)
             # Calculate percent Delta for 4 Day movement
             maxFwd4PercentDelta.append(anEarningWeeksCompany['EDFwd4DayClosePercentDelta'].max())
@@ -148,11 +153,12 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
             # Calculate price Delta for 1 Day movement
             maxFwd1PriceDelta.append(anEarningWeeksCompany['EDDiffFwd1Close'].max())
             minFwd1PriceDelta.append(anEarningWeeksCompany['EDDiffFwd1Close'].min())
-            maxFwd1PriceDeltaABS.append(max(abs(anEarningWeeksCompany['EDDiffFwd1Close'].min()),
+            max1DayABSPriceDelta.append(max(abs(anEarningWeeksCompany['EDDiffFwd1Close'].min()),
                                         anEarningWeeksCompany['EDDiffFwd1Close'].max()))
 
             stdFwd4.append(anEarningWeeksCompany['EDFwd4DayClosePercentDelta'].std())
             stdFwd1.append(anEarningWeeksCompany['EDFwd1DayClosePercentDelta'].std())
+            std25Fwd1.append(anEarningWeeksCompany['EDFwd1DayClosePercentDelta'].std()*2.5)
 
             stdFwd1Fwd4_concat = pd.concat([anEarningWeeksCompany['EDFwd1DayClosePercentDelta'], anEarningWeeksCompany['EDFwd4DayClosePercentDelta']])
             stdFwd1Fwd4.append(stdFwd1Fwd4_concat.std())
@@ -181,7 +187,7 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
 
             maxFwd1PriceDelta.append(np.nan)
             minFwd1PriceDelta.append(np.nan)
-            maxFwd1PriceDeltaABS.append(np.nan)
+            max1DayABSPriceDelta.append(np.nan)
 
             maxFwd4PriceDelta.append(np.nan)
             minFwd4PriceDelta.append(np.nan)
@@ -193,6 +199,7 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
 
             stdFwd4.append(np.nan)
             stdFwd1.append(np.nan)
+            std25Fwd1.append(np.nan)
 
             varFwd4.append(np.nan)
             varFwd1.append(np.nan)
@@ -217,7 +224,8 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
 
     yahooEarningsDF['maxFwd1PriceDelta'] = maxFwd1PriceDelta
     yahooEarningsDF['minFwd1PriceDelta'] = minFwd1PriceDelta
-    yahooEarningsDF['maxFwd1PriceDeltaABS'] = maxFwd1PriceDeltaABS
+    yahooEarningsDF['max1DayABS$Delta'] = max1DayABSPriceDelta
+
 
     yahooEarningsDF['maxFwd4PriceDelta'] = maxFwd4PriceDelta
     yahooEarningsDF['minFwd4PriceDelta'] = minFwd4PriceDelta
@@ -225,9 +233,27 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
 
     yahooEarningsDF['stdFwd4%'] = stdFwd4
     yahooEarningsDF['stdFwd1%'] = stdFwd1
-    # get the Sample Population Standard Deviation for FWD1 and FWD4
-    yahooEarningsDF['stdFwd1Fwd4%'] = stdFwd1Fwd4
+    yahooEarningsDF['std25Fwd1%'] = std25Fwd1
+    yahooEarningsDF['std25Fwd1$TimesClose'] = (yahooEarningsDF['std25Fwd1%'] * yahooEarningsDF['Close'])
+    # yahooEarningsDF['std25Fwd1MinusClose'] = yahooEarningsDF['Close'] - yahooEarningsDF['std25Fwd1%TimesClose']
+    # yahooEarningsDF['std25Fwd1PlusClose']  = yahooEarningsDF['Close'] + yahooEarningsDF['std25Fwd1%TimesClose']
+    yahooEarningsDF['ABSFwd1MinusClose'] = yahooEarningsDF['Close'] - yahooEarningsDF['max1DayABS$Delta']
+    yahooEarningsDF['ABSFwd1PlusClose']  = yahooEarningsDF['Close'] + yahooEarningsDF['max1DayABS$Delta']
 
+    # std25Fwd1.append(anEarningWeeksCompany['EDFwd1DayClosePercentDelta'].std() * 2.5)
+    # std25TimesClose.append(std25Fwd1 * anEarningWeeksCompany['Close'])
+    # # TODO -- Fix this
+    # # std25MinusClose.append(anEarningWeeksCompany['Close']-(std25Fwd1*anEarningWeeksCompany['Close']))
+    # # std25PlusClose.append(anEarningWeeksCompany['Close']+(std25Fwd1*anEarningWeeksCompany['Close']))
+    # # TODO -- Fix this
+    # # std25MinusClose.append(anEarningWeeksCompany['Close']-(std25Fwd1*anEarningWeeksCompany['Close']))
+    # # std25PlusClose.append(anEarningWeeksCompany['Close']+(std25Fwd1*anEarning
+    # yahooEarningsDF['std25TimesClose'] = std25TimesClose
+
+
+
+
+    yahooEarningsDF['stdFwd1Fwd4%'] = stdFwd1Fwd4
     yahooEarningsDF['varFwd4%'] = varFwd4
     yahooEarningsDF['varFwd1%'] = varFwd1
 
@@ -257,12 +283,16 @@ def cleanUpColumns(yahooEarningsDF):
     yahooEarningsDF.rename(columns={'Expected_Range': 'Exp$Range'}, inplace=True)
 
     # rearrange columns
+    # yahooEarningsDF = yahooEarningsDF[['Symbol', 'Company', 'Earnings_Date', 'Time', 'Volume',
+    #                                    'Close', 'histVol','impVol', 'IV_Delta', 'Option_Volume', 'PutOpenIntst',
+    #                                    'CallOpenIntst', 'Exp$Range', 'maxFwd4PercentDelta','minFwd4PercentDelta', 'maxFwd4PercentDeltaABS',
+    #                                    'maxFwd1PercentDelta', 'minFwd1PercentDelta', 'maxFwd1PercentDeltaABS',
+    #                                    'meanFwd1%', 'stdFwd1%', 'varFwd1%', 'medianFwd1%',  'stdFwd1Fwd4%',
+    #                                    'meanFwd4%', 'stdFwd4%', 'varFwd4%',  'medianFwd4%']]
     yahooEarningsDF = yahooEarningsDF[['Symbol', 'Company', 'Earnings_Date', 'Time', 'Volume',
-                                       'Close', 'histVol','impVol', 'IV_Delta', 'Option_Volume', 'PutOpenIntst',
-                                       'CallOpenIntst', 'Exp$Range', 'maxFwd4PercentDelta','minFwd4PercentDelta', 'maxFwd4PercentDeltaABS',
-                                       'maxFwd1PercentDelta', 'minFwd1PercentDelta', 'maxFwd1PercentDeltaABS',
-                                       'meanFwd1%', 'stdFwd1%', 'varFwd1%', 'medianFwd1%',  'stdFwd1Fwd4%',
-                                       'meanFwd4%', 'stdFwd4%', 'varFwd4%',  'medianFwd4%']]
+                                       'histVol','impVol', 'IV_Delta', 'Option_Volume', 'PutOpenIntst',
+                                       'CallOpenIntst', 'Exp$Range', 'stdFwd1%', 'std25Fwd1%',
+                                       'Close', 'max1DayABS$Delta','std25Fwd1$TimesClose','ABSFwd1MinusClose', 'ABSFwd1PlusClose']]
 
 
     return yahooEarningsDF

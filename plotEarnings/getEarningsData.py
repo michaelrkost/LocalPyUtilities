@@ -86,7 +86,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     formatter.formats = ["%b-%d-%Y"]
 
     # Set colors and labels  Earnings Move ----------------
-    color1DayStockMove = 'gold'
+    color1DayStockMove = 'navy'
     color4DayStockMove = 'darkorange'
     xLabel = 'Earnings Dates'
     xLabelColor = 'slategray'
@@ -162,7 +162,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
              label=ax1LegendLabel4Day, linestyle='-', marker='o')
 
     # Add dotted line for $0 - Price move
-    horzLine = earningsMovePlt.axhline(y=0, color='gold', linestyle=':', label=zeroPointLabel)
+    horzLine = earningsMovePlt.axhline(y=0, color='navy', linestyle=':', label=zeroPointLabel)
 
     xBar1 = earningsEpsPlt.bar(earningsMdate_np+6, earningsDayEPS.Reported_EPS, 4, label=ax2LegendReportedEPS, color=colorReportedEPS)
     xBar2 = earningsEpsPlt.bar(earningsMdate_np-1, earningsDayEPS.EPS_Estimate, 4, label=ax2LegendEstimatedEPS, color=colorEstimatedEPS)
@@ -171,7 +171,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     lines = [label1Day[0],label4Day[0], horzLine, xBar2[0], xBar1[0], xBar3[0]]
     lineLabel = [label1Day[0]._label, label4Day[0]._label,horzLine._label,  xBar2._label, xBar1._label, xBar3._label]
     # set legend to top right
-    earningsMovePlt.legend(lines, lineLabel, bbox_to_anchor=(0, 1.1))
+    earningsMovePlt.legend(lines, lineLabel,bbox_to_anchor=(0.96, 0.02))
 
     #cursor = Cursor(earningsMovePlt, useblit=True, color='red', linewidth=2) #, horizOn=True, vertOn=True, color='green')
 
