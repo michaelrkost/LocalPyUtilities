@@ -4,6 +4,11 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 
+# Chrome linux User Agent - needed to not get blocked as a bot
+headers = {
+ 'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
+
+
 def getMarketDataFromOptionistics(symbol):
     """
     Get Today's Market Data from Optionistics
@@ -16,7 +21,8 @@ def getMarketDataFromOptionistics(symbol):
     # post symbol
     s = requests.Session()
     aURL = "http://www.optionistics.com/quotes/stock-quotes"
-    r = s.post(aURL, data={'symbol': symbol})
+    r = s.post(aURL, data={'symbol': symbol}, headers = headers)
+    r.close()
 
     # get web page into BeautifulSoup
     src = r.content
@@ -24,15 +30,14 @@ def getMarketDataFromOptionistics(symbol):
 
     # Find the data in the table with the id: 'mainbody'
     # and table class: 'quotem'
-    for div_tag in soup.find_all('div', {'id': 'mainbody'}):
-        table = soup.find_all('table', {'class': 'quotem'})
+    table = soup.find_all('table', {'class': 'quotem'})
     #got it - now put it in a DF
-        try: 
-            df = pd.read_html(str(table))
-        except ValueError:
-            print('str(table): ', dict())
-            print('     ValueError', ValueError, '       getMarketData.getMarketDataFromOptionistics')
-            return dict()
+    try:
+        df = pd.read_html(str(table))
+    except ValueError:
+        print('str(table): ', dict())
+        print('     ValueError', ValueError, '       getMarketData.getMarketDataFromOptionistics')
+        return dict()
 
     # get the last stock price
     lastStockPrice = df[0][6][0]
@@ -67,12 +72,6 @@ def getMarketDataFromOptionistics(symbol):
     #return dictionary of MarketData
     return res_dict
 
-
-
-# %%
-
-
-# %%
 
 
 

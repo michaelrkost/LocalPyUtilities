@@ -8,6 +8,10 @@ sys.path.append('/home/michael/jupyter/local-packages')
 from localUtilities import dateUtils
 from localUtilities.ibUtils import getOptionPrice
 
+# Chrome linux User Agent - needed to not get blocked as a bot
+headers = {
+ 'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
+
 pd.set_option('display.max_rows', 1000)
 
 theBaseCompaniesDirectory = '/home/michael/jupyter/earningDateData/Companies/'
@@ -31,7 +35,9 @@ def getOccVolume(symbol):
     s = requests.Session()
     #ONN Volume Search
     url = 'https://www.theocc.com/webapps/series-search'
-    r = s.post(url,data={'symbolType': 'U','symbolId': symbol})
+    r = s.post(url,data={'symbolType': 'U','symbolId': symbol}, headers = headers)
+    r.close()
+
     # check to make sure passing a valid symbol
     try:
         df = pd.read_html(r.content)[0]

@@ -8,6 +8,9 @@ from localUtilities import dateUtils
 import pandas as pd
 import datetime
 
+# Chrome linux User Agent - needed to not get blocked as a bot
+headers = {
+ 'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
 
 
 def getEarningsForWeek(startday):
@@ -53,7 +56,8 @@ def getEarningsOnDate(aDay):
     """
     # Yahoo earnings page
     aURL = "https://finance.yahoo.com/calendar/earnings?day=" + aDay
-    result = requests.get(aURL)
+    result = requests.get(aURL, headers = headers)
+    result.close()
 
     src = result.content
     soup = BeautifulSoup(src, 'html.parser')
@@ -110,7 +114,8 @@ def getEarningPage(aURL, earningsDataDF, aDay, numPages=0):
     DF w/ Symbol', 'Earnings_Date', 'Company', 'Earnings Call Time'
     """
 
-    result = requests.get(aURL)
+    result = requests.get(aURL, headers=headers)
+    result.close()
 
     src = result.content
     soup = BeautifulSoup(src, 'html.parser')
@@ -118,7 +123,7 @@ def getEarningPage(aURL, earningsDataDF, aDay, numPages=0):
     # Find the earnings in the table with the id: 'fin-cal-table'
     for div_tag in soup.find_all('div', {'id': 'fin-cal-table'}):
         # need to get to the 'tbody' go right into the table - so not to get header data
-        for tBody in soup.find_all('tbody'):
+        for tBody in div_tag.find_all('tbody'):
             # get on earning date element and save
             for tr_tag in tBody.find_all('tr'):
                 for td_tag in tr_tag.find_all('td'):
