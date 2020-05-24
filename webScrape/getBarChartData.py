@@ -105,7 +105,9 @@ def getCompanyOverview(aStock):
 def getCompanyFundamentals(aStock):
     # Get the page and pull in the HTML
     s = requests.Session()
-    aURL = "http://www.barchart.com/stocks/quotes/BAC/overview"
+    # include stock in URL
+    aURL = "http://www.barchart.com/stocks/quotes/" + aStock + "/overview"
+
     r = s.get(aURL, headers=headers)
     s.close()
 
@@ -138,7 +140,9 @@ def getCompanySectors(aStock):
 
     # Get the page and pull in the HTML
     s = requests.Session()
-    aURL = "http://www.barchart.com/stocks/quotes/BAC/overview"
+    # include stock in URL
+    aURL = "http://www.barchart.com/stocks/quotes/" + aStock + "/overview"
+
     r = s.get(aURL, headers=headers)
     s.close()
 
@@ -159,7 +163,9 @@ def getCompanyRatings(aStock):
 
     # Get the page and pull in the HTML
     s = requests.Session()
-    aURL = "http://www.barchart.com/stocks/quotes/BAC/overview"
+    # include stock in URL
+    aURL = "http://www.barchart.com/stocks/quotes/" + aStock + "/overview"
+
     r = s.get(aURL, headers=headers)
     s.close()
 
@@ -179,5 +185,4 @@ def getCompanyRatings(aStock):
     analysisRatingsDF = pd.DataFrame.from_dict(analysisRatingsDict)
 
     return consensusRating.text, analysisRatingsDF
-
 
