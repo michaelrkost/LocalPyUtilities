@@ -89,16 +89,18 @@ def scrapeCompanyOptionData(aStock, theExpiryDateText ):
     theMoneyness.select_by_value('allRows')
     theExpiry.select_by_value(theExpiryDateText)
 
+    # get the text to show days to expiry and IV
     expiryText = driver.find_element_by_xpath("//div[@class='row bc-options-toolbar__second-row']").text
-    print(expiryText)
-    x = driver.find_element_by_class_name('bc-datatable')
+    expiryText = expiryText.replace('\n', ' -- ')
 
     optionsTables = read_html(driver.page_source)
 
     callOptions = optionsTables[0]
-
     putOptions = optionsTables[1]
+
+    callOptions = callOptions.iloc[:, :-1]
+    putOptions = putOptions.iloc[:, :-1]
 
     driver.close()
 
-    return callOptions, putOptions
+    return callOptions, putOptions, expiryText

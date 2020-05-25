@@ -32,7 +32,7 @@ def saveCsvSummary(yahooEarningsOfInterestDF, allYahooEarningsForWeekDF, startda
     """
 
     # build the new directory path
-    companyEarningsWeekDir = theBaseCompaniesDirectory + startday + '/'
+    companyEarningsWeekDir = theBaseCompaniesDirectory + startday + '/rawCSV/'
     # make the directory if it does not exist / .mkdir does not return anything
     Path(companyEarningsWeekDir).mkdir(parents=True, exist_ok=True)
 
@@ -54,7 +54,7 @@ def saveCsvSummary(yahooEarningsOfInterestDF, allYahooEarningsForWeekDF, startda
 def createWeeklySummary(startday):
     print('in createWeeklySummary')
     # Get saved data
-    companyEarningsWeek = startday + '/'
+    companyEarningsWeek = startday + '/rawCSV/'
     companyListFile = 'EarningOfInterestforweekOf-' + startday + csvSuffix
     x = theBaseCompaniesDirectory + companyEarningsWeek
     earningWeekDir = Path(x)
