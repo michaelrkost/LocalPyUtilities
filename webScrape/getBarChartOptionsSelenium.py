@@ -99,6 +99,6 @@ def scrapeCompanyOptionData(aStock, theExpiryDateText ):
 
     putOptions = optionsTables[1]
 
-    #todo add driver.close()
+    driver.close()
 
-    return callOptions, putOptions, driver
+    return callOptions, putOptions
