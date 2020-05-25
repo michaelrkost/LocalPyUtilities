@@ -1,12 +1,6 @@
 
 from selenium import webdriver
 
-from selenium.webdriver.common.keys import Keys
-
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-
 import pandas as pd
 #get pandas HTML table support
 from pandas.io.html import read_html
@@ -95,12 +89,18 @@ def scrapeCompanyOptionData(aStock, theExpiryDateText ):
 
     optionsTables = read_html(driver.page_source)
 
+    # close the browser
+    driver.close()
+
     callOptions = optionsTables[0]
     putOptions = optionsTables[1]
 
     callOptions = callOptions.iloc[:, :-1]
     putOptions = putOptions.iloc[:, :-1]
+    thePuts = putOptions.set_axis(['Strike', 'Last', '%FromLast', 'Bid', 'Midpoint', 'Ask', 'Change',
+                                   '%Chg', 'IV', 'Volume', 'OpenInt', 'Time'],axis=1, inplace=False)
+    theCalls = callOptions.set_axis(['Strike', 'Last', '%FromLast', 'Bid', 'Midpoint', 'Ask', 'Change',
+                                   '%Chg', 'IV', 'Volume', 'OpenInt', 'Time'],axis=1, inplace=False)
+    # callOptions.rename(columns={'Strike', 'Last', '%FromLast', 'Bid', 'Midpoint', 'Ask', 'Change', '%Chg', 'IV', 'Volume', 'OpenInt', 'Time'}, inplace=True)
 
-    driver.close()
-
-    return callOptions, putOptions, expiryText
+    return theCalls, thePuts, expiryText
