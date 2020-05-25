@@ -14,7 +14,8 @@ functions:
     * getDateString(date) - from datetime return formatted sting '20180718'
     * getDateFromMonthYear('Mon'YY') - from 'Mon'YY' return datetime.date - first day of Month
     * month3Format('20180718') - from '20180718' return format "Apr06'18"
-    * getMonthExpiries() - get about 5 months of Friday expiry dates
+    * getMonthExpiries() - get about 5 months of Friday Monthly expiry dates
+    * getNext5MonthsExpires() - - get about 5 months of Friday Monthly and Weekly expiry dates
     * getNextExpiryDate() - get the next Friday monthly expiry
     * getExpiries() - get about 18 months of Friday expiry dates
     * isThursday('20180406') - is date a Thursday
@@ -37,6 +38,7 @@ functions:
                                     return Option expiry date str format '20191208'
     * getNextThirdFridayFromDate(aDate) - Return str for next monthly 3rd Friday option expiration given aDate(Date)
     * breakDateToSting('20191004') - return tuple ( YYYY, MM, DD)
+    * getListofExpiryDate(num) - list of Option Expiry Dates out num weeks / 10 is default
 
 """
 
@@ -97,7 +99,15 @@ stockMarketHolidays = [datetime.date(2016, 1, 1),
                        datetime.date(2021, 7, 5),
                        datetime.date(2021, 9, 6),
                        datetime.date(2021, 11, 25),
-                       datetime.date(2021, 12, 24)]
+                       datetime.date(2021, 12, 24),
+                       datetime.date(2022, 1, 17),
+                       datetime.date(2022, 2, 21),
+                       datetime.date(2022, 4, 15),
+                       datetime.date(2022, 5, 30),
+                       datetime.date(2022, 7, 4),
+                       datetime.date(2022, 9, 5),
+                       datetime.date(2022, 11, 24),
+                       datetime.date(2022, 12, 26)]
 
 #=============================================================
 def goOutXWeekdays(startDate, nextXDays, excluded=(6, 7)):
@@ -282,7 +292,7 @@ def month3Format(pickedDate):
 
 # ==============================================================
 def getMonthExpiries():
-    """Get about 18 months of Fridays
+    """Get about 5 months of Fridays
 
     Keyword arguments:
     none
@@ -351,6 +361,42 @@ def getExpiries():
     # if past 3rd friday move calculation to next month
     if today > third_friday(today.year, today.month):
         today = today + (one_day * 30)
+
+    # go out about 18 months
+    out18Months = today + (one_day * 548)
+
+    expiries = []
+
+    while today <= out18Months:
+        today = third_friday(today.year, today.month)
+        expiries.append(today.strftime("%b%d'%y"))
+        today = today + (one_day * 20)
+
+    return expiries
+# ==============================================================
+# Expiry Utilities
+def getNext5MonthsExpires():
+    """Get next 5 months of Fridays
+    in format
+    2020-07-17-m  // monthly expiry
+    2020-07-03-w  // weekly expiry
+
+    Keyword arguments:
+    none
+    """
+   # today
+    today = datetime.date.today()
+
+    # get day multiple
+    one_day = datetime.timedelta(days=1)
+
+    theNextFriday = nextFriday(today)
+    third_friday()
+
+    # if past 3rd friday move calculation to next month
+    if today > third_friday(today.year, today.month):
+        today = today + (one_day * 30)
+        expirySuffix = '-w'
 
     # go out about 18 months
     out18Months = today + (one_day * 548)
@@ -573,3 +619,24 @@ def breakDateToSting(dateStr):
 
 if __name__ == "__main__":
     print(getTodayStr())
+def getListofExpiryDate(numOfWeeks=10):
+
+    #n umber of days to next weeks check point
+    six_days = datetime.timedelta(days=6)
+    # get Today's info
+    dateCheck = datetime.date.today()
+    # get next Friday and The Monthly Friday
+    theNextFriday = nextFriday(dateCheck)
+    thisMonthsThirdFriday = third_friday(dateCheck.year, dateCheck.month)
+
+    listOfDates = []
+    for x in range(20):
+        if nextFriday(dateCheck) == third_friday(dateCheck.year, dateCheck.month):
+            aMStr = getDateStringDashSeprtors(nextFriday(dateCheck)) + '-m'
+            listOfDates.append(aMStr)
+        else:
+            aWStr = getDateStringDashSeprtors(nextFriday(dateCheck)) + '-w'
+            listOfDates.append(aWStr)
+        dateCheck = nextThursday(dateCheck + six_days)
+
+    return listOfDates
