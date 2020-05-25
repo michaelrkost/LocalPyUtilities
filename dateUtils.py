@@ -38,7 +38,7 @@ functions:
                                     return Option expiry date str format '20191208'
     * getNextThirdFridayFromDate(aDate) - Return str for next monthly 3rd Friday option expiration given aDate(Date)
     * breakDateToSting('20191004') - return tuple ( YYYY, MM, DD)
-    * getListofExpiryDate(num) - list of Option Expiry Dates out num weeks / 10 is default
+    * getListofFridayExpiryDate(num) - list of Friday Option Expiry Dates out "num" weeks / 10 is default
 
 """
 
@@ -603,6 +603,7 @@ def toExpiryStr(aYear, aMonth, aDay):
 
 def breakDateToSting(dateStr):
     """
+
     Parameters
     ----------
     dateStr : a Date String '20191004'
@@ -619,9 +620,16 @@ def breakDateToSting(dateStr):
 
 if __name__ == "__main__":
     print(getTodayStr())
-def getListofExpiryDate(numOfWeeks=10):
+def getListOfFridayExpiryDate(numOfWeeks=10):
+    '''
+    create a list of Friday option expiry dates in str format
+    :param numOfWeeks: default to 10 weeks
+    :type numOfWeeks: int
+    :return: list of option expiry dates in str format
+    :rtype:
+    '''
 
-    #n umber of days to next weeks check point
+    #number of days to next weeks check point
     six_days = datetime.timedelta(days=6)
     # get Today's info
     dateCheck = datetime.date.today()
