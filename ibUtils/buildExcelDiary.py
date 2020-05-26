@@ -28,7 +28,7 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
     """
 
     # Setup Excel output file
-    companyEarningsWeek = theBaseCompaniesDirectory + startday + '/rawCSV/'
+    companyEarningsWeek = theBaseCompaniesDirectory + startday + '/rawData/'
     outExcelFile = theBaseCompaniesDirectory + startday + '/' + 'SummaryWeekOf-' + startday + excelSuffix
 
     # Create a Pandas Excel writer using XlsxWriter as the engine
@@ -88,8 +88,7 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
 
 def saveDiary2Excel(startday):
 
-    companyEarningsWeekCSVfile = theBaseCompaniesDirectory + startday + '/rawCSV/'
-    # companyEarningsWeekExcel = theBaseCompaniesDirectory + startday + '/rawCSV/'
+    companyEarningsWeekCSVfile = theBaseCompaniesDirectory + startday + '/rawData/'
 
     # Get saved CSV Summary data
     earningWeekDir = Path(companyEarningsWeekCSVfile)

@@ -175,5 +175,10 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
 
     #cursor = Cursor(earningsMovePlt, useblit=True, color='red', linewidth=2) #, horizOn=True, vertOn=True, color='green')
 
-    plt.show()
+    # plt.show() - to show on screen
+    companyEarningsWeek = '2020-05-29' + '/rawData/'
+
+    plotThis = theBaseCompaniesDirectory +  companyEarningsWeek + theStock + '.png'
+    plt.savefig(plotThis)
+    plt.close(fig)
 

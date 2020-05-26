@@ -8,6 +8,8 @@ from localUtilities.webScrape import getBarChartData as companyInfo
 from localUtilities.webScrape import getBarChartOptionsSelenium as companyOptions
 import pandas as pd
 
+#plot imports
+from localUtilities.plotEarnings import getEarningsData
 
 theBaseCompaniesDirectory = '/home/michael/jupyter/earningDateData/Companies/'
 csvSuffix = '.csv'
@@ -28,7 +30,7 @@ def buildExcelFile(aStock, startday, theExpiryDateText = '2020-05-29-w'):
     outExcelFile = theBaseCompaniesDirectory + startday + '/' + aStock + '_SummaryWeekOf-' + startday + excelSuffix
 
     sheetIsFundamentals = 'Fundamentals'
-    sheetRowStart = 5
+    sheetRowStart = 4
     sheetColStart = 1
 
     writer = pd.ExcelWriter(outExcelFile, engine='xlsxwriter')
@@ -63,7 +65,7 @@ def buildExcelFile(aStock, startday, theExpiryDateText = '2020-05-29-w'):
     # add data from Raw CSV files
     #=================================================================
     # Get aStock CSV file and add as a sheet
-    # companyEarningsWeek = theBaseCompaniesDirectory + startday + '/rawCSV/'
+    # companyEarningsWeek = theBaseCompaniesDirectory + startday + '/rawData/'
     # inCsvFile_aSymbol = companyEarningsWeek + aStock + csvSuffix
     # yahooEarningsDf_aSymbol = pd.read_csv(inCsvFile_aSymbol, index_col=0)
     # yahooEarningsDf_aSymbol.to_excel(writer, sheet_name= aStock+'-EarningsHistory',
@@ -85,5 +87,28 @@ def buildExcelFile(aStock, startday, theExpiryDateText = '2020-05-29-w'):
     summaryRow.to_excel(writer, sheet_name= sheetIsFundamentals,
                                         startrow=1, startcol= 1)
 
+    plotEarningPngFile(aStock, startday)
+
+    aStockEarningsPlot = theBaseCompaniesDirectory + startday + '/rawData/' + aStock + '.png'
+    summaryRow.to_excel(writer, sheet_name= 'Earnings History Plot',
+                                        startrow=1, startcol= 1)
+    imageWorksheet = writer.sheets['Earnings History Plot']
+    imageWorksheet.insert_image('B2', aStockEarningsPlot)
+
     # Save excel
     writer.save()
+
+
+def plotEarningPngFile(aStock, startday):
+
+    # Get weekly earnings
+    theEarningsDataList = getEarningsData.getWeeklyExcelSummary(startday, aStock)
+
+    earnings1DayMove_np = theEarningsDataList[0]
+    earnings4DayMove_np = theEarningsDataList[1]
+    earningsMdate_np = theEarningsDataList[2]
+    earnings1DayCandlestick = theEarningsDataList[3]
+    earningsDayEPS = theEarningsDataList[4]
+
+    # earningsDayEPS
+    getEarningsData.plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS, aStock)
