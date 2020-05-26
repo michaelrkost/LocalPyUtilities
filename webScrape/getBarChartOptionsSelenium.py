@@ -97,10 +97,10 @@ def scrapeCompanyOptionData(aStock, theExpiryDateText ):
 
     callOptions = callOptions.iloc[:, :-1]
     putOptions = putOptions.iloc[:, :-1]
-    thePuts = putOptions.set_axis(['Strike', 'Last', '%FromLast', 'Bid', 'Midpoint', 'Ask', 'Change',
-                                   '%Chg', 'IV', 'Volume', 'OpenInt', 'Time'],axis=1, inplace=False)
-    theCalls = callOptions.set_axis(['Strike', 'Last', '%FromLast', 'Bid', 'Midpoint', 'Ask', 'Change',
-                                   '%Chg', 'IV', 'Volume', 'OpenInt', 'Time'],axis=1, inplace=False)
+    thePuts = putOptions.set_axis(['Strike', 'Last', '% From Last', 'Bid', 'Midpoint', 'Ask', 'Change',
+                                   '% Chg', 'IV', 'Volume', 'Open Int', 'Time'],axis=1, inplace=False)
+    theCalls = callOptions.set_axis(['Strike', 'Last', '% From Last', 'Bid', 'Midpoint', 'Ask', 'Change',
+                                   '% Chg', 'IV', 'Volume', 'Open Int', 'Time'],axis=1, inplace=False)
     # callOptions.rename(columns={'Strike', 'Last', '%FromLast', 'Bid', 'Midpoint', 'Ask', 'Change', '%Chg', 'IV', 'Volume', 'OpenInt', 'Time'}, inplace=True)
 
     return theCalls, thePuts, expiryText

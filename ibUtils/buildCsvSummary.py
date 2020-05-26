@@ -56,8 +56,8 @@ def createWeeklySummary(startday):
     # Get saved data
     companyEarningsWeek = startday + '/rawCSV/'
     companyListFile = 'EarningOfInterestforweekOf-' + startday + csvSuffix
-    x = theBaseCompaniesDirectory + companyEarningsWeek
-    earningWeekDir = Path(x)
+    earningsWeekPath = theBaseCompaniesDirectory + companyEarningsWeek
+    earningWeekDir = Path(earningsWeekPath)
 
     yahooEarningsDF = pd.read_csv(earningWeekDir / companyListFile, index_col=0)
 
