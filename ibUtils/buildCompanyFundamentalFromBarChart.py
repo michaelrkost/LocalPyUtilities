@@ -29,7 +29,7 @@ def buildExcelFile(aStock, startday, theExpiryDateText = '2020-05-29-w'):
     # Setup Excel output file
     outExcelFile = theBaseCompaniesDirectory + startday + '/' + aStock + '_SummaryWeekOf-' + startday + excelSuffix
 
-    sheetIsFundamentals = 'Fundamentals'
+    sheetIsFundamentals = aStock + '-Fundamentals'
     sheetRowStart = 4
     sheetColStart = 1
 
@@ -38,28 +38,33 @@ def buildExcelFile(aStock, startday, theExpiryDateText = '2020-05-29-w'):
     fundamentalsWorkbook = writer.book
     fmt = fundamentalsWorkbook.add_format()
 
+    percentFormat  = fundamentalsWorkbook.add_format({'num_format': '0.0%'})
+    currencyFormat = fundamentalsWorkbook.add_format({'num_format': '$#,##0.00'})
+
     stockFundamentalsTranposed = stockFundamentals.T
 
     # Add the Ratings next
     stockRatings.to_excel(writer, sheet_name= sheetIsFundamentals,
                                         startrow=sheetRowStart+3, startcol= sheetColStart)
     # Add the fundamentals
-    stockInfo.to_excel(writer, sheet_name= sheetIsFundamentals,  startrow=sheetRowStart+7, startcol=sheetColStart)
+    stockInfo.to_excel(writer, sheet_name= sheetIsFundamentals,  startrow=sheetRowStart+7,
+                       startcol=sheetColStart, header=False)
     stockFundamentalsTranposed.to_excel(writer, sheet_name= sheetIsFundamentals, startrow=sheetRowStart+7,
-                                        startcol= sheetColStart+3)
+                                        startcol= sheetColStart+3, header=False)
     stockOverview.to_excel(writer, sheet_name= sheetIsFundamentals,
-                                        startrow=sheetRowStart+7, startcol= sheetColStart+6)
+                           startrow=sheetRowStart+7, startcol= sheetColStart+6, header=False)
 
     # Add the text info on Expiry and Recommendations
-    fundamentalsWorkbookSheet = writer.sheets['Fundamentals']
+    fundamentalsWorkbookSheet = writer.sheets[sheetIsFundamentals]
     fundamentalsWorkbookSheet.write(sheetRowStart+1,1, aText)
     fundamentalsWorkbookSheet.write(sheetRowStart,1, expiryText)
 
-    #setup the Option Excel Sheets
-    callOptions.to_excel(writer, sheet_name= 'Call Options',
-                                        startrow=2, startcol= sheetColStart)
-    putOptions.to_excel(writer, sheet_name= 'Put Options',
-                                        startrow=2, startcol= sheetColStart)
+    # setup the Option Excel Sheets
+    # include the DF header as Excel Header
+    callOptions.to_excel(writer, sheet_name= aStock + '-Call Options',
+                                        startrow=0, header=True)
+    putOptions.to_excel(writer, sheet_name= aStock + '-Put Options',
+                                        startrow=0, header=True)
 
     #=================================================================
     # add data from Raw CSV files
@@ -79,21 +84,23 @@ def buildExcelFile(aStock, startday, theExpiryDateText = '2020-05-29-w'):
     yahooEarningsDf_aSymbol_Sheet = pd.ExcelFile(inExcelFile).parse(aStock)
     # Add the aStock sheet to our Company Info
     yahooEarningsDf_aSymbol_Sheet.to_excel(writer, sheet_name= aStock+'-EarningsHistory',
-                                        startrow=2, startcol= sheetColStart)
+                                           startrow=2, startcol= sheetColStart)
 
     # get 2 rows of summary data
     summaryRow = yahooEarningsDf_aSymbol_Sheet.iloc[3,4 :]
     summaryRow = summaryRow.to_frame().T
     summaryRow.to_excel(writer, sheet_name= sheetIsFundamentals,
-                                        startrow=1, startcol= 1)
+                        startrow=0, startcol= 1, index=False)
 
     plotEarningPngFile(aStock, startday)
 
     aStockEarningsPlot = theBaseCompaniesDirectory + startday + '/rawData/' + aStock + '.png'
-    summaryRow.to_excel(writer, sheet_name= 'Earnings History Plot',
-                                        startrow=1, startcol= 1)
-    imageWorksheet = writer.sheets['Earnings History Plot']
-    imageWorksheet.insert_image('B2', aStockEarningsPlot)
+    summaryRow.to_excel(writer, sheet_name= aStock + '-Earnings History Plot',
+                        startrow=1, startcol= 1)
+    imageWorksheet = writer.sheets[aStock + '-Earnings History Plot']
+    # imageWorksheet.set_column('E:F', 3)
+    # # imageWorksheet = imageSheetFormatting(fundamentalsWorkbook)
+    imageWorksheet.insert_image('B5',aStockEarningsPlot)
 
     # Save excel
     writer.save()
@@ -111,4 +118,15 @@ def plotEarningPngFile(aStock, startday):
     earningsDayEPS = theEarningsDataList[4]
 
     # earningsDayEPS
-    getEarningsData.plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS, aStock)
+    getEarningsData.plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,
+                                 earningsDayEPS, startday, aStock)
+
+
+# def imageSheetFormatting(fundamentalsWorkbook):
+#
+#     imageWorkbookSheet = fundamentalsWorkbook[']
+#     imageWorkbookSheet.set_row(3, 'E:E', 10, percentFormat)
+#     # imageWorkbookSheet.set_column('M:M', 10, currencyFormat)
+#     # imageWorkbookSheet.set_column('N:O', 10, percentFormat)
+#     # imageWorkbookSheet.set_column('P:T', 10, currencyFormat)
+#     return imageWorkbookSheet

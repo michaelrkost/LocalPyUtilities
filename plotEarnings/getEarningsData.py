@@ -78,7 +78,7 @@ def getWeeklyStockTabSummary(theFilePath, theSymbol):
 
     return returnList
 
-def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS, theStock):
+def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS, startday, theStock):
 
     # Set date formatter
     locator = mdates.AutoDateLocator()
@@ -176,7 +176,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     #cursor = Cursor(earningsMovePlt, useblit=True, color='red', linewidth=2) #, horizOn=True, vertOn=True, color='green')
 
     # plt.show() - to show on screen
-    companyEarningsWeek = '2020-05-29' + '/rawData/'
+    companyEarningsWeek =  startday  + '/rawData/'
 
     plotThis = theBaseCompaniesDirectory +  companyEarningsWeek + theStock + '.png'
     plt.savefig(plotThis)

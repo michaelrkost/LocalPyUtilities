@@ -122,7 +122,7 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
     yahoo_financials = YahooFinancials(theStock)
 
     for earnDateRow in stocksPastEarningsDF.itertuples():
-        # print(earnDateRow.Symbol, ' / theStock: ', theStock,  ' @  ', lenDF, 'earnDateRow.Index: ',  earnDateRow.Index, end=", ")
+        #print(earnDateRow.Symbol, ' / theStock: ', theStock,  ' @  ', lenDF, 'earnDateRow.Index: ', earnDateRow.Index, end=", ")
         lenDF = lenDF - 1
 
         # set start and end Date
@@ -175,8 +175,9 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
             continue
 
         stocksPastEarningsDF = getDaysPastEarningsClosePrices(earnDateRow, historical_stock_pricesDF, stocksPastEarningsDF)
-        stocksPastEarningsDF = calcPriceDeltas((stocksPastEarningsDF))
+        stocksPastEarningsDF = calcPriceDeltas(stocksPastEarningsDF)
 
+    stocksPastEarningsDF = formatForCSVFile(stocksPastEarningsDF)
 
     return stocksPastEarningsDF
 
@@ -249,3 +250,23 @@ def getDaysPastEarningsClosePrices(earnDateRow, historical_stock_pricesDF, stock
 
     return stockPastEarningsDF
 
+def formatForCSVFile(stocksPastEarningsDF):
+
+    stocksPastEarningsDF['Close'] = stocksPastEarningsDF['Close'].round(2)
+    stocksPastEarningsDF['High'] = stocksPastEarningsDF['High'].round(2)
+    stocksPastEarningsDF['Open'] = stocksPastEarningsDF['Open'].round(2)
+    stocksPastEarningsDF['Low'] = stocksPastEarningsDF['Low'].round(2)
+    stocksPastEarningsDF['EDClose'] = stocksPastEarningsDF['EDClose'].round(2)
+    stocksPastEarningsDF['EDFwd1DayClose'] = stocksPastEarningsDF['EDFwd1DayClose'].round(2)
+    stocksPastEarningsDF['EDBak1DayClose'] = stocksPastEarningsDF['EDBak1DayClose'].round(2)
+    stocksPastEarningsDF['EDFwd4DayClose'] = stocksPastEarningsDF['EDFwd4DayClose'].round(2)
+    stocksPastEarningsDF['EDDiffFwd4Close'] = stocksPastEarningsDF['EDDiffFwd4Close'].round(2)
+    stocksPastEarningsDF['EDDiffFwd1Close'] = stocksPastEarningsDF['EDDiffFwd1Close'].round(2)
+    stocksPastEarningsDF['EDFwd1DayClosePercentDelta'] = stocksPastEarningsDF['EDFwd1DayClosePercentDelta'].round(2)
+    stocksPastEarningsDF['EDFwd4DayClosePercentDelta'] = stocksPastEarningsDF['EDFwd4DayClosePercentDelta'].round(2)
+    stocksPastEarningsDF['Last'] = stocksPastEarningsDF['Last'].round(2)
+
+
+    stocksPastEarningsDF['Earnings_Date'] = stocksPastEarningsDF['Earnings_Date'].apply(dateUtils.getDateStringDashSeprtors)
+
+    return stocksPastEarningsDF
