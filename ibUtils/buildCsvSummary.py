@@ -282,6 +282,10 @@ def cleanUpColumns(yahooEarningsDF):
 
     yahooEarningsDF.rename(columns={'Expected_Range': 'Exp$Range'}, inplace=True)
 
+    yahooEarningsDF['stdFwd1%'] = yahooEarningsDF['stdFwd1%'].round(2)
+    yahooEarningsDF['std25Fwd1%'] = yahooEarningsDF['std25Fwd1%'].round(2)
+    yahooEarningsDF['std25Fwd1$TimesClose'] = yahooEarningsDF['std25Fwd1$TimesClose'].round(2)
+
     # rearrange columns
     # yahooEarningsDF = yahooEarningsDF[['Symbol', 'Company', 'Earnings_Date', 'Time', 'Volume',
     #                                    'Close', 'histVol','impVol', 'IV_Delta', 'Option_Volume', 'PutOpenIntst',

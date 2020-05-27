@@ -67,6 +67,10 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
         yahooEarningsDF.at[i, "Earnings_Date"] = dateUtils.getDateFromISO8601(yahooEarningsDF.loc[i,].Earnings_Date)
         # add the data
         yahooEarningsDf_aSymbol.to_excel(writer, sheet_name= aSymbol,  startrow=startRow)
+        aSymboWorksheet = writer.sheets[aSymbol]
+        aSymboWorksheet.set_column('A:V', 15)
+        aSymboWorksheet.set_column('N:U', 30)
+
 
 
     # cellRowFormat = summaryWorkbook.add_format({'bold': True, 'bg_color': 'red'})  #hex ccffcc  / R:204 G: 255 B: 204
@@ -76,10 +80,15 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
     percentFormat  = summaryWorkbook.add_format({'num_format': '0.0%'})
     currencyFormat = summaryWorkbook.add_format({'num_format': '$#,##0.00'})
 
-    worksheet.set_column('G:I', 10, percentFormat)
-    worksheet.set_column('M:M', 10, currencyFormat)
-    worksheet.set_column('N:O', 10, percentFormat)
-    worksheet.set_column('P:T', 10, currencyFormat)
+    worksheet.set_column('A:B', 10, percentFormat)
+    worksheet.set_column('C:C', 33, percentFormat)
+    worksheet.set_column('D:D', 15, percentFormat)
+    worksheet.set_column('G:I', 15, percentFormat)
+    worksheet.set_column('J:L', 15)
+    worksheet.set_column('M:M', 15, currencyFormat)
+    worksheet.set_column('N:O', 15, percentFormat)
+    worksheet.set_column('P:P', 15, currencyFormat)
+    worksheet.set_column('Q:T', 20, currencyFormat)
 
     # Close the Pandas Excel writer and output the Excel file.
     writer.save()
