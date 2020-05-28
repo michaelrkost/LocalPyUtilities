@@ -69,7 +69,7 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
         yahooEarningsDf_aSymbol.to_excel(writer, sheet_name= aSymbol,  startrow=startRow)
         aSymboWorksheet = writer.sheets[aSymbol]
         aSymboWorksheet.set_column('A:V', 15)
-        aSymboWorksheet.set_column('N:U', 30)
+        aSymboWorksheet.set_column('N:U', 40)
 
 
 
@@ -80,15 +80,18 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
     percentFormat  = summaryWorkbook.add_format({'num_format': '0.0%'})
     currencyFormat = summaryWorkbook.add_format({'num_format': '$#,##0.00'})
 
-    worksheet.set_column('A:B', 10, percentFormat)
-    worksheet.set_column('C:C', 33, percentFormat)
+    worksheet.set_column('A:A', 5, percentFormat)
+    worksheet.set_column('B:B', 10, percentFormat)
+    worksheet.set_column('C:C', 35, percentFormat)
     worksheet.set_column('D:D', 15, percentFormat)
+    worksheet.set_column('E:E', 10, percentFormat)
+    worksheet.set_column('F:F', 15)
     worksheet.set_column('G:I', 15, percentFormat)
-    worksheet.set_column('J:L', 15)
+    worksheet.set_column('J:L', 18)
     worksheet.set_column('M:M', 15, currencyFormat)
     worksheet.set_column('N:O', 15, percentFormat)
     worksheet.set_column('P:P', 15, currencyFormat)
-    worksheet.set_column('Q:T', 20, currencyFormat)
+    worksheet.set_column('Q:T', 23, currencyFormat)
 
     # Close the Pandas Excel writer and output the Excel file.
     writer.save()

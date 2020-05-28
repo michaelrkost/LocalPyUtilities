@@ -45,6 +45,11 @@ def saveCsvSummary(yahooEarningsOfInterestDF, allYahooEarningsForWeekDF, startda
     allPath = Path(companyEarningsWeekDir + companyListFileAll)
     interestPath = Path(companyEarningsWeekDir + companyListFileInterest)
 
+    yahooEarningsOfInterestDF = yahooEarningsOfInterestDF[['Symbol', 'Company', 'Earnings_Date',  'Earnings Call Time', 'High',
+       'Open', 'Volume', 'Option_Volume', 'Low', 'Close', 'histVolatility',
+       'impliedVolatility', 'Expected_Range', 'PutFridayOpenInterest',
+       'CallFridayOpenInterest', 'Last']]
+
     yahooEarningsOfInterestDF.to_csv(interestPath)
     allYahooEarningsForWeekDF.to_csv(allPath)
 
@@ -293,7 +298,7 @@ def cleanUpColumns(yahooEarningsDF):
     #                                    'maxFwd1PercentDelta', 'minFwd1PercentDelta', 'maxFwd1PercentDeltaABS',
     #                                    'meanFwd1%', 'stdFwd1%', 'varFwd1%', 'medianFwd1%',  'stdFwd1Fwd4%',
     #                                    'meanFwd4%', 'stdFwd4%', 'varFwd4%',  'medianFwd4%']]
-    yahooEarningsDF = yahooEarningsDF[['Symbol', 'Company', 'Earnings_Date', 'Time', 'Volume',
+    yahooEarningsDF = yahooEarningsDF[['Symbol', 'Company', 'Earnings_Date','Time', 'Volume',
                                        'histVol','impVol', 'IV_Delta', 'Option_Volume', 'PutOpenIntst',
                                        'CallOpenIntst', 'Exp$Range', 'stdFwd1%', 'std25Fwd1%',
                                        'Close', 'max1DayABS$Delta','std25Fwd1$TimesClose','ABSFwd1MinusClose', 'ABSFwd1PlusClose']]

@@ -266,7 +266,14 @@ def formatForCSVFile(stocksPastEarningsDF):
     stocksPastEarningsDF['EDFwd4DayClosePercentDelta'] = stocksPastEarningsDF['EDFwd4DayClosePercentDelta'].round(2)
     stocksPastEarningsDF['Last'] = stocksPastEarningsDF['Last'].round(2)
 
-
     stocksPastEarningsDF['Earnings_Date'] = stocksPastEarningsDF['Earnings_Date'].apply(dateUtils.getDateStringDashSeprtors)
+
+    stocksPastEarningsDF = stocksPastEarningsDF[['Symbol', 'Company', 'Earnings_Date', 'EPS_Estimate', 'Reported_EPS',
+                                                  'Surprise(%)', 'High', 'Open', 'Volume', 'Low', 'Close', 'EDClose',
+                                                  'EDFwd1DayClose', 'EDBak1DayClose', 'EDFwd4DayClose', 'EDDiffFwd4Close',
+                                                  'EDDiffFwd1Close', 'EDFwd1DayClosePercentDelta',
+                                                  'EDFwd4DayClosePercentDelta', 'Last']]
+
+
 
     return stocksPastEarningsDF
