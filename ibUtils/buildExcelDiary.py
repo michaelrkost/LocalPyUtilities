@@ -117,6 +117,6 @@ def saveDiary2Excel(startday):
     # save the weeks earning Summary to Excel
     saveSummaryToExcel(yahooEarningsDF, startday)
 
-    print('Done - buildExcelDiary-saveDiary2Excel........')
+    # print('Done - buildExcelDiary-saveDiary2Excel........')
 
     return

@@ -10,6 +10,13 @@ import datetime
 # Get my Utilities (localUtilities)
 from localUtilities import dateUtils
 
+# YahooFinancials
+# https://pypi.org/project/yahoofinancials/
+# A python module that returns stock, cryptocurrency,
+# forex, mutual fund, commodity futures, ETF,
+# and US Treasury financial data from Yahoo Finance.
+# TODO: Determine if yahoofinancials is adequate or if we should create a Database with this info.
+# ToDo: review investpy as an alternative to yahoofinancials // https://investpy.readthedocs.io
 from yahoofinancials import YahooFinancials
 
 from localUtilities.ibUtils import getStrategyPrice as strat
@@ -32,7 +39,7 @@ def addMarketData(earningsDF, startday):
 
     Returns
     -------
-    DF w/ Market Data for companies w/ greater than some number, say 5000,
+    DF w/ Market Data for companies w/ greater than some number, say 500,
     in Option Volume - worthwhile causes
     """
 # get info from the time of this run
@@ -60,7 +67,9 @@ def addMarketData(earningsDF, startday):
         # Check if there is data from Optionistics -
         # Empty dictionaries evaluate to False in Python
         # - so if no data then break loop
-        if not dict_MktData: continue
+        if not dict_MktData:
+            print('dict_MktData:  ', dict_MktData)
+            continue
 
         # todo can append the dictionary to the DF as well.
         earningsDF.at[row.Index, 'High'] = dict_MktData['HIGH']
@@ -79,7 +88,7 @@ def addMarketData(earningsDF, startday):
                                                                                                    float(dict_MktData['IMPLIED VOLATILITY']))
         #print(earningsDF)
 
-    print('Done - setup.addMarketData....')
+    print('\nDone - setup.addMarketData....')
     #remove companies w/ less that 500 in Call Open Interest
     earningsDFOptionVolGood = earningsDF[(earningsDF['CallFridayOpenInterest'] >= 500)]
 
@@ -89,7 +98,7 @@ def addMarketData(earningsDF, startday):
 def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
     """
     Add Market Data to companies in  stocksPastEarningsDF
-
+    #todo remove daysAroundEarnings = 10 // should be 5??
     Parameters
     ----------
     stocksPastEarningsDF: DF of 'Symbol', 'Earnings_Date', 'Company', 'Earnings Call Time'
@@ -116,14 +125,29 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
     stocksPastEarningsDF['EDFwd1DayClosePercentDelta'] = np.nan # Earning Day % Delta the Forward 1 Day Closing Price
     stocksPastEarningsDF['EDFwd4DayClosePercentDelta'] = np.nan # Earning Day % Delta the Forward 4 Day Closing Price
 
+    stocksPastEarningsDF['EDFwd1DayOpen'] = np.nan # Earning Day Forward 1 Day Open Price
+    stocksPastEarningsDF['EDBak1DayOpen'] = np.nan # Earning Day Back 1 Day Open Price
 
     theStock = stocksPastEarningsDF.Symbol[0]
+
     lenDF = len(stocksPastEarningsDF)
+    if lenDF > 32:
+        lenDF = 32
+        print('--> Calculating',  lenDF, 'past Qtrs // 8 years - Max')
+        pruneDF = True
+    else:
+        print('--> Calculating', lenDF, 'past Qtrs //', f'{lenDF/4:1.1f}', 'years')
+        pruneDF = False
+
     yahoo_financials = YahooFinancials(theStock)
 
     for earnDateRow in stocksPastEarningsDF.itertuples():
         #print(earnDateRow.Symbol, ' / theStock: ', theStock,  ' @  ', lenDF, 'earnDateRow.Index: ', earnDateRow.Index, end=", ")
-        lenDF = lenDF - 1
+
+        if lenDF == 0:
+            break
+        else:
+            lenDF = lenDF - 1
 
         # set start and end Date
         # set to format 2018-09-29 // String Dash Separator
@@ -145,13 +169,14 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
 
         # Get historic stock prices from yahoofinancials within daysAroundEarnings timeframe
         historical_stock_prices = yahoo_financials.get_historical_price_data(startDateTime, endDateTime, 'daily')
+        #print("historical_stock_prices: ", historical_stock_prices)
 
         try:
             historical_stock_pricesDF = pd.DataFrame(historical_stock_prices[theStock]['prices'])
         except KeyError:
-            print('Stock: ', theStock)
-            print('prices:  ', historical_stock_prices)
-            print('     ', KeyError, '       setup.addPastMarketData')
+            print('     Stock: ', theStock)
+            print('     prices:  ', historical_stock_prices)
+            print('         ', KeyError, '       setup.addPastMarketData')
             continue
 
         # recreate index as the 'date' column for price
@@ -170,14 +195,14 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
             stocksPastEarningsDF.at[earnDateRow.Index, 'Close']  = historical_stock_pricesDF.close[earnDateRow.Earnings_Date.date()]
             stocksPastEarningsDF.at[earnDateRow.Index, 'Last']   = historical_stock_pricesDF.adjclose[earnDateRow.Earnings_Date.date()]
         except KeyError:
-            print('Stock: ', theStock)
-            print('     ', KeyError, '       setup.addPastMarketData')
+            print('     Stock: ', theStock)
+            print('         ', KeyError, '       setup.addPastMarketData')
             continue
 
         stocksPastEarningsDF = getDaysPastEarningsClosePrices(earnDateRow, historical_stock_pricesDF, stocksPastEarningsDF)
         stocksPastEarningsDF = calcPriceDeltas(stocksPastEarningsDF)
 
-    stocksPastEarningsDF = formatForCSVFile(stocksPastEarningsDF)
+    stocksPastEarningsDF = formatForCSVFile(stocksPastEarningsDF, pruneDF)
 
     return stocksPastEarningsDF
 
@@ -196,7 +221,11 @@ def calcPriceDeltas(stocksPastEarningsDF):
     stocksPastEarningsDF
 
     """
-
+    # todo add Earning day Close to next Day Open
+    # todo --- if earnings is before earning day then
+    #           EarningDayPriceDif-CloseOpen = (EarningDayClose - 1) - EarningDayOpen
+    #      --- if earnings is after earning day then
+    #           EarningDayPriceDif-CloseOpen = EarningDayClose - (EarningDayOpen + 1)
     # calculate price and persent deltas
     stocksPastEarningsDF['EDFwd1DayClosePercentDelta'] = 1 - (stocksPastEarningsDF['EDClose'] / stocksPastEarningsDF['EDFwd1DayClose'])
     stocksPastEarningsDF['EDDiffFwd1Close'] = stocksPastEarningsDF['EDFwd1DayClose'] - stocksPastEarningsDF['EDClose']
@@ -209,7 +238,7 @@ def calcPriceDeltas(stocksPastEarningsDF):
 
 def getDaysPastEarningsClosePrices(earnDateRow, historical_stock_pricesDF, stockPastEarningsDF, daysAroundEarnings=10):
     """
-    Get earning closing price data from  historical_stock_prices for days before / after ----
+    Get earning price data from  historical_stock_prices for days before / after ----
 
     Parameters
     ----------
@@ -244,13 +273,19 @@ def getDaysPastEarningsClosePrices(earnDateRow, historical_stock_pricesDF, stock
         # Earning Day Forward 4 Days Closing Price
         theEDplus4Date = dateUtils.goOutXWeekdays(earningsDate, 4)
         stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd4DayClose'] = historical_stock_pricesDF.close[theEDplus4Date]
+
+        # plus 1 days after earnings date
+        # Earning Day Forward 1 Day Open Price
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd1DayOpen'] = historical_stock_pricesDF.open[theEDPlus1Date]
+
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDBak1DayOpen'] = historical_stock_pricesDF.open[theEDMinus1Date]
     except KeyError:
         print('     KeyError', KeyError, '       setup.getDaysPastEarningsClosePrices')
-        print('     earningsDate:', earningsDate)
+        print('         earningsDate:', earningsDate)
 
     return stockPastEarningsDF
 
-def formatForCSVFile(stocksPastEarningsDF):
+def formatForCSVFile(stocksPastEarningsDF, pruneDF):
 
     stocksPastEarningsDF['Close'] = stocksPastEarningsDF['Close'].round(2)
     stocksPastEarningsDF['High'] = stocksPastEarningsDF['High'].round(2)
@@ -266,14 +301,19 @@ def formatForCSVFile(stocksPastEarningsDF):
     stocksPastEarningsDF['EDFwd4DayClosePercentDelta'] = stocksPastEarningsDF['EDFwd4DayClosePercentDelta'].round(2)
     stocksPastEarningsDF['Last'] = stocksPastEarningsDF['Last'].round(2)
 
+    stocksPastEarningsDF['EDFwd1DayOpen'] = stocksPastEarningsDF['EDFwd1DayOpen'].round(2)
+    stocksPastEarningsDF['EDBak1DayOpen'] = stocksPastEarningsDF['EDBak1DayOpen'].round(2)
+
     stocksPastEarningsDF['Earnings_Date'] = stocksPastEarningsDF['Earnings_Date'].apply(dateUtils.getDateStringDashSeprtors)
 
     stocksPastEarningsDF = stocksPastEarningsDF[['Symbol', 'Company', 'Earnings_Date', 'EPS_Estimate', 'Reported_EPS',
-                                                  'Surprise(%)', 'High', 'Open', 'Volume', 'Low', 'Close', 'EDClose',
-                                                  'EDFwd1DayClose', 'EDBak1DayClose', 'EDFwd4DayClose', 'EDDiffFwd4Close',
+                                                  'Surprise(%)', 'High', 'Open', 'Volume', 'Low', 'Close', 'EDClose', 'EDFwd1DayOpen',
+                                                  'EDFwd1DayClose', 'EDBak1DayOpen', 'EDBak1DayClose', 'EDFwd4DayClose', 'EDDiffFwd4Close',
                                                   'EDDiffFwd1Close', 'EDFwd1DayClosePercentDelta',
                                                   'EDFwd4DayClosePercentDelta', 'Last']]
 
-
+    # if we are using the Max Earnings Quarters (32) prune off the remaining years data
+    if pruneDF == True:
+        stocksPastEarningsDF = stocksPastEarningsDF.iloc[0:32]
 
     return stocksPastEarningsDF

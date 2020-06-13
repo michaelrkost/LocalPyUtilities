@@ -58,6 +58,7 @@ def buildExcelFile(aStock, startday, theExpiryDateText = '2020-05-29-w'):
     fundamentalsWorkbookSheet = writer.sheets[sheetIsFundamentals]
     fundamentalsWorkbookSheet.write(sheetRowStart+1,1, aText)
     fundamentalsWorkbookSheet.write(sheetRowStart,1, expiryText)
+    fundamentalsWorkbookSheet.set_column('B:V', 22)
 
     # setup the Option Excel Sheets
     # include the DF header as Excel Header
@@ -87,7 +88,9 @@ def buildExcelFile(aStock, startday, theExpiryDateText = '2020-05-29-w'):
                                            startrow=2, startcol= sheetColStart)
 
     # get 2 rows of summary data
-    summaryRow = yahooEarningsDf_aSymbol_Sheet.iloc[3,4 :]
+    #todo check this against the header summary data
+    #todo seems to be bring in row 7
+    summaryRow = yahooEarningsDf_aSymbol_Sheet.iloc[0,1 :]
     summaryRow = summaryRow.to_frame().T
     summaryRow.to_excel(writer, sheet_name= sheetIsFundamentals,
                         startrow=0, startcol= 1, index=False)

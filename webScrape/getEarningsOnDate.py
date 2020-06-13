@@ -9,8 +9,7 @@ import pandas as pd
 import datetime
 
 # Chrome linux User Agent - needed to not get blocked as a bot
-headers = {
- 'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
+headers = {'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
 
 
 def getEarningsForWeek(startday):
@@ -30,17 +29,22 @@ def getEarningsForWeek(startday):
     # Week start date
     aStartDay = dateUtils.getDateFromISO8601(startday)
 
+    # total up the number of companies with earnings
+    totalEarnings = 0
+
     #Start Monday go to Friday
     for x in range(5):
         aDay = aStartDay + datetime.timedelta(days=x)
-        aNewEarningsDF = getEarningsOnDate(dateUtils.getDateStringDashSeprtors(aDay))
+        aNewEarningsDF, earningsCount = getEarningsOnDate(dateUtils.getDateStringDashSeprtors(aDay))
         try:
             anEarningsDF = anEarningsDF.append(aNewEarningsDF)
         except TypeError:
             print("No Earnings on: ", aDay)
             continue
         print('Working Day: ', aDay)
+        totalEarnings += earningsCount
 
+    print('\nTotal Companies with earning: ', totalEarnings,'\nDone...')
     return  anEarningsDF.reset_index(drop=True)
 
 def getEarningsOnDate(aDay):
@@ -67,6 +71,7 @@ def getEarningsOnDate(aDay):
     # get the second number between front and back
     front = 'of '
     back = ' results'
+    earningCount = 0
 
     # Find the earnings in the table with the id: 'fin-cal-table'
     # see how many earnings are present
@@ -74,11 +79,12 @@ def getEarningsOnDate(aDay):
         for div_tag in soup.find_all('div', {'id': 'fin-cal-table'}):
             for aspan in div_tag.find('h3'):
                 for anotherSPan in aspan.find_all('span', {'data-reactid': '8'}):
-                    numPages = math.ceil(int(aspan.text[aspan.text.find(front) + 2: aspan.text.find(back)])/100)
-                    print(aspan.text)
+                    earningCount = int(aspan.text[aspan.text.find(front) + 2: aspan.text.find(back)])
+                    numPages = math.ceil(earningCount/100)
+                    print(aspan.text, "\nearningCount = ", earningCount)
     except TypeError:
         print('No earnings found.')    # todo  - move this first aDay out of this loop
-        return 0
+        return 0, 0
 
     # Creating an empty Dataframe with column names only
     earningsDataDF = pd.DataFrame(columns=['Symbol', 'Earnings_Date', 'Company', 'Earnings Call Time'])
@@ -97,7 +103,7 @@ def getEarningsOnDate(aDay):
             earningsDataDF.drop(earningsDataDF.index, inplace=True)
     # reset the index and return
     oneEarningDateDF = oneEarningDateDF.reset_index(drop=True)
-    return oneEarningDateDF
+    return oneEarningDateDF, earningCount
 
 def getEarningPage(aURL, earningsDataDF, aDay, numPages=0):
     """

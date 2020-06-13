@@ -4,8 +4,7 @@ from bs4 import BeautifulSoup
 import datetime
 
 # Chrome linux User Agent - needed to not get blocked as a bot
-headers = {
- 'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
+headers = {'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
 
 
 def getPastEarnings(stock="AAPL"):

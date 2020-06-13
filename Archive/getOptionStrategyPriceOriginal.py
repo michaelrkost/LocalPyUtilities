@@ -25,6 +25,15 @@ import math
 
 # Get my Utilities (localUtilities)
 from localUtilities import dateUtils
+
+
+# YahooFinancials
+# https://pypi.org/project/yahoofinancials/
+# A python module that returns stock, cryptocurrency,
+# forex, mutual fund, commodity futures, ETF,
+# and US Treasury financial data from Yahoo Finance.
+# TODO: Determine if this is adequate or if we should creat a Database with this info.
+# ToDo: review investpy as an alternative to yahoofinancials // https://investpy.readthedocs.io
 from yahoofinancials import YahooFinancials
 
 # =========================================================

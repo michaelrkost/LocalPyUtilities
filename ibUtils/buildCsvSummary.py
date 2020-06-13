@@ -22,7 +22,7 @@ def saveCsvSummary(yahooEarningsOfInterestDF, allYahooEarningsForWeekDF, startda
 
     Parameters
     ----------
-    yahooEarningsOfInterestDF : Companies w/ liquididty defined as Open Option interest >6000 or so
+    yahooEarningsOfInterestDF : Companies w/ liquidity defined as Open Option interest > 500 or so
     allYahooEarningsForWeekDF : all the companies that have earnings calls this week
     startday : beginning of week
 
@@ -254,9 +254,6 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
     # # std25MinusClose.append(anEarningWeeksCompany['Close']-(std25Fwd1*anEarningWeeksCompany['Close']))
     # # std25PlusClose.append(anEarningWeeksCompany['Close']+(std25Fwd1*anEarning
     # yahooEarningsDF['std25TimesClose'] = std25TimesClose
-
-
-
 
     yahooEarningsDF['stdFwd1Fwd4%'] = stdFwd1Fwd4
     yahooEarningsDF['varFwd4%'] = varFwd4

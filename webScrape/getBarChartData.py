@@ -182,7 +182,15 @@ def getCompanyRatings(aStock):
 
     analysisRatingsDict = json.loads(theRatingsDict)
 
+    # analysisRatingsDict is in the Dict format of :
+    #      {'Strong Buy':{'value': '9', 'percent': 75},'Moderate Buy':{'value': '2', 'percent': 16.666666666666664}, 'Hold': {'value': '1', 'percent': 8.333333333333332}}
+    # Need to get the 'percent' number into format of 75.00%
+    # So loop thru the dict get the Value from dict v['percent] then make it into a % value w/ 2 decimal places
+    analysisRatingsDict = {k: {'value' : v['value'],'percent':"{:3.2%}".format(float(v['percent']/100))} for k, v in analysisRatingsDict.items()}
+
+    # Now move it into the DF
     analysisRatingsDF = pd.DataFrame.from_dict(analysisRatingsDict)
+
 
     return consensusRating.text, analysisRatingsDF
 

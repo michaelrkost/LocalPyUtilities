@@ -22,6 +22,14 @@ import math
 
 # Get my Utilities (localUtilities)
 from localUtilities import dateUtils
+
+# YahooFinancials
+# https://pypi.org/project/yahoofinancials/
+# A python module that returns stock, cryptocurrency,
+# forex, mutual fund, commodity futures, ETF,
+# and US Treasury financial data from Yahoo Finance.
+# TODO: Determine if this is adequate or if we should creat a Database with this info.
+# ToDo: review investpy as an alternative to yahoofinancials // https://investpy.readthedocs.io
 from yahoofinancials import YahooFinancials
 
 #===========================================================================
@@ -54,6 +62,7 @@ def getHistoricStockPrices(stock, yahooEarningsDF, daysAroundEarnings = 10):
     yahooEarningsDF['Plus1MinusED'] = np.nan
     yahooEarningsDF['EDPlus4ClosePriceDiffPercent'] = np.nan
     yahooEarningsDF['EDPlus1ClosePriceDiffPercent'] = np.nan
+    yahooEarningsDF['EDCloseToFwd1DayOpen'] = np.nan
 
 
     # get the Stock into yahoofinancials module
@@ -85,7 +94,7 @@ def getHistoricStockPrices(stock, yahooEarningsDF, daysAroundEarnings = 10):
     yahooEarningsDF['EDPlus4ClosePriceDiffPercent'] = 1-(yahooEarningsDF['EDClosePrice'] / yahooEarningsDF['EDPlus4ClosePrice'])
     yahooEarningsDF['EDPlus1ClosePriceDiffPercent'] = 1-(yahooEarningsDF['EDClosePrice'] / yahooEarningsDF['EDPlus1ClosePrice'])
 
-    print("cat")
+    print("-------------------------------------- cat \n Meow------------------------------")
 
 
     return yahooEarningsDF
@@ -125,6 +134,8 @@ def getEarningsDayPricing(earnDateRow, historical_stock_prices, yahooEarningsDF,
     theEDPlus1Date = dateUtils.goOutXWeekdays(earningsDate, 1)
     yahooEarningsDF.at[earnDateRow, 'EDPlus1ClosePrice'] = historical_stock_prices.close[theEDPlus1Date]
 
+    yahooEarningsDF.at[earnDateRow, 'EDPlus1OpenPrice'] = historical_stock_prices.open[theEDPlus1Date]
+
     # plus 4 days after earnings date
     theEDplus4Date = dateUtils.goOutXWeekdays(earningsDate, 4)
     yahooEarningsDF.at[earnDateRow, 'EDPlus4ClosePrice'] = historical_stock_prices.close[theEDplus4Date]
@@ -140,7 +151,8 @@ def getExpectedPriceRangeTillNextExpiryDays(underlyingPrice, impVol):
     using:
     (Stock Price * IV)/SQRT(Days to Expiry/#Days in a Year)
 
-    suggest using: #todo update to this Expected Price Range
+    suggest using: # todo -- update to this Expected Price Range - do not think this is correct
+                   # todo -- continue to include Days to Expiry. 6/10/2020
     (Stock Price * IV)/SQRT(#Days in a Year)
 
 
