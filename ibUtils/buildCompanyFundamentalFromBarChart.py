@@ -15,32 +15,32 @@ theBaseCompaniesDirectory = '/home/michael/jupyter/earningDateData/Companies/'
 csvSuffix = '.csv'
 excelSuffix = '.xlsx'
 
-def buildExcelFile(aStock, startday, theExpiryDateText = '2020-05-29-w'):
+def buildExcelFile(aStock, startday, theExpiryDateText):
 
-    # Get the company info from BarChart
+    # Get the company info from BarChart.com
     stockInfo = companyInfo.getCompanyStockInfo(aStock)
     stockOverview = companyInfo.getCompanyOverview(aStock)
     stockFundamentals = companyInfo.getCompanyFundamentals(aStock)
     aText, stockRatings = companyInfo.getCompanyRatings(aStock)
-
-    # get the company Option info
     callOptions, putOptions, expiryText = companyOptions.scrapeCompanyOptionData(aStock, theExpiryDateText)
 
     # Setup Excel output file
     outExcelFile = theBaseCompaniesDirectory + startday + '/' + aStock + '_SummaryWeekOf-' + startday + excelSuffix
-
+    # Setup Fundamentals worksheet name
     sheetIsFundamentals = aStock + '-Fundamentals'
+
+    # Starting point for data
     sheetRowStart = 4
     sheetColStart = 1
 
+    # create writer and workbook
     writer = pd.ExcelWriter(outExcelFile, engine='xlsxwriter')
-
     fundamentalsWorkbook = writer.book
-    fmt = fundamentalsWorkbook.add_format()
 
-    percentFormat  = fundamentalsWorkbook.add_format({'num_format': '0.0%'})
-    currencyFormat = fundamentalsWorkbook.add_format({'num_format': '$#,##0.00'})
-
+    # ------------------------------------------------------------------
+    # set up fundamentals Worksheet
+    # ------------------------------------------------------------------
+    # Transpose
     stockFundamentalsTranposed = stockFundamentals.T
 
     # Add the Ratings next
@@ -50,34 +50,30 @@ def buildExcelFile(aStock, startday, theExpiryDateText = '2020-05-29-w'):
     stockInfo.to_excel(writer, sheet_name= sheetIsFundamentals,  startrow=sheetRowStart+7,
                        startcol=sheetColStart, header=False)
     stockFundamentalsTranposed.to_excel(writer, sheet_name= sheetIsFundamentals, startrow=sheetRowStart+7,
-                                        startcol= sheetColStart+3, header=False)
+                                        startcol= sheetColStart+2, header=False)
     stockOverview.to_excel(writer, sheet_name= sheetIsFundamentals,
-                           startrow=sheetRowStart+7, startcol= sheetColStart+6, header=False)
+                           startrow=sheetRowStart+7, startcol= sheetColStart+4, header=False)
 
     # Add the text info on Expiry and Recommendations
     fundamentalsWorkbookSheet = writer.sheets[sheetIsFundamentals]
     fundamentalsWorkbookSheet.write(sheetRowStart+1,1, aText)
     fundamentalsWorkbookSheet.write(sheetRowStart,1, expiryText)
-    fundamentalsWorkbookSheet.set_column('B:V', 22)
+    fundamentalsWorkbookSheet.set_column('B:F', 25)
+    fundamentalsWorkbookSheet.set_column('G:S', 18)
+    # fundamentalsWorkbookSheet.conditional_format('B2:B8', {'type': '3_color_scale'})
 
-    # setup the Option Excel Sheets
+    # ------------------------------------------------------------------
+    # setup the Call/Put Option Worksheets
+    # ------------------------------------------------------------------
     # include the DF header as Excel Header
     callOptions.to_excel(writer, sheet_name= aStock + '-Call Options',
                                         startrow=0, header=True)
     putOptions.to_excel(writer, sheet_name= aStock + '-Put Options',
                                         startrow=0, header=True)
 
-    #=================================================================
-    # add data from Raw CSV files
-    #=================================================================
-    # Get aStock CSV file and add as a sheet
-    # companyEarningsWeek = theBaseCompaniesDirectory + startday + '/rawData/'
-    # inCsvFile_aSymbol = companyEarningsWeek + aStock + csvSuffix
-    # yahooEarningsDf_aSymbol = pd.read_csv(inCsvFile_aSymbol, index_col=0)
-    # yahooEarningsDf_aSymbol.to_excel(writer, sheet_name= aStock+'-EarningsHistory',
-    #                                     startrow=2, startcol= sheetColStart)
-
-
+    # ------------------------------------------------------------------
+    # setup the Call/Put Option Worksheets
+    # ------------------------------------------------------------------
     # Get aStock Excel file and add as a sheet
     inExcelFile = theBaseCompaniesDirectory + startday +\
                           '/SummaryWeekOf-' + startday + excelSuffix
@@ -87,23 +83,29 @@ def buildExcelFile(aStock, startday, theExpiryDateText = '2020-05-29-w'):
     yahooEarningsDf_aSymbol_Sheet.to_excel(writer, sheet_name= aStock+'-EarningsHistory',
                                            startrow=2, startcol= sheetColStart)
 
+    # ------------------------------------------------------------------
+    # setup summary Worksheet
+    # ------------------------------------------------------------------
     # get 2 rows of summary data
-    #todo check this against the header summary data
-    #todo seems to be bring in row 7
-    summaryRow = yahooEarningsDf_aSymbol_Sheet.iloc[0,1 :]
-    summaryRow = summaryRow.to_frame().T
+    summaryRow = yahooEarningsDf_aSymbol_Sheet.iloc[0:1,0:19]
+
     summaryRow.to_excel(writer, sheet_name= sheetIsFundamentals,
                         startrow=0, startcol= 1, index=False)
 
+    # ------------------------------------------------------------------
+    # Create Plot and save as png file
+    # Setup plot Worksheet
+    # ------------------------------------------------------------------
     plotEarningPngFile(aStock, startday)
-
+    # Get Plot file path
     aStockEarningsPlot = theBaseCompaniesDirectory + startday + '/rawData/' + aStock + '.png'
-    summaryRow.to_excel(writer, sheet_name= aStock + '-Earnings History Plot',
-                        startrow=1, startcol= 1)
-    imageWorksheet = writer.sheets[aStock + '-Earnings History Plot']
-    # imageWorksheet.set_column('E:F', 3)
-    # # imageWorksheet = imageSheetFormatting(fundamentalsWorkbook)
-    imageWorksheet.insert_image('B5',aStockEarningsPlot)
+    # create image worksheet then add image
+    imageWorksheet = fundamentalsWorkbook.add_worksheet(aStock + '-Earnings History Plot')
+    imageWorksheet.insert_image('B3',aStockEarningsPlot)
+
+    # ------------------------------------------------------------------
+    # Setup Trade Worksheet
+    # ------------------------------------------------------------------
 
     # Save excel
     writer.save()
