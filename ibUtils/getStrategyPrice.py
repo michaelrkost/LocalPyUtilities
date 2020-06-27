@@ -171,6 +171,7 @@ def getExpectedPriceRangeTillNextExpiryDays(underlyingPrice, impVol):
     try:
         priceTimesImpvol = underlyingPrice * impVol
         sqrtOfDaysDiv = math.sqrt(dateUtils.daysToExpiry(dateUtils.getNextExpiryDate()) / 365)
+
     except ValueError:
         print("****   in getExpectedPriceRangeTillNextExpiryDays")
         print("          ValueError: ", ValueError)

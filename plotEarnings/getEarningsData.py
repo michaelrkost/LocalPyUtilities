@@ -28,7 +28,7 @@ def make_patch_spines_invisible(ax):
         sp.set_visible(False)
 
 def getWeeklyExcelSummary(startday, theStock):
-    print('in getWeeklyExcelSummary')
+    #print('in getWeeklyExcelSummary')
 
     # Get saved data Summary of companies
     companyEarningsWeek = startday + '/'
