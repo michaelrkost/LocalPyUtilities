@@ -16,7 +16,7 @@ functions:
     * month3Format('20180718') - from '20180718' return format "Apr06'18"
     * getMonthExpiries() - get about 5 months of Friday Monthly expiry dates
     * getNext5MonthsExpires() - - get about 5 months of Friday Monthly and Weekly expiry dates
-    * getNextExpiryDate() - get the next Friday monthly expiry
+    * getNextExpiryDate() - get the next Friday Monthly expiry
     * getExpiries() - get about 18 months of Friday expiry dates
     * isThursday('20180406') - is date a Thursday
     * nextThursday(date) - get the next Thursday
@@ -324,7 +324,7 @@ def getMonthExpiries():
 
 # ==============================================================
 def getNextExpiryDate():
-    """Get next expiry date
+    """Get next Monthly expiry date
     Keyword arguments:
     none
     """
@@ -486,6 +486,15 @@ def nextFridayExpiryFormat(pickedDate):
     pickedDate   -- datetime format
     """  
     return datetime.datetime.strftime(nextFriday(pickedDate), "%b%d'%y")
+
+def getNextFridayExpiryFormat():
+    """Returns the next Friday date for Friday Options close in format: Apr06'18
+
+    Keyword arguments:
+
+    """
+    #Todo if the Friday is a holiday return the next Thursday
+    return datetime.datetime.strftime(nextFriday(datetime.date.today()), "%b%d'%y")
 
 def nextFridayOrgFormat(pickedDate): 
     """Returns the next Friday date for Friday Options close in format: 20180718

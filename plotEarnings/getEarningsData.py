@@ -90,7 +90,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     color4DayStockMove = 'darkorange'
     xLabel = 'Earnings Dates'
     xLabelColor = 'slategray'
-    yLabelStockDeltaColor = color4DayStockMove
+    yLabelStockDeltaColor = color1DayStockMove
     yLabel1DayStockMove = 'Stock % Delta @ 1 Day Close Price'
     yLabel4DayStockMove = 'Stock % Delta @ 4 Day Close Price'
     yLabelStockDeltaTitle = 'Stock % Delta'

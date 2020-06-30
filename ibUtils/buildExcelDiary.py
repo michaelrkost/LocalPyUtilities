@@ -77,8 +77,8 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
     # cellLtGreenFormat = summaryWorkbook.add_format({'bold': True, 'bg_color': '#CCFFCC'})
     # cellColFormat.set_shrink()
     #
-    percentFormat  = summaryWorkbook.add_format({'num_format': '0.0%'})
-    currencyFormat = summaryWorkbook.add_format({'num_format': '$#,##0.00'})
+    percentFormat  = summaryWorkbook.add_format({'num_format': '0.0%','align': 'center'})
+    currencyFormat = summaryWorkbook.add_format({'num_format': '$#,##0.00', 'align': 'center'})
 
     worksheet.set_column('A:A', 5, percentFormat)
     worksheet.set_column('B:B', 10, percentFormat)

@@ -89,8 +89,8 @@ def addMarketData(earningsDF, startday):
         #print(earningsDF)
 
     print('\nDone - setup.addMarketData....')
-    #remove companies w/ less that 500 in Call Open Interest
-    earningsDFOptionVolGood = earningsDF[(earningsDF['CallFridayOpenInterest'] >= 500)]
+    #remove companies w/ less that 300 in Call Open Interest
+    earningsDFOptionVolGood = earningsDF[(earningsDF['Option_Volume'] >= 300)]
 
     return earningsDFOptionVolGood.reset_index(drop=True), earningsDF
 

@@ -90,7 +90,12 @@ def scrapeCompanyOptionData(aStock, theExpiryDateText ):
     optionsTables = read_html(driver.page_source)
 
     # close the browser
-    driver.close()
+    # driver.close()
+    # I am now returning driver to the calling program
+    # Because for multiple calls i was getting the invalid session ID error
+    #   That is a WebDriver error that occurs when the server does not
+    #   recognize the unique session identifier.
+    #   this happens if the session has been deleted or if the session ID is invalid.
 
     callOptions = optionsTables[0]
     putOptions = optionsTables[1]
@@ -103,4 +108,4 @@ def scrapeCompanyOptionData(aStock, theExpiryDateText ):
                                    '% Chg', 'IV', 'Volume', 'Open Int', 'Time'],axis=1, inplace=False)
     # callOptions.rename(columns={'Strike', 'Last', '%FromLast', 'Bid', 'Midpoint', 'Ask', 'Change', '%Chg', 'IV', 'Volume', 'OpenInt', 'Time'}, inplace=True)
 
-    return theCalls, thePuts, expiryText
+    return theCalls, thePuts, expiryText, driver
