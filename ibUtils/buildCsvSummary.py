@@ -17,7 +17,7 @@ csvSuffix = '.csv'
 def saveCsvSummary(yahooEarningsOfInterestDF, allYahooEarningsForWeekDF, startday):
     """
     This will save the data as CSV from the Yahoo Earnings Page scrape
-    1) yahooEarningsOfInterestDF - Companies w/ liquidity defined as Open Option interest >6000 or so
+    1) yahooEarningsOfInterestDF - Companies w/ liquidity defined as Open Option interest >500 or so
     2) allYahooEarningsForWeekDF - all the companies that have earnings calls this week
 
     Parameters
@@ -70,7 +70,7 @@ def createWeeklySummary(startday):
 
     # Save Week Summary
     companySummaryListFile = 'SummaryOfWeek-' + startday + csvSuffix
-
+    # Weekly Summary only w/out the specific aStock tabs
     outCsvSummaryFile = theBaseCompaniesDirectory + companyEarningsWeek + companySummaryListFile
     yahooEarningsDF.to_csv(outCsvSummaryFile)
 
@@ -308,7 +308,7 @@ def cleanUpColumns(yahooEarningsDF):
     #                                    'maxFwd1PercentDelta', 'minFwd1PercentDelta', 'maxFwd1PercentDeltaABS',
     #                                    'meanFwd1%', 'stdFwd1%', 'varFwd1%', 'medianFwd1%',  'stdFwd1Fwd4%',
     #                                    'meanFwd4%', 'stdFwd4%', 'varFwd4%',  'medianFwd4%']]
-    yahooEarningsDF = yahooEarningsDF[['Symbol', 'Company', 'Earnings_Date','Time', 'Volume',
+    yahooEarningsDF = yahooEarningsDF[['Symbol', 'Company', 'Earnings_Date','Time', 'Close', 'Volume',
                                        'histVol','impVol', 'IV_Delta', 'Option_Volume', 'PutOpenIntst',
                                        'CallOpenIntst', 'Exp$Range', 'stdFwd1%', 'std25Fwd1%',
                                        'Close', 'max1DayABS$Delta','std25Fwd1$TimesClose','ABSFwd1MinusClose', 'ABSFwd1PlusClose']]

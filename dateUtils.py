@@ -9,6 +9,7 @@ functions:
     * getWorkdaysBetween(start, end) - get workdays(not Weekends) from start to end - return list datetime
     * ensureItsaWeekDay(date) - checks if previous date is a weekend - if so return previous weekday
     * getDate('20180718') - return datetime.date
+    * getDayFormat(datetime) -  - returns formatted 'Sun, Aug 11'
     * getDateFromISO8601('2019-08-19') - return datetime.date
     * getDateStringDashSeprtors(datetime)- from datetime return formatted date: 2018-07-18'
     * getDateString(date) - from datetime return formatted sting '20180718'
@@ -576,6 +577,10 @@ def get45DaysOutStr():
     to45DaysOut = datetime.date.today() + datetime.timedelta(45)
 
     return to45DaysOut.strftime("%a, %b %d")
+
+def getDayFormat(aDateTime) :
+
+    return aDateTime.strftime("%a, %b %d")
 
 def daysInYear():
     return 365

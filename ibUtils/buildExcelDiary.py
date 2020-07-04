@@ -4,6 +4,7 @@ from pathlib import Path
 sys.path.append('/home/michael/jupyter/local-packages')
 
 import pandas as pd
+import datetime
 
 from localUtilities import dateUtils
 
@@ -38,12 +39,17 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
     summaryWorkbook = writer.book
     fmt = summaryWorkbook.add_format()
 
+    # Set up index so to ultimately order Tabs
     yahooEarningsDF.sort_values(by=['Symbol'], inplace=True)
     yahooEarningsDF = yahooEarningsDF.reset_index(drop=True)
 
     # create first tab as Summary Earnings
     # turn off the header so it can be formatted
-    yahooEarningsDF.to_excel(writer, sheet_name='Summary Earnings')
+    # Trim summary columns
+    summaryYahooEarningsDF = yahooEarningsDF.copy(deep=True)
+    summaryYahooEarningsDF = setSummaryYahooDF(summaryYahooEarningsDF)
+    # Save to Excel w/out index
+    summaryYahooEarningsDF.to_excel(writer, sheet_name='Summary Earnings', index=False)
     worksheet = writer.sheets['Summary Earnings']
 
     # number of Stocks / i.e. Rows in Summary Earnings Tab
@@ -79,19 +85,19 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
     #
     percentFormat  = summaryWorkbook.add_format({'num_format': '0.0%','align': 'center'})
     currencyFormat = summaryWorkbook.add_format({'num_format': '$#,##0.00', 'align': 'center'})
+    date_str_format = summaryWorkbook.add_format({'align': 'center'})
 
-    worksheet.set_column('A:A', 5, percentFormat)
-    worksheet.set_column('B:B', 10, percentFormat)
-    worksheet.set_column('C:C', 35, percentFormat)
-    worksheet.set_column('D:D', 15, percentFormat)
-    worksheet.set_column('E:E', 10, percentFormat)
-    worksheet.set_column('F:F', 15)
-    worksheet.set_column('G:I', 15, percentFormat)
-    worksheet.set_column('J:L', 18)
-    worksheet.set_column('M:M', 15, currencyFormat)
-    worksheet.set_column('N:O', 15, percentFormat)
-    worksheet.set_column('P:P', 15, currencyFormat)
-    worksheet.set_column('Q:T', 23, currencyFormat)
+    number_format = summaryWorkbook.add_format({'num_format': '0','align': 'center'})
+
+    worksheet.set_column('A:A', 10)
+    worksheet.set_column('B:B', 35)
+    worksheet.set_column('C:C', 12, date_str_format)
+    worksheet.set_column('D:D', 10, date_str_format)
+    worksheet.set_column('E:E', 10, currencyFormat)
+    worksheet.set_column('F:F', 15, number_format)
+    worksheet.set_column('G:I', 10, percentFormat)
+    worksheet.set_column('J:K', 12, currencyFormat)
+
 
     # Close the Pandas Excel writer and output the Excel file.
     writer.save()
@@ -120,3 +126,31 @@ def saveDiary2Excel(startday):
     # print('Done - buildExcelDiary-saveDiary2Excel........')
 
     return
+
+def setSummaryYahooDF(summaryYahooEarningsDF):
+    # shorten some column names
+    summaryYahooEarningsDF.rename(columns={'max1DayABS$Delta': 'Abs$Delta'}, inplace=True)
+    summaryYahooEarningsDF.rename(columns={'Earnings_Date': 'Earnings'}, inplace=True)
+    summaryYahooEarningsDF.rename(columns={'Option_Volume': 'OptionVolume'}, inplace=True)
+    summaryYahooEarningsDF.rename(columns={'IV_Delta': 'VolDelta'}, inplace=True)
+
+    # Get a new Summary DF
+    # sumYahooEarningsDF[...].copy() - So not to do operation on slice of DF but actual DF
+    # Will not get warning:
+    #   "A value is trying to be set on a copy of a slice from a DataFrame."
+    sumYahooEarningsDF = summaryYahooEarningsDF[['Symbol', 'Company', 'Earnings', 'Time', 'Close',
+                                       'OptionVolume', 'histVol','impVol', 'VolDelta',
+                                       'Exp$Range', 'Abs$Delta']].copy()
+
+    # change Earnings from string '2019-08-19' to datetime
+    sumYahooEarningsDF['Earnings'] = sumYahooEarningsDF['Earnings'].apply(dateUtils.getDateFromISO8601)
+    # change Earning Time to isAfter to provide sort with Before Earnings First then After then TAS
+    sumYahooEarningsDF.loc[sumYahooEarningsDF['Time'] == 'After', 'Time'] = 'isAfter'
+
+    # sort by Earnings Date then Time // Before isAfter
+    sumYahooEarningsDF = sumYahooEarningsDF.sort_values(by=['Earnings', 'Time'])
+
+    #  Change to Earning Date Format: "Mon, Jul 06"
+    sumYahooEarningsDF['Earnings'] = sumYahooEarningsDF['Earnings'].apply(dateUtils.getDayFormat)
+
+    return sumYahooEarningsDF
