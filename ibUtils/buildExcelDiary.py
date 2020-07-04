@@ -156,6 +156,6 @@ def setSummaryYahooDF(summaryYahooEarningsDF):
 
     #  Change to Earning Date Format: "Mon, Jul 06"
     sumYahooEarningsDF['Earnings'] = sumYahooEarningsDF['Earnings'].apply(dateUtils.getDayFormat)
-    sumYahooEarningsDF
+
 
     return sumYahooEarningsDF

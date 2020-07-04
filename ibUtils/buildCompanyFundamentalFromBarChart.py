@@ -23,7 +23,7 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
     stockOverview = companyInfo.getCompanyOverview(aStock)
     stockFundamentals = companyInfo.getCompanyFundamentals(aStock)
     aText, stockRatings = companyInfo.getCompanyRatings(aStock)
-    callOptions, putOptions, expiryText, aWebDriver= companyOptions.scrapeCompanyOptionData(aStock, theExpiryDateText)
+    callOptions, putOptions, expiryText, aWebDriver = companyOptions.scrapeCompanyOptionData(aStock, theExpiryDateText)
 
     # Setup Excel output file
     outExcelFile = theBaseCompaniesDirectory + startday + '/' + aStock + '_SummaryWeekOf-' + startday + excelSuffix
@@ -91,7 +91,7 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
     # setup summary Worksheet
     # ------------------------------------------------------------------
     # get 2 rows of summary data
-    summaryRow = yahooEarningsDf_aSymbol_Sheet.iloc[0:1,0:19]
+    summaryRow = yahooEarningsDf_aSymbol_Sheet.iloc[0:1,0:20]
 
     summaryRow = summaryRow[["Symbol", "Company", "Earnings_Date", "Time", "Close", "Volume",  "Option_Volume",
                               "histVol", "impVol", "IV_Delta","stdFwd1%", "std25Fwd1%",
@@ -140,7 +140,7 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
                                                             'valign': 'vcenter', 'align': 'center','fg_color': '#F2E1A9'})  # f2e1a9
     empty_expiryM_format = fundamentalsWorkbook.add_format({'border': 2, 'fg_color': '#FAF1D3'})
     empty_cell_format = fundamentalsWorkbook.add_format({'border': 2, 'valign': 'center'})
-    data_row_format = fundamentalsWorkbook.add_format({'font_color': 'navy', 'valign': 'center'})
+    data_row_format = fundamentalsWorkbook.add_format({'border': 2,'font_color': 'navy', 'valign': 'center'})
 
     summaryRow.iloc[0:1,0:7].to_excel(writer, sheet_name= aStock+'-Trade Plan',
                                            startrow=0, startcol= 0, index=False)    # suppress index // index = False
@@ -151,21 +151,21 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
                                            startrow=6, startcol= 1, index=False) # suppress index
 
     tradePlanWorkbookSheet = writer.sheets[aStock+'-Trade Plan']
-
+    # Data for aStock
     tradePlanWorkbookSheet.set_row(1, None, data_row_format)
-    tradePlanWorkbookSheet.set_row(4, None, data_row_format)
-    tradePlanWorkbookSheet.set_row(7, None, data_row_format)
+    tradePlanWorkbookSheet.set_row(3, None, data_row_format)
+    tradePlanWorkbookSheet.set_row(6, None, data_row_format)
 
-       # header_format = workbook.add_format({'bold': True,'text_wrap': True, 'valign': 'top',
-       #     'fg_color': '#D7E4BC','border': 1})
-
+    # Expiry Text / Implied Vol
+    # next Expriy dates
     tradePlanWorkbookSheet.write(9,1, expiryText, expiry_text_format)
     tradePlanWorkbookSheet.write(10, 1, "Next Expiry's ->", expiry_format)
     tradePlanWorkbookSheet.write(10, 2, 'Friday:  ' + dateUtils.getNextFridayExpiryFormat(), empty_expiryW_format)
     tradePlanWorkbookSheet.write(10, 3, "Monthly:  " + dateUtils.month3Format(dateUtils.getNextExpiryDate()), expiry_format)
-    [tradePlanWorkbookSheet.write(11, x, '', empty_expiryM_format) for x in range(2,4,2)]
-    tradePlanWorkbookSheet.write(11, 2, '', empty_expiryW_format)
-    tradePlanWorkbookSheet.write(11, 3, '', empty_expiryM_format)
+
+    [tradePlanWorkbookSheet.write(11, x, '', empty_expiryM_format) for x in range(2,5,2)]
+    # tradePlanWorkbookSheet.write(11, 2, '', empty_expiryW_format)
+    # tradePlanWorkbookSheet.write(13, 3, '', empty_expiryM_format)
 
     tradePlanWorkbookSheet.write(16, 0, "Today:  ", today_format)
     tradePlanWorkbookSheet.write(16, 1, dateUtils.getTodayStr(), today_format)
