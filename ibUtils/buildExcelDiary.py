@@ -87,17 +87,21 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
     currencyFormat = summaryWorkbook.add_format({'num_format': '$#,##0.00', 'align': 'center'})
     date_str_format = summaryWorkbook.add_format({'align': 'center'})
 
-    number_format = summaryWorkbook.add_format({'num_format': '0','align': 'center'})
+    header_format = summaryWorkbook.add_format({'num_format': '0','align': 'center',
+                                                'bold': True, 'font_color': 'navy', 'border': 2,
+                                                'valign': 'vcenter', 'fg_color': '#D7E4BC',})
 
     worksheet.set_column('A:A', 10)
     worksheet.set_column('B:B', 35)
     worksheet.set_column('C:C', 12, date_str_format)
     worksheet.set_column('D:D', 10, date_str_format)
     worksheet.set_column('E:E', 10, currencyFormat)
-    worksheet.set_column('F:F', 15, number_format)
+    worksheet.set_column('F:F', 15)
     worksheet.set_column('G:I', 10, percentFormat)
     worksheet.set_column('J:K', 12, currencyFormat)
 
+    for col_num, value in enumerate(summaryYahooEarningsDF.columns.values):
+        worksheet.write(0, col_num, value, header_format)
 
     # Close the Pandas Excel writer and output the Excel file.
     writer.save()
@@ -152,5 +156,6 @@ def setSummaryYahooDF(summaryYahooEarningsDF):
 
     #  Change to Earning Date Format: "Mon, Jul 06"
     sumYahooEarningsDF['Earnings'] = sumYahooEarningsDF['Earnings'].apply(dateUtils.getDayFormat)
+    sumYahooEarningsDF
 
     return sumYahooEarningsDF
