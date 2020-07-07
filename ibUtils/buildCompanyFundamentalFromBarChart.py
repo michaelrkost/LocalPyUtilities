@@ -91,11 +91,27 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
     # setup summary Worksheet
     # ------------------------------------------------------------------
     # get 2 rows of summary data
-    summaryRow = yahooEarningsDf_aSymbol_Sheet.iloc[0:1,0:20]
+    summaryRow = yahooEarningsDf_aSymbol_Sheet.iloc[0:1,0:21]
 
-    summaryRow = summaryRow[["Symbol", "Company", "Earnings_Date", "Time", "Close", "Volume",  "Option_Volume",
-                              "histVol", "impVol", "IV_Delta","stdFwd1%", "std25Fwd1%",
-                              "Exp$Range",  "max1DayABS$Delta", "std25Fwd1$TimesClose", "ABSFwd1MinusClose", "ABSFwd1PlusClose"]]
+    summaryRow = summaryRow[["Symbol", "Company", "Earnings_Date", "Time", "Close", "ABSFwd1MinusClose", "ABSFwd1PlusClose",
+                             "Exp$Range",  "Volume",  "Option_Volume", "histVol", "impVol", "IV_Delta",
+                              "stdFwd1%", "stdFwd1$TimesClose", "std25Fwd1%",  "std25Fwd1$TimesClose", "max1DayABS$Delta" ]].copy()
+
+    summaryRow.rename(columns={'ABSFwd1MinusClose' : 'ABS $ Minus'}, inplace=True)
+    summaryRow.rename(columns={'ABSFwd1PlusClose' : 'ABS $ Plus'}, inplace=True)
+    summaryRow.rename(columns={'stdFwd1%' : '1-SD % Move'}, inplace=True)
+    summaryRow.rename(columns={"stdFwd1$TimesClose" : '1-SD $ Move'}, inplace=True)
+    summaryRow.rename(columns={'std25Fwd1%' :'2.5-SD % Move'}, inplace=True)
+    summaryRow.rename(columns={'max1DayABS$Delta' :'1Day Max ABS Delta'}, inplace=True)
+    summaryRow.rename(columns={'std25Fwd1$TimesClose' : '2.5-SD $ Move'}, inplace=True)
+    summaryRow.rename(columns={'Earnings_Date': 'Earnings'}, inplace=True)
+    summaryRow.rename(columns={'histVol': 'Historic Vol'}, inplace=True)
+    summaryRow.rename(columns={'impVol': 'Implied Vol'}, inplace=True)
+    summaryRow.rename(columns={'IV_Delta': 'Vol Delta'}, inplace=True)
+
+
+    #  Change to Earning Date Format: "Mon, Jul 06"
+    summaryRow['Earnings'] = summaryRow['Earnings'].apply(str.replace, args=('-', '')).apply(dateUtils.monthDayFormat)
 
     summaryRow.to_excel(writer, sheet_name= sheetIsFundamentals,
                         startrow=0, startcol= 1, index=False)
@@ -124,79 +140,88 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
                                                           'valign': 'vcenter', 'align': 'center','fg_color': '#FAF1D3',})
     today_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': '#C00000', 'border': 2,
                                                      'valign': 'vcenter','align': 'center','fg_color': '#FAF1D3',})
-    strangle_header_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#D7E4BC',
+    call_label_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#D7E4BC',
                                                             'border': 2, 'valign': 'vcenter', 'align': 'center'})
+    put_label_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#f9cfb5',
+                                                                'border': 2, 'valign': 'vcenter', 'align': 'center'})
     buy_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#93D07B',
                                                             'border': 2, 'valign': 'vcenter', 'align': 'center'})
-    sell_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#FCB19C',
+    sell_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#eb813d',
                                                             'border': 2, 'valign': 'vcenter', 'align': 'center'})
-
-
-    # Where the Data will be entered by hand.
-    strangle_data_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#D7E4BC',
-                                                            'border': 2, 'valign': 'vcenter'})
-
+    trade_header_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#D7E4BC',
+                                                            'border': 2, 'valign': 'vcenter', 'align': 'center'})
+    trade_text_format = fundamentalsWorkbook.add_format({ 'border': 1, 'valign': 'vcenter', 'align': 'center'})
     empty_expiryW_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'border': 2,
                                                             'valign': 'vcenter', 'align': 'center','fg_color': '#F2E1A9'})  # f2e1a9
     empty_expiryM_format = fundamentalsWorkbook.add_format({'border': 2, 'fg_color': '#FAF1D3'})
     empty_cell_format = fundamentalsWorkbook.add_format({'border': 2, 'valign': 'center'})
-    data_row_format = fundamentalsWorkbook.add_format({'border': 2,'font_color': 'navy', 'valign': 'center'})
 
-    summaryRow.iloc[0:1,0:7].to_excel(writer, sheet_name= aStock+'-Trade Plan',
-                                           startrow=0, startcol= 0, index=False)    # suppress index // index = False
+    # tradePlanWorkbookSheet = writer.sheets[aStock+'-Trade Plan']
+    tradePlanWorkbookSheet = fundamentalsWorkbook.add_worksheet(aStock + '-Trade Plan')
 
-    summaryRow.iloc[0:1,7:12].to_excel(writer, sheet_name= aStock+'-Trade Plan',
-                                           startrow=3, startcol= 1, index=False)
-    summaryRow.iloc[0:1,12:19].to_excel(writer, sheet_name= aStock+'-Trade Plan',
-                                           startrow=6, startcol= 1, index=False) # suppress index
+    # [tradePlanWorkbookSheet.write(0, x, '', empty_cell_format) for x in range(0,7,1)]
+    #
+    for col_num, value in enumerate(summaryRow.columns.values):
+        if col_num > 12:
+            tradePlanWorkbookSheet.write(4, col_num-12, value, trade_header_format)
+            tradePlanWorkbookSheet.write(5, col_num-12, summaryRow.iloc[0,col_num], trade_text_format)
+        elif col_num > 6:
+            tradePlanWorkbookSheet.write(2, col_num-6, value, trade_header_format)
+            tradePlanWorkbookSheet.write(3, col_num-6, summaryRow.iloc[0,col_num], trade_text_format)
+        else:
+            tradePlanWorkbookSheet.write(0, col_num, value, trade_header_format)
+            tradePlanWorkbookSheet.write(1, col_num, summaryRow.iloc[0,col_num], trade_text_format)
 
-    tradePlanWorkbookSheet = writer.sheets[aStock+'-Trade Plan']
-    # Data for aStock
-    tradePlanWorkbookSheet.set_row(1, None, data_row_format)
-    tradePlanWorkbookSheet.set_row(3, None, data_row_format)
-    tradePlanWorkbookSheet.set_row(6, None, data_row_format)
+    tradePlanWorkbookSheet.set_row(1, 20)
+    tradePlanWorkbookSheet.set_row(3, 20)
+    tradePlanWorkbookSheet.set_row(5, 20)
 
+     # Format Earning data?
+    # [tradePlanWorkbookSheet.write(0, x, '', empty_cell_format) for x in range(0,7,1)]
     # Expiry Text / Implied Vol
-    # next Expriy dates
-    tradePlanWorkbookSheet.write(9,1, expiryText, expiry_text_format)
-    tradePlanWorkbookSheet.write(10, 1, "Next Expiry's ->", expiry_format)
-    tradePlanWorkbookSheet.write(10, 2, 'Friday:  ' + dateUtils.getNextFridayExpiryFormat(), empty_expiryW_format)
-    tradePlanWorkbookSheet.write(10, 3, "Monthly:  " + dateUtils.month3Format(dateUtils.getNextExpiryDate()), expiry_format)
+    # next Expiry dates
+    tradePlanWorkbookSheet.write(7,1, expiryText, expiry_text_format)
+    tradePlanWorkbookSheet.write(8, 1, "Next Expiry's ->", expiry_format)
+    tradePlanWorkbookSheet.write(8, 2, 'Friday:  ' + dateUtils.getNextFridayExpiryFormat(), empty_expiryW_format)
+    tradePlanWorkbookSheet.write(8, 3, "Monthly:  " + dateUtils.month3Format(dateUtils.getNextExpiryDate()), expiry_format)
 
-    [tradePlanWorkbookSheet.write(11, x, '', empty_expiryM_format) for x in range(2,5,2)]
-    # tradePlanWorkbookSheet.write(11, 2, '', empty_expiryW_format)
-    # tradePlanWorkbookSheet.write(13, 3, '', empty_expiryM_format)
+    # [tradePlanWorkbookSheet.write(9, x, '', empty_expiryM_format) for x in range(2,4,2)]
+    tradePlanWorkbookSheet.write(9, 2, '', empty_expiryW_format)
+    tradePlanWorkbookSheet.write(9, 3, '', empty_expiryM_format)
 
-    tradePlanWorkbookSheet.write(16, 0, "Today:  ", today_format)
-    tradePlanWorkbookSheet.write(16, 1, dateUtils.getTodayStr(), today_format)
-    tradePlanWorkbookSheet.write(16, 2, 'Strike', strangle_header_format)
-    tradePlanWorkbookSheet.write(16, 3, 'Price', strangle_header_format)
-    tradePlanWorkbookSheet.write(16, 4, 'IV', strangle_header_format)
-    tradePlanWorkbookSheet.write(16, 5, 'Volume', strangle_header_format)
-    # tradePlanWorkbookSheet.write(16, 6, 'IV', strangle_header_format)
-    tradePlanWorkbookSheet.write(16, 6, 'Time Executed', strangle_header_format)
+    tradePlanWorkbookSheet.write(13, 0, "Today:  ", today_format)
+    tradePlanWorkbookSheet.write(13, 1, dateUtils.getTodayStr(), today_format)
+    tradePlanWorkbookSheet.write(13, 2, 'Strike', trade_header_format)
+    tradePlanWorkbookSheet.write(13, 3, 'Price', trade_header_format)
+    tradePlanWorkbookSheet.write(13, 4, 'IV', trade_header_format)
+    tradePlanWorkbookSheet.write(13, 5, 'Volume', trade_header_format)
+    # tradePlanWorkbookSheet.write(16, 6, 'IV', trade_header_format)
+    tradePlanWorkbookSheet.write(13, 6, 'Time Executed', trade_header_format)
 
-    tradePlanWorkbookSheet.write(17, 0, 'Buy', buy_format)
-    tradePlanWorkbookSheet.write(17, 1, 'Call', strangle_header_format)
-    tradePlanWorkbookSheet.write(18, 1, 'Put', strangle_header_format)
+    tradePlanWorkbookSheet.write(14, 0, 'Buy', buy_format)
+    tradePlanWorkbookSheet.write(14, 1, 'Call', call_label_format)
+    tradePlanWorkbookSheet.write(15, 1, 'Put', put_label_format)
 
+    [tradePlanWorkbookSheet.write(14, x, '', empty_cell_format) for x in range(2,7,1)]
+    [tradePlanWorkbookSheet.write(15, x, '', empty_cell_format) for x in range(2,7,1)]
+    [tradePlanWorkbookSheet.write(15, x, '', empty_cell_format) for x in range(2,7,1)]
+
+    [tradePlanWorkbookSheet.write(16, x, '', empty_expiryM_format) for x in range(1, 7, 1)]
+    tradePlanWorkbookSheet.set_row(16, 10)
+    #
+    tradePlanWorkbookSheet.write(17, 0, 'Sell', sell_format)
+    tradePlanWorkbookSheet.write(17, 1, 'Call', trade_header_format)
+    tradePlanWorkbookSheet.write(18, 1, 'Put', put_label_format)
     [tradePlanWorkbookSheet.write(17, x, '', empty_cell_format) for x in range(2,7,1)]
     [tradePlanWorkbookSheet.write(18, x, '', empty_cell_format) for x in range(2,7,1)]
-    [tradePlanWorkbookSheet.write(20, x, '', empty_cell_format) for x in range(2,7,1)]
-    [tradePlanWorkbookSheet.write(21, x, '', empty_cell_format) for x in range(2,7,1)]
-
-    tradePlanWorkbookSheet.write(20, 0, 'Sell', sell_format)
-    tradePlanWorkbookSheet.write(20, 1, 'Call', strangle_header_format)
-    tradePlanWorkbookSheet.write(21, 1, 'Put', strangle_header_format)
-    tradePlanWorkbookSheet.set_row(16, 30, data_row_format)
-    tradePlanWorkbookSheet.set_row(17, 85, data_row_format)
-    tradePlanWorkbookSheet.set_row(18, 85, data_row_format)
-    tradePlanWorkbookSheet.set_row(20, 85, data_row_format)
-    tradePlanWorkbookSheet.set_row(21, 85, data_row_format)
-
+    tradePlanWorkbookSheet.set_row(14, 40)
+    tradePlanWorkbookSheet.set_row(15, 40)
+    tradePlanWorkbookSheet.set_row(17, 40)
+    tradePlanWorkbookSheet.set_row(18, 40)
+    #
     tradePlanWorkbookSheet.set_tab_color('green')
-    tradePlanWorkbookSheet.set_column('B:K', 22)
-    # Save excel
+    tradePlanWorkbookSheet.set_column('B:G', 22)
+    # # Save excel
     writer.save()
 
     return aWebDriver

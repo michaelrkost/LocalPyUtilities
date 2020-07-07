@@ -100,6 +100,7 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
     worksheet.set_column('G:I', 10, percentFormat)
     worksheet.set_column('J:K', 12, currencyFormat)
 
+    #Format headers -- need to get value then update
     for col_num, value in enumerate(summaryYahooEarningsDF.columns.values):
         worksheet.write(0, col_num, value, header_format)
 

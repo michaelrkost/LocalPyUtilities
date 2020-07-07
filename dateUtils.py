@@ -15,6 +15,7 @@ functions:
     * getDateString(date) - from datetime return formatted sting '20180718'
     * getDateFromMonthYear('Mon'YY') - from 'Mon'YY' return datetime.date - first day of Month
     * month3Format('20180718') - from '20180718' return format "Apr06'18"
+    * monthDayFormat('20180718')  - Returns the date /20190406/ in format: Mon, Apr06
     * getMonthExpiries() - get about 5 months of Friday Monthly expiry dates
     * getNext5MonthsExpires() - - get about 5 months of Friday Monthly and Weekly expiry dates
     * getNextExpiryDate() - get the next Friday Monthly expiry
@@ -291,6 +292,14 @@ def month3Format(pickedDate):
     """
     return datetime.datetime.strftime(getDate(pickedDate), "%b%d'%y")
 
+
+def monthDayFormat(pickedDate):
+    """Returns the date /20190406/ in format: Mon, Apr06
+
+    Keyword arguments:
+    pickedDate   -- datetime format
+    """
+    return datetime.datetime.strftime(getDate(pickedDate), "%a, %b %d")
 # ==============================================================
 def getMonthExpiries():
     """Get about 5 months of Fridays

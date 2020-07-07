@@ -103,10 +103,6 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
     maxFwd1PriceDelta = []
     minFwd1PriceDelta = []
     max1DayABSPriceDelta = []
-
-    std25MinusClose =[]
-    std25PlusClose =[]
-    std25TimesClose = []
     
     maxFwd4PriceDelta = []
     minFwd4PriceDelta = []
@@ -215,9 +211,6 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
             medianFwd4.append(np.nan)
             medianFwd1.append(np.nan)
 
-            # modeFwd4.append(np.nan)
-            # modeFwd1.append(np.nan)
-
 
     yahooEarningsDF['maxFwd4PercentDelta'] = maxFwd4PercentDelta
     yahooEarningsDF['minFwd4PercentDelta'] = minFwd4PercentDelta
@@ -238,6 +231,7 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
 
     yahooEarningsDF['stdFwd4%'] = stdFwd4
     yahooEarningsDF['stdFwd1%'] = stdFwd1
+    yahooEarningsDF['stdFwd1$TimesClose'] = (yahooEarningsDF['stdFwd1%'] * yahooEarningsDF['Close'])
     yahooEarningsDF['std25Fwd1%'] = std25Fwd1
     yahooEarningsDF['std25Fwd1$TimesClose'] = (yahooEarningsDF['std25Fwd1%'] * yahooEarningsDF['Close'])
     # yahooEarningsDF['std25Fwd1MinusClose'] = yahooEarningsDF['Close'] - yahooEarningsDF['std25Fwd1%TimesClose']
@@ -274,8 +268,9 @@ def cleanUpColumns(yahooEarningsDF):
 
     # Shorten some Column names and format the column
     yahooEarningsDF.rename(columns={'PutFridayOpenInterest': 'PutOpenIntst'}, inplace=True)
-    yahooEarningsDF.rename(columns={'CallFridayOpenInterest': 'CallOpenIntst'}, inplace=True)
 
+
+    yahooEarningsDF.rename(columns={'CallFridayOpenInterest': 'CallOpenIntst'}, inplace=True)
     yahooEarningsDF['PutOpenIntst'] = yahooEarningsDF['PutOpenIntst'].astype(int)
     yahooEarningsDF['CallOpenIntst'] = yahooEarningsDF['CallOpenIntst'].astype(int)
 
@@ -286,18 +281,21 @@ def cleanUpColumns(yahooEarningsDF):
 
 
     # Format DF columns as we just need to show the data
+
+
     yahooEarningsDF['stdFwd1%'] = yahooEarningsDF['stdFwd1%'].round(2).map("{:.1%}".format)
     yahooEarningsDF['std25Fwd1%'] = yahooEarningsDF['std25Fwd1%'].round(2).map("{:.1%}".format)
     yahooEarningsDF['std25Fwd1$TimesClose'] = yahooEarningsDF['std25Fwd1$TimesClose'].map("${:.2f}".format)
+    yahooEarningsDF['stdFwd1$TimesClose'] = yahooEarningsDF['stdFwd1$TimesClose'].map("${:.2f}".format)
     yahooEarningsDF['Exp$Range'] = yahooEarningsDF['Exp$Range'].map("${:.2f}".format)
     yahooEarningsDF['Close'] = yahooEarningsDF['Close'].map("${:.2f}".format)
     yahooEarningsDF['max1DayABS$Delta'] = yahooEarningsDF['max1DayABS$Delta'].round(2).map("${:.2f}".format)
     yahooEarningsDF['ABSFwd1MinusClose'] = yahooEarningsDF['ABSFwd1MinusClose'].round(2).map("${:.2f}".format)
     yahooEarningsDF['ABSFwd1PlusClose'] = yahooEarningsDF['ABSFwd1PlusClose'].round(2).map("${:.2f}".format)
 
-    yahooEarningsDF['impVol'] = yahooEarningsDF['impVol'].round(2).map("{:.1%}".format)
-    yahooEarningsDF['histVol'] = yahooEarningsDF['histVol'].round(2).map("{:.1%}".format)
-    yahooEarningsDF['IV_Delta'] = yahooEarningsDF['IV_Delta'].round(2).map("{:.1%}".format)
+    yahooEarningsDF['impVol'] = yahooEarningsDF['impVol'].round(2).map("{:.0%}".format)
+    yahooEarningsDF['histVol'] = yahooEarningsDF['histVol'].round(2).map("{:.0%}".format)
+    yahooEarningsDF['IV_Delta'] = yahooEarningsDF['IV_Delta'].round(2).map("{:.0%}".format)
 
 
 
@@ -311,7 +309,7 @@ def cleanUpColumns(yahooEarningsDF):
     yahooEarningsDF = yahooEarningsDF[['Symbol', 'Company', 'Earnings_Date','Time', 'Close', 'Volume',
                                        'histVol','impVol', 'IV_Delta', 'Option_Volume', 'PutOpenIntst',
                                        'CallOpenIntst', 'Exp$Range', 'stdFwd1%', 'std25Fwd1%',
-                                       'Close', 'max1DayABS$Delta','std25Fwd1$TimesClose','ABSFwd1MinusClose', 'ABSFwd1PlusClose']]
+                                       'Close', 'max1DayABS$Delta','stdFwd1$TimesClose', 'std25Fwd1$TimesClose','ABSFwd1MinusClose', 'ABSFwd1PlusClose']]
 
 
     return yahooEarningsDF
