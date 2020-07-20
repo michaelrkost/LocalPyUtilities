@@ -67,7 +67,8 @@ def getMarketDataFromOptionistics(symbol):
     res_dict = res_dict[1]
 
     # Add Last Stock price to dictionary
-    res_dict.update({'LAST': lastStockPrice})
+    # todo Removed last 7/19/2020
+    # res_dict.update({'LAST': lastStockPrice})
 
     #return dictionary of MarketData
     return res_dict

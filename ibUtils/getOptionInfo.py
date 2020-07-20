@@ -34,18 +34,20 @@ def getOccVolume(symbol):
     """
     s = requests.Session()
     #ONN Volume Search
-    url = 'https://www.theocc.com/webapps/series-search'
-    r = s.post(url,data={'symbolType': 'U','symbolId': symbol}, headers = headers)
+    # url = 'https://www.theocc.com/webapps/series-search'
+    url = 'https://www.theocc.com/Market-Data/Market-Data-Reports/Series-and-Trading-Data/Series-Search'
+    r = s.post(url,data={'symbolType': 'U','symbolText': symbol}, headers = headers)
+    print("response:  ", r)
     r.close()
 
     # check to make sure passing a valid symbol
     try:
         df = pd.read_html(r.content)[0]
     except ValueError:
-        # print('     ', ValueError, 'In getOptionInfo.getOccVolume')
-        # print('              Symbol: ', symbol)
+        print('     ', ValueError, 'In getOptionInfo.getOccVolume')
+        print('              Symbol: ', symbol)
         df = pd.DataFrame()
-        # print('              df.empty: ', df.empty)
+        print('              df.empty: ', df.empty)
         return df
     df.columns = df.columns.droplevel()
     # Combine Cents/Decimal in Strike price
@@ -60,6 +62,7 @@ def getOccVolume(symbol):
 
 def getOptionVolumeNextFriExpiryCount(aSymbol, startDay, lenDF):
     """
+    # TODO - OCC change their Web Site -- need to rework if we want open interest
 Calculate the next Friday total Call / Put Open Interest
 If there are no options for Friday goto Monthly else return O
     Parameters

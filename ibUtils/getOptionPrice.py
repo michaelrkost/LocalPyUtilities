@@ -175,5 +175,6 @@ def getCloseStrikePrice(ib, qualityContracts, aStockSymbol, price, startDate, ri
     return strikes, contracts
 
     # # # Todo - need to update to return close price when market closed else return last
+    # removing last as we were getting errors if it did not exist.
     # # return tickers[0].close + tickers[1].close
 

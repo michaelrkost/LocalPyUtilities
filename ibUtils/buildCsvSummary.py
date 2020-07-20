@@ -47,8 +47,7 @@ def saveCsvSummary(yahooEarningsOfInterestDF, allYahooEarningsForWeekDF, startda
 
     yahooEarningsOfInterestDF = yahooEarningsOfInterestDF[['Symbol', 'Company', 'Earnings_Date',  'Earnings Call Time', 'High',
        'Open', 'Volume', 'Option_Volume', 'Low', 'Close', 'histVolatility',
-       'impliedVolatility', 'Expected_Range', 'PutFridayOpenInterest',
-       'CallFridayOpenInterest', 'Last']]
+       'impliedVolatility', 'Expected_Range', 'Last']]
 
     yahooEarningsOfInterestDF.to_csv(interestPath)
     allYahooEarningsForWeekDF.to_csv(allPath)
@@ -267,12 +266,11 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
 def cleanUpColumns(yahooEarningsDF):
 
     # Shorten some Column names and format the column
-    yahooEarningsDF.rename(columns={'PutFridayOpenInterest': 'PutOpenIntst'}, inplace=True)
-
-
-    yahooEarningsDF.rename(columns={'CallFridayOpenInterest': 'CallOpenIntst'}, inplace=True)
-    yahooEarningsDF['PutOpenIntst'] = yahooEarningsDF['PutOpenIntst'].astype(int)
-    yahooEarningsDF['CallOpenIntst'] = yahooEarningsDF['CallOpenIntst'].astype(int)
+    # todo remove Open interest
+    # yahooEarningsDF.rename(columns={'PutFridayOpenInterest': 'PutOpenIntst'}, inplace=True)
+    # yahooEarningsDF.rename(columns={'CallFridayOpenInterest': 'CallOpenIntst'}, inplace=True)
+    # yahooEarningsDF['PutOpenIntst'] = yahooEarningsDF['PutOpenIntst'].astype(int)
+    # yahooEarningsDF['CallOpenIntst'] = yahooEarningsDF['CallOpenIntst'].astype(int)
 
     yahooEarningsDF.rename(columns={'impliedVolatility': 'impVol'}, inplace=True)
     yahooEarningsDF.rename(columns={'histVolatility': 'histVol'}, inplace=True)
@@ -283,8 +281,8 @@ def cleanUpColumns(yahooEarningsDF):
     # Format DF columns as we just need to show the data
 
 
-    yahooEarningsDF['stdFwd1%'] = yahooEarningsDF['stdFwd1%'].round(2).map("{:.1%}".format)
-    yahooEarningsDF['std25Fwd1%'] = yahooEarningsDF['std25Fwd1%'].round(2).map("{:.1%}".format)
+    yahooEarningsDF['stdFwd1%'] = yahooEarningsDF['stdFwd1%'].round(4).map("{:.2%}".format)
+    yahooEarningsDF['std25Fwd1%'] = yahooEarningsDF['std25Fwd1%'].round(4).map("{:.2%}".format)
     yahooEarningsDF['std25Fwd1$TimesClose'] = yahooEarningsDF['std25Fwd1$TimesClose'].map("${:.2f}".format)
     yahooEarningsDF['stdFwd1$TimesClose'] = yahooEarningsDF['stdFwd1$TimesClose'].map("${:.2f}".format)
     yahooEarningsDF['Exp$Range'] = yahooEarningsDF['Exp$Range'].map("${:.2f}".format)
@@ -307,8 +305,8 @@ def cleanUpColumns(yahooEarningsDF):
     #                                    'meanFwd1%', 'stdFwd1%', 'varFwd1%', 'medianFwd1%',  'stdFwd1Fwd4%',
     #                                    'meanFwd4%', 'stdFwd4%', 'varFwd4%',  'medianFwd4%']]
     yahooEarningsDF = yahooEarningsDF[['Symbol', 'Company', 'Earnings_Date','Time', 'Close', 'Volume',
-                                       'histVol','impVol', 'IV_Delta', 'Option_Volume', 'PutOpenIntst',
-                                       'CallOpenIntst', 'Exp$Range', 'stdFwd1%', 'std25Fwd1%',
+                                       'histVol','impVol', 'IV_Delta', 'Option_Volume',
+                                       'Exp$Range', 'stdFwd1%', 'std25Fwd1%',
                                        'Close', 'max1DayABS$Delta','stdFwd1$TimesClose', 'std25Fwd1$TimesClose','ABSFwd1MinusClose', 'ABSFwd1PlusClose']]
 
 

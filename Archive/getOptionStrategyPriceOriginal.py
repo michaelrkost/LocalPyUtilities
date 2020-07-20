@@ -177,8 +177,8 @@ def addMinMax(listOfEarningDeltas, yahooEarningsDF):
         priceMaxPercentDelta.append(earnDateDF['%Deltas'].max())
         priceMinDelta.append(earnDateDF['$Deltas'].min())
         priceMinPercentDelta.append(earnDateDF['%Deltas'].min())
-        priceStdWeek.append(round(earnDateDF['close'].std(), 2))
-        priceMeanWeek.append(round(earnDateDF['close'].mean(), 2))
+        priceStdWeek.append(round(earnDateDF['close'].std(), 4))
+        priceMeanWeek.append(round(earnDateDF['close'].mean(), 4))
 
         # Get earning day + 1 info
         try:

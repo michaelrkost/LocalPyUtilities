@@ -52,8 +52,8 @@ def addMarketData(earningsDF, startday):
     earningsDF['histVolatility'] = np.nan
     earningsDF['impliedVolatility'] = np.nan
     earningsDF['Expected_Range'] = np.nan
-    earningsDF['PutFridayOpenInterest'] = np.nan
-    earningsDF['CallFridayOpenInterest'] = np.nan
+    # earningsDF['PutFridayOpenInterest'] = np.nan
+    # earningsDF['CallFridayOpenInterest'] = np.nan
 
     lenDF = len(earningsDF)
 
@@ -61,9 +61,10 @@ def addMarketData(earningsDF, startday):
         # print(row.Symbol, ' @  ', lenDF,  end=", ")
         lenDF = lenDF - 1
 
-        putsOpenInterest, callsOpenInterest = getOptionInfo.getOptionVolumeNextFriExpiryCount(row.Symbol, startday,lenDF)
+        # TODO - OCC change their Web Site -- need to rework if we want open interest
+        # putsOpenInterest, callsOpenInterest = getOptionInfo.getOptionVolumeNextFriExpiryCount(row.Symbol, startday,lenDF)
         dict_MktData = getMarketData.getMarketDataFromOptionistics(row.Symbol)
-
+        print(lenDF, '|  add market data for: ', row.Symbol)
         # Check if there is data from Optionistics -
         # Empty dictionaries evaluate to False in Python
         # - so if no data then break loop
@@ -78,13 +79,15 @@ def addMarketData(earningsDF, startday):
         earningsDF.at[row.Index, 'Option_Volume'] = dict_MktData['OPTION VOLUME']
         earningsDF.at[row.Index, 'Low'] = dict_MktData['LOW']
         earningsDF.at[row.Index, 'Close'] = dict_MktData['CLOSE']
-        earningsDF.at[row.Index, 'Last'] = dict_MktData['LAST']
+        # ToDo taking out Last 7/19/2020 - causing error
+        # earningsDF.at[row.Index, 'Last'] = dict_MktData['LAST']
         earningsDF.at[row.Index, 'histVolatility'] = dict_MktData['HISTORICAL VOL']
         earningsDF.at[row.Index, 'impliedVolatility'] = dict_MktData['IMPLIED VOLATILITY']
 
-        earningsDF.at[row.Index, 'PutFridayOpenInterest'] = putsOpenInterest
-        earningsDF.at[row.Index, 'CallFridayOpenInterest'] = callsOpenInterest
-        earningsDF.at[row.Index, 'Expected_Range'] = strat.getExpectedPriceRangeTillNextExpiryDays( float(dict_MktData['LAST']) ,
+        # earningsDF.at[row.Index, 'PutFridayOpenInterest'] = 0 # TODO - OCC change their Web Site -- need to rework if we want open interestputsOpenInterest
+        # earningsDF.at[row.Index, 'CallFridayOpenInterest'] = 0 # TODO - OCC change their Web Site -- need to rework if we want open interestcallsOpenInterest
+        # todo - change first parameter from Last to Close
+        earningsDF.at[row.Index, 'Expected_Range'] = strat.getExpectedPriceRangeTillNextExpiryDays( float(dict_MktData['CLOSE']) ,
                                                                                                    float(dict_MktData['IMPLIED VOLATILITY']))
         #print(earningsDF)
 
@@ -164,7 +167,7 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
             stocksPastEarningsDF.at[earnDateRow.Index, 'Volume'] = np.nan
             stocksPastEarningsDF.at[earnDateRow.Index, 'Low']    = np.nan
             stocksPastEarningsDF.at[earnDateRow.Index, 'Close']  = np.nan
-            stocksPastEarningsDF.at[earnDateRow.Index, 'Last']   = np.nan
+            # stocksPastEarningsDF.at[earnDateRow.Index, 'Last']   = np.nan
             continue
 
         # Get historic stock prices from yahoofinancials within daysAroundEarnings timeframe
@@ -176,7 +179,12 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
         except KeyError:
             print('     Stock: ', theStock)
             print('     prices:  ', historical_stock_prices)
-            print('         ', KeyError, '       setup.addPastMarketData')
+            print('         ', KeyError, 'Prices: ', '       setup.addPastMarketData')
+            break
+        except TypeError:
+            print('     Stock: ', theStock)
+            print('     prices:  ', historical_stock_prices)
+            print('         ', TypeError, 'NoneType', '       setup.addPastMarketData')
             continue
 
         # recreate index as the 'date' column for price
@@ -193,10 +201,11 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
             stocksPastEarningsDF.at[earnDateRow.Index, 'Volume'] = historical_stock_pricesDF.volume[earnDateRow.Earnings_Date.date()]
             stocksPastEarningsDF.at[earnDateRow.Index, 'Low']    = historical_stock_pricesDF.low[earnDateRow.Earnings_Date.date()]
             stocksPastEarningsDF.at[earnDateRow.Index, 'Close']  = historical_stock_pricesDF.close[earnDateRow.Earnings_Date.date()]
-            stocksPastEarningsDF.at[earnDateRow.Index, 'Last']   = historical_stock_pricesDF.adjclose[earnDateRow.Earnings_Date.date()]
+            # stocksPastEarningsDF.at[earnDateRow.Index, 'Last']   = historical_stock_pricesDF.adjclose[earnDateRow.Earnings_Date.date()]
         except KeyError:
             print('     Stock: ', theStock)
-            print('         ', KeyError, '       setup.addPastMarketData')
+            print('         ', KeyError, 'Historical Price Issue in:', '       setup.addPastMarketData')
+
             continue
 
         stocksPastEarningsDF = getDaysPastEarningsClosePrices(earnDateRow, historical_stock_pricesDF, stocksPastEarningsDF)
@@ -283,6 +292,7 @@ def getDaysPastEarningsClosePrices(earnDateRow, historical_stock_pricesDF, stock
         print('     KeyError', KeyError, '       setup.getDaysPastEarningsClosePrices')
         print('         earningsDate:', earningsDate)
 
+
     return stockPastEarningsDF
 
 def formatForCSVFile(stocksPastEarningsDF, pruneDF):
@@ -297,9 +307,12 @@ def formatForCSVFile(stocksPastEarningsDF, pruneDF):
     stocksPastEarningsDF['EDFwd4DayClose'] = stocksPastEarningsDF['EDFwd4DayClose'].round(2)
     stocksPastEarningsDF['EDDiffFwd4Close'] = stocksPastEarningsDF['EDDiffFwd4Close'].round(2)
     stocksPastEarningsDF['EDDiffFwd1Close'] = stocksPastEarningsDF['EDDiffFwd1Close'].round(2)
-    stocksPastEarningsDF['EDFwd1DayClosePercentDelta'] = stocksPastEarningsDF['EDFwd1DayClosePercentDelta'].round(2)
-    stocksPastEarningsDF['EDFwd4DayClosePercentDelta'] = stocksPastEarningsDF['EDFwd4DayClosePercentDelta'].round(2)
-    stocksPastEarningsDF['Last'] = stocksPastEarningsDF['Last'].round(2)
+    stocksPastEarningsDF['EDFwd1DayClosePercentDelta'] = stocksPastEarningsDF['EDFwd1DayClosePercentDelta'].round(4)
+    stocksPastEarningsDF['EDFwd4DayClosePercentDelta'] = stocksPastEarningsDF['EDFwd4DayClosePercentDelta'].round(4)
+
+    # Todo - take out last
+    # stocksPastEarningsDF['Last'] = stocksPastEarningsDF['Last'].round(2)
+
 
     stocksPastEarningsDF['EDFwd1DayOpen'] = stocksPastEarningsDF['EDFwd1DayOpen'].round(2)
     stocksPastEarningsDF['EDBak1DayOpen'] = stocksPastEarningsDF['EDBak1DayOpen'].round(2)
@@ -310,7 +323,7 @@ def formatForCSVFile(stocksPastEarningsDF, pruneDF):
                                                   'Surprise(%)', 'High', 'Open', 'Volume', 'Low', 'Close', 'EDClose', 'EDFwd1DayOpen',
                                                   'EDFwd1DayClose', 'EDBak1DayOpen', 'EDBak1DayClose', 'EDFwd4DayClose', 'EDDiffFwd4Close',
                                                   'EDDiffFwd1Close', 'EDFwd1DayClosePercentDelta',
-                                                  'EDFwd4DayClosePercentDelta', 'Last']]
+                                                  'EDFwd4DayClosePercentDelta']]
 
     # if we are using the Max Earnings Quarters (32) prune off the remaining years data
     if pruneDF == True:
