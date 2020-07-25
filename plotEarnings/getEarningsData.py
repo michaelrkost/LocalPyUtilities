@@ -60,8 +60,8 @@ def getWeeklyStockTabSummary(theFilePath, theSymbol):
     # create to np array to display in matplotlib!!!!
     # Past earnings
     earningsMdate_np = excelPastEarningsDateDF.Earnings_Date.values
-    earnings1DayMove_np = excelPastEarningsDateDF.EDFwd1DayClosePercentDelta.values
-    earnings4DayMove_np = excelPastEarningsDateDF.EDFwd4DayClosePercentDelta.values
+    earnings1DayMove_np = excelPastEarningsDateDF.EDFwd1DayClosePercentDelta.values*100
+    earnings4DayMove_np = excelPastEarningsDateDF.EDFwd4DayClosePercentDelta.values*100
 
     #need to set up index with Datetime
     earnings1DayCandlestick =  excelPastEarningsDateDF[['Earnings_Date','Open','High','Low', 'Close', 'Volume']]

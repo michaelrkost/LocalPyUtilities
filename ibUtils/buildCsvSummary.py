@@ -47,7 +47,7 @@ def saveCsvSummary(yahooEarningsOfInterestDF, allYahooEarningsForWeekDF, startda
 
     yahooEarningsOfInterestDF = yahooEarningsOfInterestDF[['Symbol', 'Company', 'Earnings_Date',  'Earnings Call Time', 'High',
        'Open', 'Volume', 'Option_Volume', 'Low', 'Close', 'histVolatility',
-       'impliedVolatility', 'Expected_Range', 'Last']]
+       'impliedVolatility', 'Expected_Range']]
 
     yahooEarningsOfInterestDF.to_csv(interestPath)
     allYahooEarningsForWeekDF.to_csv(allPath)

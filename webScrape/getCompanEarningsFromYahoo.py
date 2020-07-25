@@ -55,13 +55,16 @@ def getPastEarnings(stock="AAPL"):
                     elif aria_label == "Surprise(%)":
                         susp = td_tag.get_text('td')
                 # create a dictionary from <td> scrape data
+                # try:
                 aRow = {'Symbol': [sym],
-                        'Earnings_Date': [ed],
-                        'Company': [co],
-                        'EPS_Estimate': [epsE],
-                        'Reported_EPS': [epsR],
-                        'Surprise(%)': [susp]}
-
+                    'Earnings_Date': [ed],
+                    'Company': [co],
+                    'EPS_Estimate': [epsE],
+                    'Reported_EPS': [epsR],
+                    'Surprise(%)': [susp]}
+                # except UnboundLocalError:
+                #     print('     ', UnboundLocalError, '       In getPastEarnings for: ', sym)
+                #     break
                 # create DF from one <td> scrape data
                 oneEarningDateDF = earningsDataDF.from_dict(aRow)
                 # capture all earnings data in DF

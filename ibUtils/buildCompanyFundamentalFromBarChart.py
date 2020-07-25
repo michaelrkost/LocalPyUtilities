@@ -144,9 +144,9 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
                                                             'border': 2, 'valign': 'vcenter', 'align': 'center'})
     put_label_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#f9cfb5',
                                                                 'border': 2, 'valign': 'vcenter', 'align': 'center'})
-    buy_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#93D07B',
+    open_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#93D07B',
                                                             'border': 2, 'valign': 'vcenter', 'align': 'center'})
-    sell_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#eb813d',
+    close_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#eb813d',
                                                             'border': 2, 'valign': 'vcenter', 'align': 'center'})
     trade_header_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#D7E4BC',
                                                             'border': 2, 'valign': 'vcenter', 'align': 'center'})
@@ -198,7 +198,7 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
     # tradePlanWorkbookSheet.write(16, 6, 'IV', trade_header_format)
     tradePlanWorkbookSheet.write(13, 6, 'Time Executed', trade_header_format)
 
-    tradePlanWorkbookSheet.write(14, 0, 'Buy', buy_format)
+    tradePlanWorkbookSheet.write(14, 0, 'Open', open_format)
     tradePlanWorkbookSheet.write(14, 1, 'Call', call_label_format)
     tradePlanWorkbookSheet.write(15, 1, 'Put', put_label_format)
 
@@ -209,7 +209,7 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
     [tradePlanWorkbookSheet.write(16, x, '', empty_expiryM_format) for x in range(1, 7, 1)]
     tradePlanWorkbookSheet.set_row(16, 10)
     #
-    tradePlanWorkbookSheet.write(17, 0, 'Sell', sell_format)
+    tradePlanWorkbookSheet.write(17, 0, 'Close', close_format)
     tradePlanWorkbookSheet.write(17, 1, 'Call', trade_header_format)
     tradePlanWorkbookSheet.write(18, 1, 'Put', put_label_format)
     [tradePlanWorkbookSheet.write(17, x, '', empty_cell_format) for x in range(2,7,1)]
