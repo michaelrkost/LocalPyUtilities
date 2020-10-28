@@ -64,7 +64,7 @@ def addMarketData(earningsDF, startday):
         # TODO - OCC change their Web Site -- need to rework if we want open interest
         # putsOpenInterest, callsOpenInterest = getOptionInfo.getOptionVolumeNextFriExpiryCount(row.Symbol, startday,lenDF)
         dict_MktData = getMarketData.getMarketDataFromOptionistics(row.Symbol)
-        print(lenDF, '|  add market data for: ', row.Symbol)
+        print(lenDF, '| adding market data for: ', row.Symbol, '\tImplied Vol:  ', dict_MktData['IMPLIED VOLATILITY'])
         # Check if there is data from Optionistics -
         # Empty dictionaries evaluate to False in Python
         # - so if no data then break loop
@@ -91,7 +91,7 @@ def addMarketData(earningsDF, startday):
                                                                                                    float(dict_MktData['IMPLIED VOLATILITY']))
         #print(earningsDF)
 
-    print('\nDone - setup.addMarketData....')
+    print('\nCompleted - setup.addMarketData....')
     #remove companies w/ less that 300 in Call Open Interest
     earningsDFOptionVolGood = earningsDF[(earningsDF['Option_Volume'] >= 300)]
 

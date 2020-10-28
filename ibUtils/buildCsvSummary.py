@@ -193,8 +193,6 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
             minFwd4PriceDelta.append(np.nan)
             maxFwd4PriceDeltaABS.append(np.nan)
 
-            stdFwd4.append(np.nan)
-            stdFwd1.append(np.nan)
             stdFwd1Fwd4.append(np.nan)
 
             stdFwd4.append(np.nan)
@@ -227,7 +225,9 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
     yahooEarningsDF['maxFwd4PriceDelta'] = maxFwd4PriceDelta
     yahooEarningsDF['minFwd4PriceDelta'] = minFwd4PriceDelta
     yahooEarningsDF['maxFwd4PriceDeltaABS'] = maxFwd4PriceDeltaABS
-
+    print("stdFwd4:  ", len(stdFwd4))
+    print("stdFwd1:  ", len(stdFwd1))
+    print("yahooEarningsDF:  ", len(yahooEarningsDF))
     yahooEarningsDF['stdFwd4%'] = stdFwd4
     yahooEarningsDF['stdFwd1%'] = stdFwd1
     yahooEarningsDF['stdFwd1$TimesClose'] = (yahooEarningsDF['stdFwd1%'] * yahooEarningsDF['Close'])

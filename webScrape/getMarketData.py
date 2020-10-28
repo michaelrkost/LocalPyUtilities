@@ -17,11 +17,12 @@ def getMarketDataFromOptionistics(symbol):
     :return:
     :rtype:
     """
-    # get Martket data - do web call
+    # get Market data - do web call
     # post symbol
     s = requests.Session()
-    aURL = "http://www.optionistics.com/quotes/stock-quotes"
-    r = s.post(aURL, data={'symbol': symbol}, headers = headers)
+    aURL = "http://www.optionistics.com/quotes/stock-quotes/" + symbol
+    r = s.get(aURL, headers=headers)
+
     r.close()
 
     # get web page into BeautifulSoup
@@ -69,7 +70,6 @@ def getMarketDataFromOptionistics(symbol):
     # Add Last Stock price to dictionary
     # todo Removed last 7/19/2020
     # res_dict.update({'LAST': lastStockPrice})
-
     #return dictionary of MarketData
     return res_dict
 
