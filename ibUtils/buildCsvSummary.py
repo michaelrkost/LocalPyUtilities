@@ -77,7 +77,7 @@ def createWeeklySummary(startday):
 
 
 def getVolAndUpdateMoveDelta(yahooEarningsDF, earningWeekDir):
-    print('in createWeekSummary')
+    print('in createWeekSummary // getVolAndUpdateMoveDelta() lenYahhDF', len(yahooEarningsDF))
     # Get % IV Delta
     yahooEarningsDF['IV_Delta'] = yahooEarningsDF.impliedVolatility - yahooEarningsDF.histVolatility
 
@@ -121,13 +121,12 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
     medianFwd4 = []
     medianFwd1 = []
 
-    # modeFwd4 = []
-    # modeFwd1 = []
-
+    anElse = 1
     for row in yahooEarningsDF.itertuples():
+        print(row.Symbol)
         aCompanyFile = row.Symbol + csvSuffix
         filePath = earningWeekDir / aCompanyFile
-        print(filePath)
+        print("  filePath:  ", filePath, '\n')
         ckForFile = Path(filePath)
         if ckForFile.is_file():
             # get company's CSV file with data
@@ -172,11 +171,11 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
             medianFwd4.append(anEarningWeeksCompany['EDFwd4DayClosePercentDelta'].median())
             medianFwd1.append(anEarningWeeksCompany['EDFwd1DayClosePercentDelta'].median())
 
-            # modeFwd4.append(anEarningWeeksCompany['EDFwd4DayClosePercentDelta'].mode())
-            # modeFwd1.append(anEarningWeeksCompany['EDFwd1DayClosePercentDelta'].mode())
-
-
         else: # no data add not a number / nan
+            print( "   *** No data @ row Index  = ", row.Index, "\n")
+            #row.Index = row.Index +1
+            anElse = anElse + 1
+
             maxFwd4PercentDelta.append(np.nan)
             minFwd4PercentDelta.append(np.nan)
             maxFwd4PercentDeltaABS.append(np.nan)
@@ -196,9 +195,6 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
             stdFwd4.append(np.nan)
             stdFwd1.append(np.nan)
             stdFwd1Fwd4.append(np.nan)
-
-            stdFwd4.append(np.nan)
-            stdFwd1.append(np.nan)
             std25Fwd1.append(np.nan)
 
             varFwd4.append(np.nan)
@@ -209,6 +205,7 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
 
             medianFwd4.append(np.nan)
             medianFwd1.append(np.nan)
+            # continue
 
 
     yahooEarningsDF['maxFwd4PercentDelta'] = maxFwd4PercentDelta
@@ -227,7 +224,9 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
     yahooEarningsDF['maxFwd4PriceDelta'] = maxFwd4PriceDelta
     yahooEarningsDF['minFwd4PriceDelta'] = minFwd4PriceDelta
     yahooEarningsDF['maxFwd4PriceDeltaABS'] = maxFwd4PriceDeltaABS
-
+    # print("stdFwd4:  ", len(stdFwd4))
+    # print("stdFwd1:  ", stdFwd1, len(stdFwd1))
+    # print("yahooEarningsDF:  ", len(yahooEarningsDF))
     yahooEarningsDF['stdFwd4%'] = stdFwd4
     yahooEarningsDF['stdFwd1%'] = stdFwd1
     yahooEarningsDF['stdFwd1$TimesClose'] = (yahooEarningsDF['stdFwd1%'] * yahooEarningsDF['Close'])

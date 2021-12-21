@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import datetime
 
 # Chrome linux User Agent - needed to not get blocked as a bot
+#Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
 headers = {'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
 
 
@@ -54,6 +55,9 @@ def getPastEarnings(stock="AAPL"):
                         epsR = td_tag.get_text('td')
                     elif aria_label == "Surprise(%)":
                         susp = td_tag.get_text('td')
+                        # remove the '+td' which came along - 12/20/21
+                        susp = susp.replace('+td', '')
+
                 # create a dictionary from <td> scrape data
                 # try:
                 aRow = {'Symbol': [sym],

@@ -2,7 +2,7 @@
 module: setup
 
 """
-#Todo - error management / ib.errorEvent += onError
+
 import sys
 sys.path.append('/home/michael/jupyter/local-packages')
 
@@ -12,22 +12,20 @@ from localUtilities import dateUtils
 
 # YahooFinancials
 # https://pypi.org/project/yahoofinancials/
+
 # A python module that returns stock, cryptocurrency,
 # forex, mutual fund, commodity futures, ETF,
 # and US Treasury financial data from Yahoo Finance.
 # TODO: Determine if yahoofinancials is adequate or if we should create a Database with this info.
 # ToDo: review investpy as an alternative to yahoofinancials // https://investpy.readthedocs.io
 from yahoofinancials import YahooFinancials
-
-from localUtilities.ibUtils import getStrategyPrice as strat
-from localUtilities.ibUtils import getOptionInfo
-from localUtilities.webScrape import getMarketData
+from localUtilities.ibUtils import getMarketData
 
 import numpy as np
 import pandas as pd
 # ================================================================
 
-def addMarketData(earningsDF, startday):
+def addMarketData(earningsDF):
     """
     Add Market Data / 'histVolatility', 'impliedVolatility', 'avOptionVolume','Expected_Range' etc./
     to companies in passed DF
@@ -43,17 +41,19 @@ def addMarketData(earningsDF, startday):
     in Option Volume - worthwhile causes
     """
 # get info from the time of this run
-    earningsDF['High'] = np.nan
     earningsDF['Open'] = np.nan
     earningsDF['Volume'] = np.nan
-    earningsDF['Option_Volume'] = np.nan
+    earningsDF['High'] = np.nan
     earningsDF['Low'] = np.nan
     earningsDF['Close'] = np.nan
+
+    earningsDF['Option_Volume'] = np.nan
+    earningsDF['PutOpenInterest'] = np.nan
+    earningsDF['CallOpenInterest'] = np.nan
+
     earningsDF['histVolatility'] = np.nan
     earningsDF['impliedVolatility'] = np.nan
     earningsDF['Expected_Range'] = np.nan
-    # earningsDF['PutFridayOpenInterest'] = np.nan
-    # earningsDF['CallFridayOpenInterest'] = np.nan
 
     lenDF = len(earningsDF)
 
@@ -63,35 +63,13 @@ def addMarketData(earningsDF, startday):
 
         # TODO - OCC change their Web Site -- need to rework if we want open interest
         # putsOpenInterest, callsOpenInterest = getOptionInfo.getOptionVolumeNextFriExpiryCount(row.Symbol, startday,lenDF)
-        dict_MktData = getMarketData.getMarketDataFromOptionistics(row.Symbol)
-        print(lenDF, '|  add market data for: ', row.Symbol)
-        # Check if there is data from Optionistics -
-        # Empty dictionaries evaluate to False in Python
-        # - so if no data then break loop
-        if not dict_MktData:
-            print('dict_MktData:  ', dict_MktData)
-            continue
+        # depreciated code 8/8/21: mktData = getMarketData.getMarketDataFromOptionistics(row.Symbol)
+        print(lenDF, '|  add market data for: ',row.Index, "   ",  row.Symbol)
+        # print("earningsDF befor == ", earningsDF)
+        getMarketData.addCurrentMarketData(earningsDF, row.Index, row.Symbol)
 
-        # todo can append the dictionary to the DF as well.
-        earningsDF.at[row.Index, 'High'] = dict_MktData['HIGH']
-        earningsDF.at[row.Index, 'Open'] = dict_MktData['OPEN']
-        earningsDF.at[row.Index, 'Volume'] = dict_MktData['VOLUME']
-        earningsDF.at[row.Index, 'Option_Volume'] = dict_MktData['OPTION VOLUME']
-        earningsDF.at[row.Index, 'Low'] = dict_MktData['LOW']
-        earningsDF.at[row.Index, 'Close'] = dict_MktData['CLOSE']
-        # ToDo taking out Last 7/19/2020 - causing error
-        # earningsDF.at[row.Index, 'Last'] = dict_MktData['LAST']
-        earningsDF.at[row.Index, 'histVolatility'] = dict_MktData['HISTORICAL VOL']
-        earningsDF.at[row.Index, 'impliedVolatility'] = dict_MktData['IMPLIED VOLATILITY']
 
-        # earningsDF.at[row.Index, 'PutFridayOpenInterest'] = 0 # TODO - OCC change their Web Site -- need to rework if we want open interestputsOpenInterest
-        # earningsDF.at[row.Index, 'CallFridayOpenInterest'] = 0 # TODO - OCC change their Web Site -- need to rework if we want open interestcallsOpenInterest
-        # todo - change first parameter from Last to Close
-        earningsDF.at[row.Index, 'Expected_Range'] = strat.getExpectedPriceRangeTillNextExpiryDays( float(dict_MktData['CLOSE']) ,
-                                                                                                   float(dict_MktData['IMPLIED VOLATILITY']))
-        #print(earningsDF)
-
-    print('\nDone - setup.addMarketData....')
+    print('\nDone - setup.addCurrentMarketData....')
     #remove companies w/ less that 300 in Call Open Interest
     earningsDFOptionVolGood = earningsDF[(earningsDF['Option_Volume'] >= 300)]
 
@@ -131,7 +109,14 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
     stocksPastEarningsDF['EDFwd1DayOpen'] = np.nan # Earning Day Forward 1 Day Open Price
     stocksPastEarningsDF['EDBak1DayOpen'] = np.nan # Earning Day Back 1 Day Open Price
 
-    theStock = stocksPastEarningsDF.Symbol[0]
+
+
+    if (stocksPastEarningsDF.empty):
+        print( " ===========> theStock <========== EMPTY ============no data!!")
+        return stocksPastEarningsDF
+    else:
+        theStock = stocksPastEarningsDF.Symbol[0]
+        print("stocksPastEarningsDF.Symbol[0] = ", theStock)
 
     lenDF = len(stocksPastEarningsDF)
     if lenDF > 32:

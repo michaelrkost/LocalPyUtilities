@@ -3,6 +3,8 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+# let's check Yahoo for now 8/8/21
+from yahoofinancials import YahooFinancials
 
 # Chrome linux User Agent - needed to not get blocked as a bot
 headers = {
@@ -17,11 +19,12 @@ def getMarketDataFromOptionistics(symbol):
     :return:
     :rtype:
     """
-    # get Martket data - do web call
+    # get Market data - do web call
     # post symbol
     s = requests.Session()
-    aURL = "http://www.optionistics.com/quotes/stock-quotes"
-    r = s.post(aURL, data={'symbol': symbol}, headers = headers)
+    aURL = "http://www.optionistics.com/quotes/stock-quotes/" + symbol
+    r = s.get(aURL, headers=headers)
+
     r.close()
 
     # get web page into BeautifulSoup
@@ -31,6 +34,7 @@ def getMarketDataFromOptionistics(symbol):
     # Find the data in the table with the id: 'mainbody'
     # and table class: 'quotem'
     table = soup.find_all('table', {'class': 'quotem'})
+
     #got it - now put it in a DF
     try:
         df = pd.read_html(str(table))
@@ -39,8 +43,9 @@ def getMarketDataFromOptionistics(symbol):
         print('     ValueError', ValueError, '       getMarketData.getMarketDataFromOptionistics')
         return dict()
 
+    # Updated 6/28/21 as optionistics.com updated their site
     # get the last stock price
-    lastStockPrice = df[0][6][0]
+    lastStockPrice = df[1][5][0]
 
     # get the section of the page in which we are interested
     df = df[1]
@@ -69,7 +74,6 @@ def getMarketDataFromOptionistics(symbol):
     # Add Last Stock price to dictionary
     # todo Removed last 7/19/2020
     # res_dict.update({'LAST': lastStockPrice})
-
     #return dictionary of MarketData
     return res_dict
 

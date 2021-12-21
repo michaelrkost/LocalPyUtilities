@@ -104,7 +104,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     # Set colors and labels  EPS Move
     colorReportedEPS = 'forestgreen'
     colorEstimatedEPS = 'dodgerblue'
-    colorSupriseEPS = 'firebrick'
+    colorSupriseEPS = 'olive'
     colorLabel = 'green'
     #,'EPS_Estimate','Reported_EPS','Surprise(%)
     ax2LegendReportedEPS  = "Reported EPS"
@@ -114,6 +114,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     # setup plotting ----------------------------
     # single Plot for Earnings price moves // Main Plot
     fig, earningsMovePlt = plt.subplots(figsize=(15, 6))
+    # instantiate a second axes that shares the same x-axis
     # Setup Plot for a second axes that shares the same x-axis for EPS
     earningsEpsPlt = earningsMovePlt.twinx()
     # Setup Plot for a third axes that shares the same x-axis for earning surprise
@@ -124,7 +125,8 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     # Offset the right spine of Suprise ---------------------------
     # The ticks and label have already been
     # placed on the right by twinx above.
-    earningsEpsSuprisePlt.spines["right"].set_position(("axes", 1.05))
+    # needs double parens to work -> (("axes", 1.06))
+    earningsEpsSuprisePlt.spines["right"].set_position(("axes", 1.06))
     # Having been created by twinx, earningsMovePlt has its frame off, so the line of its
     # detached spine is invisible.  First, activate the frame but make the patch
     # and spines invisible.
@@ -153,7 +155,23 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     earningsMovePlt.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
     fig.autofmt_xdate()
 
+    # sync 2 yaxis 0 placement
+    print("1- ylim earningsEpsPlt:  ", earningsEpsPlt.get_ylim())
+    print("1- ylim eearningsEpsSuprisePlt: ",earningsEpsSuprisePlt.get_ylim())
+    earningsEpsPlt.set_ylim(-6, 6)
+    earningsEpsSuprisePlt.set_ylim(-6, 6)
+    print("2- ylim earningsEpsPlt:  ", earningsEpsPlt.get_ylim())
+    print("2- ylim eearningsEpsSuprisePlt: ",earningsEpsSuprisePlt.get_ylim())
+
     plt.grid(color=colorSupriseEPS) # not needed at this point
+
+    # sync 2 yaxis 0 placement
+    print("1- ylim earningsEpsPlt:  ", earningsEpsPlt.get_ylim())
+    print("1- ylim eearningsEpsSuprisePlt: ", earningsEpsSuprisePlt.get_ylim())
+    earningsEpsPlt.set_ylim(bottom=0, auto=True)
+    earningsEpsSuprisePlt.set_ylim(bottom=0, auto=True)
+    print("2- ylim earningsEpsPlt:  ", earningsEpsPlt.get_ylim())
+    print("2- ylim eearningsEpsSuprisePlt: ", earningsEpsSuprisePlt.get_ylim())
 
     # plot 1Day and 4Day move
     label1Day = earningsMovePlt.plot(earningsMdate_np, earnings1DayMove_np, color=color1DayStockMove,
@@ -170,8 +188,8 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
 
     lines = [label1Day[0],label4Day[0], horzLine, xBar2[0], xBar1[0], xBar3[0]]
     lineLabel = [label1Day[0]._label, label4Day[0]._label,horzLine._label,  xBar2._label, xBar1._label, xBar3._label]
-    # set legend to top right
-    earningsMovePlt.legend(lines, lineLabel,bbox_to_anchor=(0.96, 0.02))
+    # set legend placement - lower left - mrk 12/21/21
+    earningsMovePlt.legend(lines, lineLabel,bbox_to_anchor=(0.02, 0.04))
 
     #cursor = Cursor(earningsMovePlt, useblit=True, color='red', linewidth=2) #, horizOn=True, vertOn=True, color='green')
 

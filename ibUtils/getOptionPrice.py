@@ -104,7 +104,7 @@ def getStockOptionPrice(ib, aStockSymbol, strikesDF, aRight, closeCLPrice, excha
                     iv = np.nan
                     continue
                 except ValueError:
-                    print('Stock: ', aStockSymbol)
+                    print('Stock107: ', aStockSymbol)
                     print('     ', BelowIntrinsicException, '       getStockOptionPrice')
                     iv = np.nan
                     continue
