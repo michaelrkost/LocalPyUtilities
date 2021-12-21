@@ -4,7 +4,7 @@ from pathlib import Path
 sys.path.append('/home/michael/jupyter/local-packages')
 
 import pandas as pd
-import datetime
+import os.path
 
 from localUtilities import dateUtils
 
@@ -66,7 +66,10 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
         theHeaderTransposed.to_excel(writer, sheet_name= aSymbol)
 
         inCsvFile_aSymbol = companyEarningsWeek + aSymbol + csvSuffix
-        yahooEarningsDf_aSymbol = pd.read_csv(inCsvFile_aSymbol, index_col=0)
+        if Path(inCsvFile_aSymbol).is_file():
+            yahooEarningsDf_aSymbol = pd.read_csv(inCsvFile_aSymbol, index_col=0)
+        else:
+            continue
         # start adding to data to tab after the Current Earnings info - see above
         startRow = 3
         # get date
