@@ -104,7 +104,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     # Set colors and labels  EPS Move
     colorReportedEPS = 'forestgreen'
     colorEstimatedEPS = 'dodgerblue'
-    colorSupriseEPS = 'olive'
+    colorSupriseEPS = 'firebrick'
     colorLabel = 'green'
     #,'EPS_Estimate','Reported_EPS','Surprise(%)
     ax2LegendReportedEPS  = "Reported EPS"
@@ -130,7 +130,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     # Having been created by twinx, earningsMovePlt has its frame off, so the line of its
     # detached spine is invisible.  First, activate the frame but make the patch
     # and spines invisible.
-    make_patch_spines_invisible(earningsEpsSuprisePlt)
+    make_patch_spines_invisible(earningsEpsSuprisePlt) #not sure what this is doing
     # Second, show the right spine.
     earningsEpsSuprisePlt.spines["right"].set_visible(True)
 
@@ -155,29 +155,39 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     earningsMovePlt.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
     fig.autofmt_xdate()
 
-    # sync 2 yaxis 0 placement
-    print("1- ylim earningsEpsPlt:  ", earningsEpsPlt.get_ylim())
-    print("1- ylim eearningsEpsSuprisePlt: ",earningsEpsSuprisePlt.get_ylim())
-    earningsEpsPlt.set_ylim(-6, 6)
-    earningsEpsSuprisePlt.set_ylim(-6, 6)
-    print("2- ylim earningsEpsPlt:  ", earningsEpsPlt.get_ylim())
-    print("2- ylim eearningsEpsSuprisePlt: ",earningsEpsSuprisePlt.get_ylim())
-
-    plt.grid(color=colorSupriseEPS) # not needed at this point
-
-    # sync 2 yaxis 0 placement
-    print("1- ylim earningsEpsPlt:  ", earningsEpsPlt.get_ylim())
-    print("1- ylim eearningsEpsSuprisePlt: ", earningsEpsSuprisePlt.get_ylim())
-    earningsEpsPlt.set_ylim(bottom=0, auto=True)
-    earningsEpsSuprisePlt.set_ylim(bottom=0, auto=True)
-    print("2- ylim earningsEpsPlt:  ", earningsEpsPlt.get_ylim())
-    print("2- ylim eearningsEpsSuprisePlt: ", earningsEpsSuprisePlt.get_ylim())
+    #plt.grid(color=colorSupriseEPS) # grid not needed at this point
 
     # plot 1Day and 4Day move
     label1Day = earningsMovePlt.plot(earningsMdate_np, earnings1DayMove_np, color=color1DayStockMove,
              label=ax1LegendLabel1Day, linestyle='--', marker='o')
     label4Day = earningsMovePlt.plot(earningsMdate_np, earnings4DayMove_np, color=color4DayStockMove,
              label=ax1LegendLabel4Day, linestyle='-', marker='o')
+    # =============================================================================================
+
+    # find plot limit to center the 0 point
+    aDayMinRT = np.round(np.nanmin(earningsDayEPS.Reported_EPS), 2)
+    aDayMaxRT = np.round(np.nanmax(earningsDayEPS.Reported_EPS), 2)
+    aDayMinESP = np.round(np.nanmin(earningsDayEPS.EPS_Estimate), 2)
+    aDayMaxESP = np.round(np.nanmax(earningsDayEPS.EPS_Estimate), 2)
+    aDayMinSup = np.round(np.nanmin(earningsDayEPS['Surprise(%)']), 2)
+    aDayMaxSup = np.round(np.nanmax(earningsDayEPS['Surprise(%)']), 2)
+    print("aDayMinRT: ", aDayMinRT, 'aDayMaxRT: ', aDayMaxRT)
+    print("aDayMinESP: ", aDayMinESP, "aDayMaxESP: ", aDayMaxESP)
+    print("aDayMinSup: ", aDayMinSup, 'aDayMaxSup: ', aDayMaxSup)
+    # earningsMovePlt.set_ylim(bottom=ylimBottom, top=ylimTop, auto=True)
+    #After plotting the data find the maximum absolute value between the min and max axis values.
+    # Then set the min and max limits of the axis to the negative and positive (respectively) of that value.
+
+    yabs_maxMovePlt = abs(max(earningsMovePlt.get_ylim(), key=abs))
+    earningsMovePlt.set_ylim(ymin=-yabs_maxMovePlt, ymax=yabs_maxMovePlt)
+
+    yabs_maxEPSPlt = max(abs(aDayMinESP),abs(aDayMaxESP),abs(aDayMinRT),abs(aDayMaxRT))
+    earningsEpsPlt.set_ylim(ymin=-yabs_maxEPSPlt, ymax=yabs_maxEPSPlt)
+
+    yabs_maxMoveSupr = max(abs(aDayMinSup),abs(aDayMaxSup))
+    earningsEpsSuprisePlt.set_ylim(ymin=-yabs_maxMoveSupr, ymax=yabs_maxMoveSupr)
+    print("yabs_maxMoveSupr:  ", earningsEpsSuprisePlt.get_ylim(),'   ', yabs_maxMoveSupr)
+    # =============================================================================================
 
     # Add dotted line for $0 - Price move
     horzLine = earningsMovePlt.axhline(y=0, color='navy', linestyle=':', label=zeroPointLabel)
