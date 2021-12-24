@@ -87,7 +87,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
 
     # Set colors and labels  Earnings Move ----------------
     color1DayStockMove = 'navy'
-    color4DayStockMove = 'darkorange'
+    color4DayStockMove = 'maroon'
     xLabel = 'Earnings Dates'
     xLabelColor = 'slategray'
     yLabelStockDeltaColor = color1DayStockMove
@@ -104,7 +104,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     # Set colors and labels  EPS Move
     colorReportedEPS = 'forestgreen'
     colorEstimatedEPS = 'dodgerblue'
-    colorSupriseEPS = 'firebrick'
+    colorSupriseEPS = "crimson"
     colorLabel = 'green'
     #,'EPS_Estimate','Reported_EPS','Surprise(%)
     ax2LegendReportedEPS  = "Reported EPS"
@@ -140,7 +140,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     earningsMovePlt.set_xlabel(xLabel, color=xLabelColor)
     earningsMovePlt.set_ylabel(yLabelStockDeltaTitle, color=yLabelStockDeltaColor)
     earningsEpsPlt.set_ylabel('EPS', color=colorLabel)
-    earningsEpsSuprisePlt.set_ylabel('Suprise %', color=colorSupriseEPS)
+    earningsEpsSuprisePlt.set_ylabel('EPS Suprise %', color=colorSupriseEPS)
     # Set tick
     earningsMovePlt.tick_params(axis='y', labelcolor=yLabelStockDeltaColor)
     earningsMovePlt.tick_params(axis='x', labelcolor=xLabelColor)
@@ -159,45 +159,46 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
 
     # plot 1Day and 4Day move
     label1Day = earningsMovePlt.plot(earningsMdate_np, earnings1DayMove_np, color=color1DayStockMove,
-             label=ax1LegendLabel1Day, linestyle='--', marker='o')
+             label=ax1LegendLabel1Day, linestyle='--', marker='o', zorder=1)
     label4Day = earningsMovePlt.plot(earningsMdate_np, earnings4DayMove_np, color=color4DayStockMove,
-             label=ax1LegendLabel4Day, linestyle='-', marker='o')
+             label=ax1LegendLabel4Day, linestyle='-', marker='o', zorder=1)
     # =============================================================================================
 
     # find plot limit to center the 0 point
     aDayMinRT = np.round(np.nanmin(earningsDayEPS.Reported_EPS), 2)
     aDayMaxRT = np.round(np.nanmax(earningsDayEPS.Reported_EPS), 2)
-    aDayMinESP = np.round(np.nanmin(earningsDayEPS.EPS_Estimate), 2)
-    aDayMaxESP = np.round(np.nanmax(earningsDayEPS.EPS_Estimate), 2)
     aDayMinSup = np.round(np.nanmin(earningsDayEPS['Surprise(%)']), 2)
     aDayMaxSup = np.round(np.nanmax(earningsDayEPS['Surprise(%)']), 2)
-    print("aDayMinRT: ", aDayMinRT, 'aDayMaxRT: ', aDayMaxRT)
-    print("aDayMinESP: ", aDayMinESP, "aDayMaxESP: ", aDayMaxESP)
-    print("aDayMinSup: ", aDayMinSup, 'aDayMaxSup: ', aDayMaxSup)
+    aDayMinESP = np.round(np.nanmin(earningsDayEPS.EPS_Estimate), 2)
+    aDayMaxESP = np.round(np.nanmax(earningsDayEPS.EPS_Estimate), 2)
+
+    # print("aDayMinRT: ", aDayMinRT, 'aDayMaxRT: ', aDayMaxRT)
+    # print("aDayMinESP: ", aDayMinESP, "aDayMaxESP: ", aDayMaxESP)
+    # print("aDayMinSup: ", aDayMinSup, 'aDayMaxSup: ', aDayMaxSup)
     # earningsMovePlt.set_ylim(bottom=ylimBottom, top=ylimTop, auto=True)
     #After plotting the data find the maximum absolute value between the min and max axis values.
     # Then set the min and max limits of the axis to the negative and positive (respectively) of that value.
-
-    yabs_maxMovePlt = abs(max(earningsMovePlt.get_ylim(), key=abs))
-    earningsMovePlt.set_ylim(ymin=-yabs_maxMovePlt, ymax=yabs_maxMovePlt)
 
     yabs_maxEPSPlt = max(abs(aDayMinESP),abs(aDayMaxESP),abs(aDayMinRT),abs(aDayMaxRT))
     earningsEpsPlt.set_ylim(ymin=-yabs_maxEPSPlt, ymax=yabs_maxEPSPlt)
 
     yabs_maxMoveSupr = max(abs(aDayMinSup),abs(aDayMaxSup))
     earningsEpsSuprisePlt.set_ylim(ymin=-yabs_maxMoveSupr, ymax=yabs_maxMoveSupr)
-    print("yabs_maxMoveSupr:  ", earningsEpsSuprisePlt.get_ylim(),'   ', yabs_maxMoveSupr)
+
+    yabs_maxMovePlt = abs(max(earningsMovePlt.get_ylim(), key=abs))
+    earningsMovePlt.set_ylim(ymin=-yabs_maxMovePlt, ymax=yabs_maxMovePlt)
+    # print("yabs_maxMoveSupr:  ", earningsEpsSuprisePlt.get_ylim(),'   ', yabs_maxMoveSupr)
     # =============================================================================================
 
     # Add dotted line for $0 - Price move
-    horzLine = earningsMovePlt.axhline(y=0, color='navy', linestyle=':', label=zeroPointLabel)
+    horzLine = earningsMovePlt.axhline(y=0, color='navy', linestyle=':', label=zeroPointLabel, zorder=1)
 
-    xBar1 = earningsEpsPlt.bar(earningsMdate_np+6, earningsDayEPS.Reported_EPS, 4, label=ax2LegendReportedEPS, color=colorReportedEPS)
-    xBar2 = earningsEpsPlt.bar(earningsMdate_np-1, earningsDayEPS.EPS_Estimate, 4, label=ax2LegendEstimatedEPS, color=colorEstimatedEPS)
-    xBar3 = earningsEpsSuprisePlt.bar(earningsMdate_np+12, earningsDayEPS['Surprise(%)'], 4, label=ax2LegendSupriseEPS, color=colorSupriseEPS)
+    xBarRepEPS = earningsEpsPlt.bar(earningsMdate_np+6, earningsDayEPS.Reported_EPS, width=4, label=ax2LegendReportedEPS, color=colorReportedEPS, alpha=0.5)
+    xBarEstEPS = earningsEpsPlt.bar(earningsMdate_np-1, earningsDayEPS.EPS_Estimate, width=4, label=ax2LegendEstimatedEPS, color=colorEstimatedEPS, alpha=0.5)
+    xBarSupEPS = earningsEpsSuprisePlt.bar(earningsMdate_np+12, earningsDayEPS['Surprise(%)'], 4, label=ax2LegendSupriseEPS, color=colorSupriseEPS, alpha=0.5)
 
-    lines = [label1Day[0],label4Day[0], horzLine, xBar2[0], xBar1[0], xBar3[0]]
-    lineLabel = [label1Day[0]._label, label4Day[0]._label,horzLine._label,  xBar2._label, xBar1._label, xBar3._label]
+    lines = [label1Day[0],label4Day[0], horzLine, xBarEstEPS[0], xBarSupEPS[0], xBarRepEPS[0] ]
+    lineLabel = [label1Day[0]._label, label4Day[0]._label,horzLine._label,  xBarEstEPS._label, xBarSupEPS._label, xBarRepEPS._label]
     # set legend placement - lower left - mrk 12/21/21
     earningsMovePlt.legend(lines, lineLabel,bbox_to_anchor=(0.02, 0.04))
 

@@ -76,7 +76,7 @@ def addMarketData(earningsDF):
     return earningsDFOptionVolGood.reset_index(drop=True), earningsDF
 
 
-def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
+def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10, maxQtrs = 6):
     """
     Add Market Data to companies in  stocksPastEarningsDF
     #todo remove daysAroundEarnings = 10 // should be 5??
@@ -119,9 +119,12 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
         print("stocksPastEarningsDF.Symbol[0] = ", theStock)
 
     lenDF = len(stocksPastEarningsDF)
-    if lenDF > 32:
-        lenDF = 32
-        print('--> Calculating',  lenDF, 'past Qtrs // 8 years - Max')
+    print("lenDF:  ", lenDF)
+    returnOnlyLenDf = lenDF
+    if lenDF > maxQtrs: # Number of Qtrs
+        lenDF = maxQtrs
+        returnOnlyLenDf = maxQtrs
+        print('--> Calculating',  lenDF, 'past Qtrs // ', lenDF ,' Qtrs - Max = ', maxQtrs)
         pruneDF = True
     else:
         print('--> Calculating', lenDF, 'past Qtrs //', f'{lenDF/4:1.1f}', 'years')
@@ -198,7 +201,7 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10):
 
     stocksPastEarningsDF = formatForCSVFile(stocksPastEarningsDF, pruneDF)
 
-    return stocksPastEarningsDF
+    return stocksPastEarningsDF.head(maxQtrs)
 
 def calcPriceDeltas(stocksPastEarningsDF):
     """
