@@ -197,8 +197,8 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     xBarEstEPS = earningsEpsPlt.bar(earningsMdate_np-1, earningsDayEPS.EPS_Estimate, width=4, label=ax2LegendEstimatedEPS, color=colorEstimatedEPS, alpha=0.5)
     xBarSupEPS = earningsEpsSuprisePlt.bar(earningsMdate_np+12, earningsDayEPS['Surprise(%)'], 4, label=ax2LegendSupriseEPS, color=colorSupriseEPS, alpha=0.5)
 
-    lines = [label1Day[0],label4Day[0], horzLine, xBarEstEPS[0], xBarSupEPS[0], xBarRepEPS[0] ]
-    lineLabel = [label1Day[0]._label, label4Day[0]._label,horzLine._label,  xBarEstEPS._label, xBarSupEPS._label, xBarRepEPS._label]
+    lines = [label1Day[0],label4Day[0], horzLine, xBarEstEPS[0], xBarRepEPS[0], xBarSupEPS[0] ]
+    lineLabel = [label1Day[0]._label, label4Day[0]._label,horzLine._label,  xBarEstEPS._label, xBarRepEPS._label, xBarSupEPS._label]
     # set legend placement - lower left - mrk 12/21/21
     earningsMovePlt.legend(lines, lineLabel,bbox_to_anchor=(0.02, 0.04))
 
