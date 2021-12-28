@@ -271,7 +271,9 @@ def getCandlestickData(aStock, theEarningsDataList):
         for aPrice in aroundEDStockPrices:
             earningsCandlestickDataDF = earningsCandlestickDataDF.append(aPrice, ignore_index=True)
 
-    earningsCandlestickDataDF = earningsCandlestickDataDF.drop(['volume', 'adjclose', 'formatted_date'], axis = 1)
-    print('earningsCandlestickDataDF: ', earningsCandlestickDataDF)
+    earningsCandlestickDataDF = earningsCandlestickDataDF.drop(['date', 'volume', 'adjclose'], axis = 1)
+    earningsCandlestickDataDF = earningsCandlestickDataDF[[ 'formatted_date', 'open', 'high', 'low', 'close' ]]
+    earningsCandlestickDataDF.rename(columns={'formatted_date': 'date'}, inplace=True)
+    print('earningsCandlestickDataDF: \n', earningsCandlestickDataDF)
     return earningsCandlestickDataDF
 
