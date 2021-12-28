@@ -239,18 +239,18 @@ def plotEarningPngFile(aStock, startDay):
     earningsMdate_np = theEarningsDataList[2]
     earningsDayEPS = theEarningsDataList[4]
     theCandleStickData = getCandlestickData(aStock, theEarningsDataList)
-    #print(type(theCandleStickData))
-    return
+    print(type(theCandleStickData))
     # earningsDayEPS
     #getEarningsData.plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,earningsDayEPS, startDay, aStock)
 
 def getCandlestickData(aStock, theEarningsDataList):
-   # Get earnings dates for Candlesticks plots
+    # Get earnings dates for Candlesticks plots
     earningsCandlestickData = theEarningsDataList[4].Earnings_Date
+    # define list for DataFrame
 
+    earningsCandlestickDataDF = pd.DataFrame(columns=[ 'date', 'high', 'low', 'open', 'close', 'volume', 'adjclose', 'formatted_date' ])
 
-    allEDStockPrices =[]
-   # loop thru dates / earningsCandlestickData
+    # loop thru dates / earningsCandlestickData
     for earningDate in earningsCandlestickData:
         # Earnings Data / startAtED
         # get start / end dates out 5 days
@@ -258,35 +258,20 @@ def getCandlestickData(aStock, theEarningsDataList):
         startAtED= dateUtils.getDateFromISO8601(earningDate)
         earnDateStart = dateUtils.getDateStringDashSeprtors(startAtED + datetime.timedelta(days=-5))
         earnDateEnd = dateUtils.getDateStringDashSeprtors(startAtED + datetime.timedelta(days=+5))
-        print('===> earningDate: ', earningDate, 'earnDateStart: ',earnDateStart, 'earnDateEnd: ', earnDateEnd)
         # get start/end dates for stock info from yf
-        theData =  yf(aStock).get_historical_price_data(earnDateStart, earnDateEnd, 'daily')
-        # The dates
-        theStock = list(theData.keys())[0]
-        print("\n==> theStock -from- list(theData.keys())[0]:  ", theStock)
-        print("\n==> type(theStock):", type(theStock))
-        theStockData = theData.get(theStock)
-        print("\n==> theStockData:", theStockData)
-        print("\n==> type(theStockData):", type(theStockData))
-        aKey = list(theStockData.keys())
-        print('\n==> list(theStockData.keys())', aKey )
+        theStockED =  yf(aStock).get_historical_price_data(earnDateStart, earnDateEnd, 'daily')
+        # Get the Stock Name
+        theStock = list(theStockED.keys())[0]
+        # Get all the yf data for aStock
+        # break it down to get prices in the dictionary
+        theStockData = theStockED.get(theStock)
+        # get price data for this stock
         aroundEDStockPrices = theStockData.get('prices')
-        print("aroundEDStockPrices = theStockData.get('prices')", aroundEDStockPrices)
-        print("\n==> type(aroundEDStockPrices: ", type(aroundEDStockPrices))
-        print('\n==> aroundEDStockPrices: ', type(aroundEDStockPrices[0]), '\n', aroundEDStockPrices[0])
-        aDate = aroundEDStockPrices[0].get('date')
-        aFormattedDate = aroundEDStockPrices[0].get('formatted_date')
-        timestamp = datetime.datetime.fromtimestamp(aDate)
-        print('aDate: ', aDate, 'aFormattedDate: ', aFormattedDate, 'timestamp: ', timestamp )
-        pdEDStockPrices = pd.DataFrame.from_dict(aroundEDStockPrices)
-        print('pdEDStockPrices:  ', pdEDStockPrices)
-        allEDStockPrices.append(pdEDStockPrices)
-        print('allEDStockPrices:  ', allEDStockPrices)
-        # nextPartofTheData = theData.get(theStock)
-        # print('==> nextPartofTheData', nextPartofTheData)
-        # for key, value in theData.items():
-        #     print('the data -- type : value: ', key, ' : ', value)
-        #candelstickData = pd.DataFrame.from_dict(datesAroundEarnings)
-        #print('candelstickData: ', candelstickData.info)
-        return 0#candelstickData
+        # keep appending to theDF
+        for aPrice in aroundEDStockPrices:
+            earningsCandlestickDataDF = earningsCandlestickDataDF.append(aPrice, ignore_index=True)
+
+    earningsCandlestickDataDF = earningsCandlestickDataDF.drop(['volume', 'adjclose', 'formatted_date'], axis = 1)
+    print('earningsCandlestickDataDF: ', earningsCandlestickDataDF)
+    return earningsCandlestickDataDF
 
