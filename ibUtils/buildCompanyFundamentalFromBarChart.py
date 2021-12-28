@@ -8,6 +8,8 @@ from localUtilities.webScrape import getBarChartData as companyInfo
 from localUtilities.webScrape import getBarChartOptionsSelenium as companyOptions
 from localUtilities import dateUtils
 import pandas as pd
+import datetime
+from yahoofinancials import YahooFinancials as yf
 
 #plot imports
 from localUtilities.plotEarnings import getEarningsData
@@ -227,18 +229,64 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
     return aWebDriver
 
 
-def plotEarningPngFile(aStock, startday):
+def plotEarningPngFile(aStock, startDay):
 
     # Get weekly earnings
-    theEarningsDataList = getEarningsData.getWeeklyExcelSummary(startday, aStock)
+    theEarningsDataList = getEarningsData.getWeeklyExcelSummary(startDay, aStock)
 
     earnings1DayMove_np = theEarningsDataList[0]
     earnings4DayMove_np = theEarningsDataList[1]
     earningsMdate_np = theEarningsDataList[2]
-    earnings1DayCandlestick = theEarningsDataList[3]
     earningsDayEPS = theEarningsDataList[4]
-
+    theCandleStickData = getCandlestickData(aStock, theEarningsDataList)
+    #print(type(theCandleStickData))
+    return
     # earningsDayEPS
-    getEarningsData.plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,
-                                 earningsDayEPS, startday, aStock)
+    #getEarningsData.plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,earningsDayEPS, startDay, aStock)
+
+def getCandlestickData(aStock, theEarningsDataList):
+   # Get earnings dates for Candlesticks plots
+    earningsCandlestickData = theEarningsDataList[4].Earnings_Date
+
+
+    allEDStockPrices =[]
+   # loop thru dates / earningsCandlestickData
+    for earningDate in earningsCandlestickData:
+        # Earnings Data / startAtED
+        # get start / end dates out 5 days
+        # todo: make +/- dates a variable
+        startAtED= dateUtils.getDateFromISO8601(earningDate)
+        earnDateStart = dateUtils.getDateStringDashSeprtors(startAtED + datetime.timedelta(days=-5))
+        earnDateEnd = dateUtils.getDateStringDashSeprtors(startAtED + datetime.timedelta(days=+5))
+        print('===> earningDate: ', earningDate, 'earnDateStart: ',earnDateStart, 'earnDateEnd: ', earnDateEnd)
+        # get start/end dates for stock info from yf
+        theData =  yf(aStock).get_historical_price_data(earnDateStart, earnDateEnd, 'daily')
+        # The dates
+        theStock = list(theData.keys())[0]
+        print("\n==> theStock -from- list(theData.keys())[0]:  ", theStock)
+        print("\n==> type(theStock):", type(theStock))
+        theStockData = theData.get(theStock)
+        print("\n==> theStockData:", theStockData)
+        print("\n==> type(theStockData):", type(theStockData))
+        aKey = list(theStockData.keys())
+        print('\n==> list(theStockData.keys())', aKey )
+        aroundEDStockPrices = theStockData.get('prices')
+        print("aroundEDStockPrices = theStockData.get('prices')", aroundEDStockPrices)
+        print("\n==> type(aroundEDStockPrices: ", type(aroundEDStockPrices))
+        print('\n==> aroundEDStockPrices: ', type(aroundEDStockPrices[0]), '\n', aroundEDStockPrices[0])
+        aDate = aroundEDStockPrices[0].get('date')
+        aFormattedDate = aroundEDStockPrices[0].get('formatted_date')
+        timestamp = datetime.datetime.fromtimestamp(aDate)
+        print('aDate: ', aDate, 'aFormattedDate: ', aFormattedDate, 'timestamp: ', timestamp )
+        pdEDStockPrices = pd.DataFrame.from_dict(aroundEDStockPrices)
+        print('pdEDStockPrices:  ', pdEDStockPrices)
+        allEDStockPrices.append(pdEDStockPrices)
+        print('allEDStockPrices:  ', allEDStockPrices)
+        # nextPartofTheData = theData.get(theStock)
+        # print('==> nextPartofTheData', nextPartofTheData)
+        # for key, value in theData.items():
+        #     print('the data -- type : value: ', key, ' : ', value)
+        #candelstickData = pd.DataFrame.from_dict(datesAroundEarnings)
+        #print('candelstickData: ', candelstickData.info)
+        return 0#candelstickData
 

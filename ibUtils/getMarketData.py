@@ -79,12 +79,12 @@ def getIV_and_ExpectedRange(aTicker, currentPrice, neededExpiry):
     ivC = aChain.calls.at[aCloseStrike, "impliedVolatility"]
     strikeC = aChain.calls.at[aCloseStrike, "strike"]
     lastPriceC = aChain.calls.at[aCloseStrike, "lastPrice"]
-    print("Call // iv: ", ivC, "strike: ", strikeC, "lastPrice: ", lastPriceC)
+    # print("Call // iv: ", ivC, "strike: ", strikeC, "lastPrice: ", lastPriceC)
 
     ivP = aChain.puts.at[aCloseStrike, "impliedVolatility"]
     strikeP = aChain.calls.at[aCloseStrike, "strike"]
     lastPriceP = aChain.calls.at[aCloseStrike, "lastPrice"]
-    print("Put  // iv: ", ivP, "strike: ", strikeP, "lastPrice: ", lastPriceP)
+    # print("Put  // iv: ", ivP, "strike: ", strikeP, "lastPrice: ", lastPriceP)
 
     expectedRange = (lastPriceC + lastPriceP) / currentPrice
 
@@ -119,16 +119,12 @@ def getHistoricVol(symbol, expiryDate):
     end_time = date.today()
     dateDiff1 = abs(((end_time - dateUtils.getDate(expiryDate)).days))
     dateDiff = dateUtils.days_between_Date(end_time, dateUtils.getDate(expiryDate))
-    print("\ndateDiff1:  ", type(dateDiff1), 'datediff :  ', dateDiff)
+    # print("\ndateDiff1:  ", type(dateDiff1), 'datediff :  ', dateDiff)
     start_time = end_time - timedelta(days=60) #dateUtils.getDate(expiryDate) # end_time - timedelta(days=expiryDate)
 
     # reformat date range
     end = end_time.strftime('%Y-%m-%d')
     start = start_time.strftime('%Y-%m-%d')
-
-
-    print("end:  ", end)
-    print("start: ", start)
 
     # get daily stock prices over date range
     json_prices = YahooFinancials(symbol

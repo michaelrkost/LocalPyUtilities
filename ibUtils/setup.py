@@ -33,7 +33,7 @@ def addMarketData(earningsDF):
     Parameters
     ----------
     earningsDF: DF of 'Symbol', 'Earnings_Date', 'Company', 'Earnings Call Time'
-    startday: the starting date
+    startDay: the starting date
 
     Returns
     -------
@@ -62,9 +62,9 @@ def addMarketData(earningsDF):
         lenDF = lenDF - 1
 
         # TODO - OCC change their Web Site -- need to rework if we want open interest
-        # putsOpenInterest, callsOpenInterest = getOptionInfo.getOptionVolumeNextFriExpiryCount(row.Symbol, startday,lenDF)
+        # putsOpenInterest, callsOpenInterest = getOptionInfo.getOptionVolumeNextFriExpiryCount(row.Symbol, startDay,lenDF)
         # depreciated code 8/8/21: mktData = getMarketData.getMarketDataFromOptionistics(row.Symbol)
-        print(lenDF, '|  add market data for: ',row.Index, "   ",  row.Symbol)
+        print(lenDF, '|  add market data for: ', row.Symbol)
         # print("earningsDF befor == ", earningsDF)
         getMarketData.addCurrentMarketData(earningsDF, row.Index, row.Symbol)
 
@@ -97,22 +97,33 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10, maxQtrs = 6
     stocksPastEarningsDF['Close'] = np.nan
     # Closing Prices of Interest
     stocksPastEarningsDF['EDClose'] = np.nan          # Earning Day Closing Price
-    stocksPastEarningsDF['EDFwd1DayClose'] = np.nan   # Earning Day Forward 1 Day - Closing Price
-    stocksPastEarningsDF['EDBak1DayClose'] = np.nan   # Earning Day Back 1 Day - Closing Price
-    stocksPastEarningsDF['EDFwd4DayClose'] = np.nan   # Earning Day Forward 4 Days - Closing Price
+    stocksPastEarningsDF['EDFwd1DayClose'] = np.nan  # Earning Day Forward 1 Day - Closing Price
+    stocksPastEarningsDF['EDBak1DayClose'] = np.nan  # Earning Day Back 1 Day - Closing Price
+    stocksPastEarningsDF['EDBak4DayClose'] = np.nan  # Earning Day Back 4 Days - Closing Price
+    stocksPastEarningsDF['EDFwd4DayClose'] = np.nan  # Earning Day Forward 4 Days - Closing Price
     # Deltas on Closing Prices of Interest
-    stocksPastEarningsDF['EDDiffFwd4Close'] = np.nan # Earning Day Subtract the Forward 4 Days Closing Price
-    stocksPastEarningsDF['EDDiffFwd1Close'] = np.nan # Earning Day Subtract the Forward 1 Day Closing Price
-    stocksPastEarningsDF['EDFwd1DayClosePercentDelta'] = np.nan # Earning Day % Delta the Forward 1 Day Closing Price
-    stocksPastEarningsDF['EDFwd4DayClosePercentDelta'] = np.nan # Earning Day % Delta the Forward 4 Day Closing Price
+    stocksPastEarningsDF['EDDiffFwd4Close'] = np.nan  # Earning Day Subtract the Forward 4 Days Closing Price
+    stocksPastEarningsDF['EDDiffFwd1Close'] = np.nan  # Earning Day Subtract the Forward 1 Day Closing Price
+    stocksPastEarningsDF['EDFwd1DayClosePercentDelta'] = np.nan  # Earning Day % Delta the Forward 1 Day Closing Price
+    stocksPastEarningsDF['EDFwd4DayClosePercentDelta'] = np.nan  # Earning Day % Delta the Forward 4 Day Closing Price
+    # added 12/26/21 - mrk
+    stocksPastEarningsDF['EDDiffBak4Close'] = np.nan  # Earning Day Subtract the Back 4 Days Closing Price
+    stocksPastEarningsDF['EDDiffBak1Close'] = np.nan  # Earning Day Subtract the Back 1 Day Closing Price
+    stocksPastEarningsDF['EDBak1DayClosePercentDelta'] = np.nan  # Earning Day % Delta the Back 1 Day Closing Price
+    stocksPastEarningsDF['EDBak4DayClosePercentDelta'] = np.nan  # Earning Day % Delta the Back 4 Day Closing Price
 
-    stocksPastEarningsDF['EDFwd1DayOpen'] = np.nan # Earning Day Forward 1 Day Open Price
-    stocksPastEarningsDF['EDBak1DayOpen'] = np.nan # Earning Day Back 1 Day Open Price
+    stocksPastEarningsDF['EDFwd1DayOpen'] = np.nan  # Earning Day Forward 1 Day Open Price
+    stocksPastEarningsDF['EDBak1DayOpen'] = np.nan  # Earning Day Back 1 Day Open Price
+    stocksPastEarningsDF['EDBak1DayOpenPercentDelta'] = np.nan  # Earning Day % Delta the Back 1 Day Closing Price
+    stocksPastEarningsDF['EDBak4DayOpenPercentDelta'] = np.nan  # Earning Day % Delta the Back 4 Day Closing Price
 
-
+    stocksPastEarningsDF['EDFwd4DayOpen'] = np.nan  # Earning Day Forward 1 Day Open Price
+    stocksPastEarningsDF['EDBak4DayOpen'] = np.nan  # Earning Day Back 1 Day Open Price
+    stocksPastEarningsDF['EDBak1DayOpenPercentDelta'] = np.nan  # Earning Day % Delta the Back 1 Day Closing Price
+    stocksPastEarningsDF['EDBak4DayOpenPercentDelta'] = np.nan  # Earning Day % Delta the Back 4 Day Closing Price
 
     if (stocksPastEarningsDF.empty):
-        print( " ===========> theStock <========== EMPTY ============no data!!")
+        print( " ===========> theStock <========== EMPTY ============> No data!!")
         return stocksPastEarningsDF
     else:
         theStock = stocksPastEarningsDF.Symbol[0]
@@ -124,7 +135,7 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10, maxQtrs = 6
     if lenDF > maxQtrs: # Number of Qtrs
         lenDF = maxQtrs
         returnOnlyLenDf = maxQtrs
-        print('--> Calculating',  lenDF, 'past Qtrs // ', lenDF ,' Qtrs - Max = ', maxQtrs)
+        print('--> Calculating',  lenDF, 'past Qtrs // ', ' Max Qtrs:  ', maxQtrs)
         pruneDF = True
     else:
         print('--> Calculating', lenDF, 'past Qtrs //', f'{lenDF/4:1.1f}', 'years')
@@ -223,13 +234,18 @@ def calcPriceDeltas(stocksPastEarningsDF):
     #           EarningDayPriceDif-CloseOpen = (EarningDayClose - 1) - EarningDayOpen
     #      --- if earnings is after earning day then
     #           EarningDayPriceDif-CloseOpen = EarningDayClose - (EarningDayOpen + 1)
-    # calculate price and persent deltas
+    # calculate price and percent deltas
     stocksPastEarningsDF['EDFwd1DayClosePercentDelta'] = 1 - (stocksPastEarningsDF['EDClose'] / stocksPastEarningsDF['EDFwd1DayClose'])
     stocksPastEarningsDF['EDDiffFwd1Close'] = stocksPastEarningsDF['EDFwd1DayClose'] - stocksPastEarningsDF['EDClose']
 
     stocksPastEarningsDF['EDFwd4DayClosePercentDelta'] = 1 - (stocksPastEarningsDF['EDClose'] / stocksPastEarningsDF['EDFwd4DayClose'])
     stocksPastEarningsDF['EDDiffFwd4Close'] = stocksPastEarningsDF['EDFwd4DayClose'] - stocksPastEarningsDF['EDClose']
 
+    stocksPastEarningsDF['EDBak1DayClosePercentDelta'] = 1 - (stocksPastEarningsDF['EDClose'] / stocksPastEarningsDF['EDBak1DayClose'])
+    stocksPastEarningsDF['EDDiffBak1Close'] = stocksPastEarningsDF['EDBak1DayClose'] - stocksPastEarningsDF['EDClose']
+
+    stocksPastEarningsDF['EDBak4DayClosePercentDelta'] = 1 - (stocksPastEarningsDF['EDClose'] / stocksPastEarningsDF['EDBak4DayClose'])
+    stocksPastEarningsDF['EDDiffBak4Close'] = stocksPastEarningsDF['EDBak4DayClose'] - stocksPastEarningsDF['EDClose']
 
     return stocksPastEarningsDF
 
@@ -257,25 +273,44 @@ def getDaysPastEarningsClosePrices(earnDateRow, historical_stock_pricesDF, stock
 
     try:
         # the day before earnings date
+        # Earning Days Back 4 Day - Closing Price
+        theEDMinus4Date = dateUtils.goOutXWeekdays(earningsDate, -4)
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDBak4DayClose'] = historical_stock_pricesDF.close[theEDMinus4Date]
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDBak4DayDate'] = theEDMinus4Date
+
         # Earning Day Back 1 Day - Closing Price
         theEDMinus1Date = dateUtils.goOutXWeekdays(earningsDate, -1)
         stockPastEarningsDF.at[earnDateRow.Index, 'EDBak1DayClose'] = historical_stock_pricesDF.close[theEDMinus1Date]
-
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDBak1DayDate'] = theEDMinus1Date
         # the day after earnings date
         # Earning Day Forward 1 Day - Closing Price
         theEDPlus1Date = dateUtils.goOutXWeekdays(earningsDate, 1)
         stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd1DayClose'] = historical_stock_pricesDF.close[theEDPlus1Date]
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd1DayDate'] = theEDPlus1Date
 
         # plus 4 days after earnings date
         # Earning Day Forward 4 Days Closing Price
-        theEDplus4Date = dateUtils.goOutXWeekdays(earningsDate, 4)
-        stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd4DayClose'] = historical_stock_pricesDF.close[theEDplus4Date]
+        theEDPlus4Date = dateUtils.goOutXWeekdays(earningsDate, 4)
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd4DayClose'] = historical_stock_pricesDF.close[theEDPlus4Date]
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd4DayDate'] = theEDPlus4Date
 
         # plus 1 days after earnings date
         # Earning Day Forward 1 Day Open Price
         stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd1DayOpen'] = historical_stock_pricesDF.open[theEDPlus1Date]
-
         stockPastEarningsDF.at[earnDateRow.Index, 'EDBak1DayOpen'] = historical_stock_pricesDF.open[theEDMinus1Date]
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd4DayOpen'] = historical_stock_pricesDF.open[theEDPlus4Date]
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDBak4DayOpen'] = historical_stock_pricesDF.open[theEDMinus4Date]
+
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd1DayHigh'] = historical_stock_pricesDF.high[theEDPlus1Date]
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDBak1DayHigh'] = historical_stock_pricesDF.high[theEDMinus1Date]
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd4DayHigh'] = historical_stock_pricesDF.high[theEDPlus4Date]
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDBak4DayHigh'] = historical_stock_pricesDF.high[theEDMinus4Date]
+
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd1DayLow'] = historical_stock_pricesDF.low[theEDPlus1Date]
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDBak1DayLow'] = historical_stock_pricesDF.low[theEDMinus1Date]
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDFwd4DayLow'] = historical_stock_pricesDF.low[theEDPlus4Date]
+        stockPastEarningsDF.at[earnDateRow.Index, 'EDBak4DayLow'] = historical_stock_pricesDF.low[theEDMinus4Date]
+
     except KeyError:
         print('     KeyError', KeyError, '       setup.getDaysPastEarningsClosePrices')
         print('         earningsDate:', earningsDate)
@@ -292,11 +327,26 @@ def formatForCSVFile(stocksPastEarningsDF, pruneDF):
     stocksPastEarningsDF['EDClose'] = stocksPastEarningsDF['EDClose'].round(2)
     stocksPastEarningsDF['EDFwd1DayClose'] = stocksPastEarningsDF['EDFwd1DayClose'].round(2)
     stocksPastEarningsDF['EDBak1DayClose'] = stocksPastEarningsDF['EDBak1DayClose'].round(2)
+    stocksPastEarningsDF['EDBak4DayClose'] = stocksPastEarningsDF['EDBak4DayClose'].round(2)
     stocksPastEarningsDF['EDFwd4DayClose'] = stocksPastEarningsDF['EDFwd4DayClose'].round(2)
     stocksPastEarningsDF['EDDiffFwd4Close'] = stocksPastEarningsDF['EDDiffFwd4Close'].round(2)
     stocksPastEarningsDF['EDDiffFwd1Close'] = stocksPastEarningsDF['EDDiffFwd1Close'].round(2)
     stocksPastEarningsDF['EDFwd1DayClosePercentDelta'] = stocksPastEarningsDF['EDFwd1DayClosePercentDelta'].round(4)
     stocksPastEarningsDF['EDFwd4DayClosePercentDelta'] = stocksPastEarningsDF['EDFwd4DayClosePercentDelta'].round(4)
+    stocksPastEarningsDF['EDFwd1DayHigh']  = stocksPastEarningsDF['EDFwd1DayHigh'].round(2)
+    stocksPastEarningsDF['EDBak1DayHigh']  = stocksPastEarningsDF['EDBak1DayHigh'].round(2)
+    stocksPastEarningsDF['EDFwd4DayHigh']  = stocksPastEarningsDF['EDFwd4DayHigh'].round(2)
+    stocksPastEarningsDF['EDBak4DayHigh']  = stocksPastEarningsDF['EDBak4DayHigh'].round(2)
+    stocksPastEarningsDF['EDBak1DayLow']  = stocksPastEarningsDF['EDBak1DayLow'].round(2)
+    stocksPastEarningsDF['EDFwd4DayLow']  = stocksPastEarningsDF['EDFwd4DayLow'].round(2)
+    stocksPastEarningsDF['EDBak4DayLow']  = stocksPastEarningsDF['EDBak4DayLow'].round(2)
+    stocksPastEarningsDF['EDFwd1DayLow']  = stocksPastEarningsDF['EDFwd1DayLow'].round(2)
+    stocksPastEarningsDF['EDBak4DayClosePercentDelta']  = stocksPastEarningsDF['EDBak4DayClosePercentDelta'].round(2)
+    stocksPastEarningsDF['EDDiffBak4Close']  = stocksPastEarningsDF['EDDiffBak4Close'].round(2)
+    stocksPastEarningsDF['EDBak1DayClosePercentDelta']  = stocksPastEarningsDF['EDBak1DayClosePercentDelta'].round(2)
+    stocksPastEarningsDF['EDDiffBak1Close']  = stocksPastEarningsDF['EDDiffBak1Close'].round(2)
+
+
 
     # Todo - take out last
     # stocksPastEarningsDF['Last'] = stocksPastEarningsDF['Last'].round(2)
@@ -308,10 +358,15 @@ def formatForCSVFile(stocksPastEarningsDF, pruneDF):
     stocksPastEarningsDF['Earnings_Date'] = stocksPastEarningsDF['Earnings_Date'].apply(dateUtils.getDateStringDashSeprtors)
 
     stocksPastEarningsDF = stocksPastEarningsDF[['Symbol', 'Company', 'Earnings_Date', 'EPS_Estimate', 'Reported_EPS',
-                                                  'Surprise(%)', 'High', 'Open', 'Volume', 'Low', 'Close', 'EDClose', 'EDFwd1DayOpen',
-                                                  'EDFwd1DayClose', 'EDBak1DayOpen', 'EDBak1DayClose', 'EDFwd4DayClose', 'EDDiffFwd4Close',
-                                                  'EDDiffFwd1Close', 'EDFwd1DayClosePercentDelta',
-                                                  'EDFwd4DayClosePercentDelta']]
+                                                    'Surprise(%)', 'High', 'Open', 'Volume', 'Low', 'Close', 'EDClose',
+                                                    'EDFwd1DayOpen', 'EDFwd1DayClose', 'EDBak1DayOpen', 'EDBak1DayClose',
+                                                    'EDBak4DayClose', 'EDFwd4DayClose', 'EDDiffFwd4Close',
+                                                    'EDDiffFwd1Close', 'EDFwd1DayClosePercentDelta',
+                                                    'EDFwd4DayClosePercentDelta','EDFwd1DayHigh','EDBak1DayHigh',
+                                                    'EDFwd4DayHigh', 'EDBak4DayHigh', 'EDFwd1DayLow', 'EDBak1DayLow',
+                                                    'EDFwd4DayLow', 'EDBak4DayLow', 'EDBak4DayClosePercentDelta',
+                                                    'EDDiffBak4Close', 'EDDiffBak1Close', 'EDBak1DayClosePercentDelta',
+                                                    'EDBak4DayDate','EDBak1DayDate', 'EDFwd1DayDate', 'EDFwd4DayDate']]
 
     # if we are using the Max Earnings Quarters (32) prune off the remaining years data
     if pruneDF == True:

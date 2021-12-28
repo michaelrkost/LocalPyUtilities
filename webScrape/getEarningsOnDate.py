@@ -72,6 +72,7 @@ def getEarningsOnDate(aDay):
     front = 'of '
     back = ' results'
     earningCount = 0
+    numPages = None
 
     # Find the earnings in the table with the id: 'fin-cal-table'
     # see how many earnings are present
@@ -91,8 +92,10 @@ def getEarningsOnDate(aDay):
     oneEarningDateDF = pd.DataFrame(columns=['Symbol', 'Earnings_Date', 'Company', 'Earnings Call Time'])
 
     # get earnings per page
-    # just on page
-    if numPages < 1:
+    if numPages is None:
+        return oneEarningDateDF, earningCount
+    # one page
+    elif numPages < 1:
         oneEarningDateDF = getEarningPage(aURL, earningsDataDF, aDay)
     # more than one page
     else:

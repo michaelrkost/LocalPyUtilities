@@ -94,18 +94,34 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
     maxFwd4PercentDelta = []
     minFwd4PercentDelta = []
     maxFwd4PercentDeltaABS = []
-    
+
+    maxFwd4PriceDelta = []
+    minFwd4PriceDelta = []
+    maxFwd4PriceDeltaABS = []
+
     maxFwd1PercentDelta = []
     minFwd1PercentDelta = []
     maxFwd1PercentDeltaABS = []
 
     maxFwd1PriceDelta = []
     minFwd1PriceDelta = []
-    max1DayABSPriceDelta = []
-    
-    maxFwd4PriceDelta = []
-    minFwd4PriceDelta = []
-    maxFwd4PriceDeltaABS = []
+    maxFwd1DayABSPriceDelta = []
+
+    maxBak4PriceDelta = []
+    minBak4PriceDelta = []
+    maxBak4PriceDeltaABS = []
+
+    maxBak1PercentDelta = []
+    minBak1PercentDelta = []
+    maxBak1PercentDeltaABS = []
+
+    maxBak1PriceDelta = []
+    minBak1PriceDelta = []
+    maxBak1DayABSPriceDelta = []
+
+    maxBak4PercentDelta = []
+    minBak4PercentDelta = []
+    maxBak4PercentDeltaABS = []
 
     stdFwd4 = []
     stdFwd1 = []
@@ -152,8 +168,33 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
             # Calculate price Delta for 1 Day movement
             maxFwd1PriceDelta.append(anEarningWeeksCompany['EDDiffFwd1Close'].max())
             minFwd1PriceDelta.append(anEarningWeeksCompany['EDDiffFwd1Close'].min())
-            max1DayABSPriceDelta.append(max(abs(anEarningWeeksCompany['EDDiffFwd1Close'].min()),
+            maxFwd1DayABSPriceDelta.append(max(abs(anEarningWeeksCompany['EDDiffFwd1Close'].min()),
                                         anEarningWeeksCompany['EDDiffFwd1Close'].max()))
+
+            # Calculate percent Delta for Bak4 Day movement
+            maxBak4PercentDelta.append(anEarningWeeksCompany['EDBak4DayClosePercentDelta'].max())
+            minBak4PercentDelta.append(anEarningWeeksCompany['EDBak4DayClosePercentDelta'].min())
+            maxBak4PercentDeltaABS.append(max(abs(anEarningWeeksCompany['EDBak4DayClosePercentDelta'].min()),
+                                        anEarningWeeksCompany['EDBak4DayClosePercentDelta'].max()))
+
+            # Calculate price Delta for Bak4 Day movement
+            maxBak4PriceDelta.append(anEarningWeeksCompany['EDDiffBak4Close'].max())
+            minBak4PriceDelta.append(anEarningWeeksCompany['EDDiffBak4Close'].min())
+            maxBak4PriceDeltaABS.append(max(abs(anEarningWeeksCompany['EDDiffBak4Close'].min()),
+                                        anEarningWeeksCompany['EDDiffBak4Close'].max()))
+
+            # Calculate percent Delta for Bak1 Day movement
+            maxBak1PercentDelta.append(anEarningWeeksCompany['EDBak1DayClosePercentDelta'].max())
+            minBak1PercentDelta.append(anEarningWeeksCompany['EDBak1DayClosePercentDelta'].min())
+            maxBak1PercentDeltaABS.append(max(abs(anEarningWeeksCompany['EDBak1DayClosePercentDelta'].min()),
+                                        anEarningWeeksCompany['EDBak1DayClosePercentDelta'].max()))
+
+            # Calculate price Delta for Bak1 Day movement
+            maxBak1PriceDelta.append(anEarningWeeksCompany['EDDiffBak1Close'].max())
+            minBak1PriceDelta.append(anEarningWeeksCompany['EDDiffBak1Close'].min())
+            maxBak1DayABSPriceDelta.append(max(abs(anEarningWeeksCompany['EDDiffBak1Close'].min()),
+                                        anEarningWeeksCompany['EDDiffBak1Close'].max()))
+
 
             stdFwd4.append(anEarningWeeksCompany['EDFwd4DayClosePercentDelta'].std())
             stdFwd1.append(anEarningWeeksCompany['EDFwd1DayClosePercentDelta'].std())
@@ -186,11 +227,27 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
 
             maxFwd1PriceDelta.append(np.nan)
             minFwd1PriceDelta.append(np.nan)
-            max1DayABSPriceDelta.append(np.nan)
+            maxFwd1DayABSPriceDelta.append(np.nan)
 
             maxFwd4PriceDelta.append(np.nan)
             minFwd4PriceDelta.append(np.nan)
             maxFwd4PriceDeltaABS.append(np.nan)
+
+            maxBak4PercentDelta.append(np.nan)
+            minBak4PercentDelta.append(np.nan)
+            maxBak4PercentDeltaABS.append(np.nan)
+
+            maxBak4PriceDelta.append(np.nan)
+            minBak4PriceDelta.append(np.nan)
+            maxBak4PriceDeltaABS.append(np.nan)
+
+            maxBak1PercentDelta.append(np.nan)
+            minBak1PercentDelta.append(np.nan)
+            maxBak1PercentDeltaABS.append(np.nan)
+
+            maxBak1PriceDelta.append(np.nan)
+            minBak1PriceDelta.append(np.nan)
+            maxBak1DayABSPriceDelta.append(np.nan)
 
             stdFwd4.append(np.nan)
             stdFwd1.append(np.nan)
@@ -205,8 +262,6 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
 
             medianFwd4.append(np.nan)
             medianFwd1.append(np.nan)
-            # continue
-
 
     yahooEarningsDF['maxFwd4PercentDelta'] = maxFwd4PercentDelta
     yahooEarningsDF['minFwd4PercentDelta'] = minFwd4PercentDelta
@@ -218,15 +273,28 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
 
     yahooEarningsDF['maxFwd1PriceDelta'] = maxFwd1PriceDelta
     yahooEarningsDF['minFwd1PriceDelta'] = minFwd1PriceDelta
-    yahooEarningsDF['max1DayABS$Delta'] = max1DayABSPriceDelta
-
+    yahooEarningsDF['max1DayABS$Delta'] = maxFwd1DayABSPriceDelta
 
     yahooEarningsDF['maxFwd4PriceDelta'] = maxFwd4PriceDelta
     yahooEarningsDF['minFwd4PriceDelta'] = minFwd4PriceDelta
     yahooEarningsDF['maxFwd4PriceDeltaABS'] = maxFwd4PriceDeltaABS
-    # print("stdFwd4:  ", len(stdFwd4))
-    # print("stdFwd1:  ", stdFwd1, len(stdFwd1))
-    # print("yahooEarningsDF:  ", len(yahooEarningsDF))
+
+    yahooEarningsDF['maxBak4PercentDelta'] = maxBak4PercentDelta
+    yahooEarningsDF['minBak4PercentDelta'] = minBak4PercentDelta
+    yahooEarningsDF['maxBak4PercentDeltaABS'] = maxBak4PercentDeltaABS
+
+    yahooEarningsDF['maxBak4PriceDelta'] = maxBak4PriceDelta
+    yahooEarningsDF['minBak4PriceDelta'] = minBak4PriceDelta
+    yahooEarningsDF['maxBak4PriceDeltaABS'] = maxBak4PriceDeltaABS
+
+    yahooEarningsDF['maxBak1PercentDelta'] = maxBak1PercentDelta
+    yahooEarningsDF['minBak1PercentDelta'] = minBak1PercentDelta
+    yahooEarningsDF['maxBak1PercentDeltaABS'] = maxBak1PercentDeltaABS
+
+    yahooEarningsDF['maxBak1PriceDelta'] = maxBak1PriceDelta
+    yahooEarningsDF['minBak1PriceDelta'] = minBak1PriceDelta
+    yahooEarningsDF['maxBak1DayABSPriceDelta'] = maxBak1DayABSPriceDelta
+
     yahooEarningsDF['stdFwd4%'] = stdFwd4
     yahooEarningsDF['stdFwd1%'] = stdFwd1
     yahooEarningsDF['stdFwd1$TimesClose'] = (yahooEarningsDF['stdFwd1%'] * yahooEarningsDF['Close'])
@@ -297,16 +365,16 @@ def cleanUpColumns(yahooEarningsDF):
 
 
     # rearrange columns
-    # yahooEarningsDF = yahooEarningsDF[['Symbol', 'Company', 'Earnings_Date', 'Time', 'Volume',
-    #                                    'Close', 'histVol','impVol', 'IV_Delta', 'Option_Volume', 'PutOpenIntst',
-    #                                    'CallOpenIntst', 'Exp$Range', 'maxFwd4PercentDelta','minFwd4PercentDelta', 'maxFwd4PercentDeltaABS',
-    #                                    'maxFwd1PercentDelta', 'minFwd1PercentDelta', 'maxFwd1PercentDeltaABS',
-    #                                    'meanFwd1%', 'stdFwd1%', 'varFwd1%', 'medianFwd1%',  'stdFwd1Fwd4%',
-    #                                    'meanFwd4%', 'stdFwd4%', 'varFwd4%',  'medianFwd4%']]
+    # yahooEarningsDF = yahooEarningsDF[['Symbol', 'Company', 'Earnings_Date','Time', 'Close', 'Volume',
+    #                                    'histVol','impVol', 'IV_Delta', 'Option_Volume',
+    #                                    'Exp$Range', 'stdFwd1%', 'std25Fwd1%',
+    #                                    'Close', 'max1DayABS$Delta','stdFwd1$TimesClose', 'std25Fwd1$TimesClose','ABSFwd1MinusClose', 'ABSFwd1PlusClose']]
     yahooEarningsDF = yahooEarningsDF[['Symbol', 'Company', 'Earnings_Date','Time', 'Close', 'Volume',
                                        'histVol','impVol', 'IV_Delta', 'Option_Volume',
                                        'Exp$Range', 'stdFwd1%', 'std25Fwd1%',
-                                       'Close', 'max1DayABS$Delta','stdFwd1$TimesClose', 'std25Fwd1$TimesClose','ABSFwd1MinusClose', 'ABSFwd1PlusClose']]
-
+                                       'Close', 'max1DayABS$Delta','stdFwd1$TimesClose', 'std25Fwd1$TimesClose','ABSFwd1MinusClose', 'ABSFwd1PlusClose',
+                                       'maxBak4PercentDelta', 'minBak4PercentDelta', 'maxBak4PercentDeltaABS', 'maxBak4PriceDelta', 'minBak4PriceDelta',
+                                       'maxBak4PriceDeltaABS', 'maxBak1PercentDelta', 'minBak1PercentDelta', 'maxBak1PercentDeltaABS', 'maxBak1PriceDelta',
+                                       'minBak1PriceDelta', 'maxBak1DayABSPriceDelta']]
 
     return yahooEarningsDF
