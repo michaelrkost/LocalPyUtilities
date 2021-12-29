@@ -9,6 +9,15 @@ from matplotlib.widgets import Cursor
 
 import matplotlib.dates as mdates
 
+# mplfinance - matplotlib utilities for the visualization,
+# and visual analysis, of financial data
+# most common usage =======================
+#     mpf.plot(data)
+# where data is a Pandas DataFrame object
+#
+# containing Open, High, Low and Close data, with a Pandas DatetimeIndex.
+import mplfinance as mpf
+
 import mplcursors
 
 import matplotlib
@@ -78,8 +87,18 @@ def getWeeklyStockTabSummary(theFilePath, theSymbol):
 
     return returnList
 
-def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS, startday, theStock):
+def plotEarnings(theCandleStickData, earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS, startday, theStock):
 
+    companyEarningsWeek =  startday  + '/rawData/'
+
+    plotThis = theBaseCompaniesDirectory +  companyEarningsWeek + theStock + '.png'
+    mpf.plot(theCandleStickData,  volume=True, type='candle', figsize=(15, 6), savefig=plotThis)
+
+
+    return
+
+
+    #==========================================================
     # Set date formatter
     locator = mdates.AutoDateLocator()
     formatter = mdates.ConciseDateFormatter(locator)

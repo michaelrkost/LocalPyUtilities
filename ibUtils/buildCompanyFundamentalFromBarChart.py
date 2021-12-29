@@ -233,47 +233,53 @@ def plotEarningPngFile(aStock, startDay):
 
     # Get weekly earnings
     theEarningsDataList = getEarningsData.getWeeklyExcelSummary(startDay, aStock)
-
+    # break down the excel into display units
     earnings1DayMove_np = theEarningsDataList[0]
     earnings4DayMove_np = theEarningsDataList[1]
     earningsMdate_np = theEarningsDataList[2]
     earningsDayEPS = theEarningsDataList[4]
-    theCandleStickData = getCandlestickData(aStock, theEarningsDataList)
-    print(type(theCandleStickData))
-    # earningsDayEPS
-    #getEarningsData.plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,earningsDayEPS, startDay, aStock)
+    # Get historic stock price data around earnings date
+    # this will be used for plotting candlestick data
+    theCandleStickData = getHistoricCandlestickData(aStock, theEarningsDataList)
+    # now plot all this stuff...
+    getEarningsData.plotEarnings(theCandleStickData, earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,earningsDayEPS, startDay, aStock)
 
-def getCandlestickData(aStock, theEarningsDataList):
+def getHistoricCandlestickData(aStock, theEarningsDataList, numDaysAroundED=6):
     # Get earnings dates for Candlesticks plots
     earningsCandlestickData = theEarningsDataList[4].Earnings_Date
-    # define list for DataFrame
-
+    # define DataFrame and columns
     earningsCandlestickDataDF = pd.DataFrame(columns=[ 'date', 'high', 'low', 'open', 'close', 'volume', 'adjclose', 'formatted_date' ])
 
-    # loop thru dates / earningsCandlestickData
+    # loop thru ED dates in earningsCandlestickData
     for earningDate in earningsCandlestickData:
         # Earnings Data / startAtED
-        # get start / end dates out 5 days
-        # todo: make +/- dates a variable
+        # get start / end - dates out 5 days
+        # todo: make 5+/- dates a variable
         startAtED= dateUtils.getDateFromISO8601(earningDate)
-        earnDateStart = dateUtils.getDateStringDashSeprtors(startAtED + datetime.timedelta(days=-5))
-        earnDateEnd = dateUtils.getDateStringDashSeprtors(startAtED + datetime.timedelta(days=+5))
-        # get start/end dates for stock info from yf
-        theStockED =  yf(aStock).get_historical_price_data(earnDateStart, earnDateEnd, 'daily')
+        # get start/end dates to pull historic stock info from yf
+        earnDateStart = dateUtils.getDateStringDashSeprtors(startAtED + datetime.timedelta(days=-numDaysAroundED))
+        earnDateEnd = dateUtils.getDateStringDashSeprtors(startAtED + datetime.timedelta(days=+numDaysAroundED))
+        # get yf historic stock data from start/end dates
+        historicStockDataAroundED =  yf(aStock).get_historical_price_data(earnDateStart, earnDateEnd, 'daily')
         # Get the Stock Name
-        theStock = list(theStockED.keys())[0]
+        theStock = list(historicStockDataAroundED.keys())[0]
         # Get all the yf data for aStock
+        theStockData = historicStockDataAroundED.get(theStock)
         # break it down to get prices in the dictionary
-        theStockData = theStockED.get(theStock)
         # get price data for this stock
         aroundEDStockPrices = theStockData.get('prices')
         # keep appending to theDF
         for aPrice in aroundEDStockPrices:
             earningsCandlestickDataDF = earningsCandlestickDataDF.append(aPrice, ignore_index=True)
 
-    earningsCandlestickDataDF = earningsCandlestickDataDF.drop(['date', 'volume', 'adjclose'], axis = 1)
-    earningsCandlestickDataDF = earningsCandlestickDataDF[[ 'formatted_date', 'open', 'high', 'low', 'close' ]]
-    earningsCandlestickDataDF.rename(columns={'formatted_date': 'date'}, inplace=True)
-    print('earningsCandlestickDataDF: \n', earningsCandlestickDataDF)
+    earningsCandlestickDataDF = earningsCandlestickDataDF.drop(['date', 'adjclose'], axis = 1)
+    earningsCandlestickDataDF = earningsCandlestickDataDF[[ 'formatted_date', 'open', 'high', 'low', 'close', 'volume']]
+    earningsCandlestickDataDF.rename(columns={'formatted_date':'Date', 'open':'Open', 'high': 'High',
+                                              'low':'Low', 'close':'Close','volume':'Volume'}, inplace=True)
+    #convert date column to pandas dateime
+    earningsCandlestickDataDF.index = pd.DatetimeIndex(earningsCandlestickDataDF['Date'])
+    # sort on date index
+    earningsCandlestickDataDF = earningsCandlestickDataDF.sort_index()
+
     return earningsCandlestickDataDF
 
