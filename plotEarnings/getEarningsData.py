@@ -267,7 +267,7 @@ def getWeeklyStockTabSummary_mpl(theFilePath, theSymbol):
     return earningsDay
 
 
-def plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock):
+def plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock, earningDayList, outDays):
 
 
     theTitle = aStock + '  -- 1-Day VS 4-Days Past Earnings $ Delta & EPS Estimate/Reported/Suprise'
@@ -276,7 +276,12 @@ def plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock):
     plotEPS = [ mpf.make_addplot(theCandleStickData[['EPS_Estimate']], type='bar', color= 'r', panel=2),
                 mpf.make_addplot(theCandleStickData[['Reported_EPS']], type='bar', color= 'g', panel=2),
                 mpf.make_addplot(theCandleStickData[['Surprise(%)']],  type='bar', color= 'b', panel=2)]
+
+    mpf.plot(theCandleStickData,vlines=dict(vlines=earningDayList, colors=('r')))
+
     mpf.plot(theCandleStickData, volume=True, type='candle', style='charles', title=theTitle,
-             addplot=plotEPS, figsize=(20, 10), savefig=pngPlotFileLocation)
-    #plt.savefig(plotThis)
+             addplot=plotEPS, figsize=(20, 10), savefig=pngPlotFileLocation)\
+        # ,
+        #      vlines=dict(vlines=outDays, colors=('c','g', 'c'), linewidths=1))
+
 

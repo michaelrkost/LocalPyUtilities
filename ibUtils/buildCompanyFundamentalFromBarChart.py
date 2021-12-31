@@ -246,15 +246,17 @@ def plotEarningPngFile_matplotlib(aStock, startDay):
 #    Original plot
 #    getEarningsData.plotEarnings(theCandleStickData, earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,earningsDayEPS, startDay, aStock)
 
-def plotEarningPngFile_mpl(aStock, startDay):
+def plotEarningPngFile_mpl(aStock, startDay, numDaysAroundED=10):
     #This is the  plotting in mplfinance
 
     # Get weekly earnings
     theEarningsDataList = getEarningsData.getWeeklyExcelSummary(startDay, aStock)
+    # drop dups based on 'Earnings_Date'
+    theEarningsDataList.drop_duplicates(subset=['Earnings_Date'], inplace=True)
 
     # Get historic stock price data around earnings date
     # this will be used for plotting candlestick data
-    theCandleStickData = getHistoricCandlestickData(aStock, theEarningsDataList)
+    theCandleStickData = getHistoricCandlestickData(aStock, theEarningsDataList, numDaysAroundED)
     # get rid of any Dups
     theCandleStickData.drop_duplicates(inplace=True)
 
@@ -262,6 +264,19 @@ def plotEarningPngFile_mpl(aStock, startDay):
     theEarningsDataList.index = pd.DatetimeIndex(theEarningsDataList['Earnings_Date'])
     mlpPlotStuff = theEarningsDataList[['Earnings_Date','EPS_Estimate', 'Reported_EPS',
     'Surprise(%)', 'EDFwd1DayClosePercentDelta', 'EDFwd4DayClosePercentDelta']]
+
+    # get list of ED, ED's out to numDaysAroundED/2
+    earningDayList = []
+    outDays = []
+    for aDate in mlpPlotStuff['Earnings_Date']:
+        earningDayList.append(aDate)
+        theEDDate = dateUtils.getDateFromISO8601(aDate)
+        daysOut = int(numDaysAroundED/2)
+        outDays.append(dateUtils.getDateStringDashSeprtors(dateUtils.goOutXWeekdays(theEDDate, -daysOut)))
+        outDays.append(theEDDate)
+        outDays.append(dateUtils.getDateStringDashSeprtors(dateUtils.goOutXWeekdays(theEDDate, daysOut)))
+
+
 
     # join the ED data with historic data
     theCandleStickData = theCandleStickData.join(mlpPlotStuff)
@@ -271,11 +286,11 @@ def plotEarningPngFile_mpl(aStock, startDay):
     pngPlotFileLocation = theBaseCompaniesDirectory +  companyEarningsWeek + aStock + '.png'
 
     # now plot all this stuff... im mpl
-    getEarningsData.plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock)
+    getEarningsData.plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock, earningDayList, outDays)
 
 
 
-def getHistoricCandlestickData(aStock, theEarningsDataList, numDaysAroundED=10):
+def getHistoricCandlestickData(aStock, theEarningsDataList, numDaysAroundED):
     # Get earnings dates for Candlesticks plots
     earningsCandlestickData = theEarningsDataList.Earnings_Date
     # define DataFrame and columns
