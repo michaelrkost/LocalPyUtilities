@@ -38,7 +38,7 @@ def make_patch_spines_invisible(ax):
     for sp in ax.spines.values():
         sp.set_visible(False)
 
-def getWeeklyExcelSummary(startday, theStock):
+def getWeeklyExcelSummary(startday, theStock, mpl):
     #print('in getWeeklyExcelSummary')
 
     # Get saved data Summary of companies
@@ -49,7 +49,12 @@ def getWeeklyExcelSummary(startday, theStock):
     #TODo Complete next
     # Complete the loop to get the theStock and then pass to getWeeklyStockTabSummary
     #updated to use mpl 12/31/21
-    return getWeeklyStockTabSummary_mpl(theFilePath, theStock)
+    if mpl == True:
+        x = getWeeklyStockTabSummary_mpl(theFilePath, theStock)
+        return x
+    else:
+        x = getWeeklyStockTabSummary(theFilePath, theStock)
+        return x
 
 def getWeeklyStockTabSummary(theFilePath, theSymbol):
 
@@ -68,6 +73,12 @@ def getWeeklyStockTabSummary(theFilePath, theSymbol):
     # reindex new DF
     excelPastEarningsDateDF.reindex
 
+    #need to set up index with Datetime
+    earningsDay =  excelPastEarningsDateDF[['Earnings_Date','Open','High','Low', 'Close',
+                                                        'Volume','EPS_Estimate','Reported_EPS',
+                                                        'Surprise(%)','EDFwd1DayClosePercentDelta',
+                                                         'EDFwd4DayClosePercentDelta']]
+
     # create to np array to display in matplotlib!!!!
     # Past earnings
     earningsMdate_np = excelPastEarningsDateDF.Earnings_Date.values
@@ -85,11 +96,12 @@ def getWeeklyStockTabSummary(theFilePath, theSymbol):
     # Convert date string to a datenum using dateutil.parser.parse().
     earningsMdate_np = mdates.datestr2num(earningsMdate_np)  # np.core.defchararray.rstrip(earningsDate_np, 10))
 
-    returnList = [earnings1DayMove_np, earnings4DayMove_np, earningsMdate_np, earnings1DayCandlestick, earningsDayEPS]
+    returnList = [earnings1DayMove_np, earnings4DayMove_np, earningsMdate_np,
+                  earnings1DayCandlestick, earningsDayEPS, earningsDay]
 
     return returnList
 
-def plotEarnings(theCandleStickData, earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS, startday, theStock):
+def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS, startday, theStock):
 
     # Set date formatter
     locator = mdates.AutoDateLocator()
@@ -216,8 +228,8 @@ def plotEarnings(theCandleStickData, earningsMdate_np, earnings1DayMove_np, earn
 
     companyEarningsWeek =  startday  + '/rawData/'
 
-    plotThis = theBaseCompaniesDirectory +  companyEarningsWeek + theStock + '.png'
-    plt.savefig(plotThis)
+    plotThisPNG = theBaseCompaniesDirectory +  companyEarningsWeek + theStock + '.png'
+    plt.savefig(plotThisPNG)
     plt.close(fig)
 
 def getWeeklyStockTabSummary_mpl(theFilePath, theSymbol):
@@ -270,17 +282,35 @@ def getWeeklyStockTabSummary_mpl(theFilePath, theSymbol):
 def plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock, earningDayList, outDays):
 
 
-    theTitle = aStock + '  -- 1-Day VS 4-Days Past Earnings $ Delta & EPS Estimate/Reported/Suprise'
+    theTitle = aStock + '  -- Stock at Earnings - Red dotted Line'
+    bar_width = 0.4
+    theEDaysData = theCandleStickData[~theCandleStickData['Earnings_Date'].isna()]
 
     # setup the plot
-    plotEPS = [ mpf.make_addplot(theCandleStickData[['EPS_Estimate']], type='bar', color= 'r', panel=2),
-                mpf.make_addplot(theCandleStickData[['Reported_EPS']], type='bar', color= 'g', panel=2),
-                mpf.make_addplot(theCandleStickData[['Surprise(%)']],  type='bar', color= 'b', panel=2)]
+    plotEPS = [ mpf.make_addplot(theCandleStickData[['EPS_Estimate']],
+                                 width=0.5,  type='bar', color= 'r', panel=2, alpha=.5),
+                mpf.make_addplot(theCandleStickData[['Reported_EPS']],
+                                 width=0.5,  type='bar', color= 'g', panel=2, alpha=.5),
+                mpf.make_addplot(theCandleStickData[['Surprise(%)']],
+                                 width=0.5,  type='bar', color= 'b', panel=2, alpha=.5),
+                mpf.make_addplot((theCandleStickData['EDFwd1DayClosePercentDelta']),
+                                 panel=3, type='scatter', color='pink'),
+                mpf.make_addplot((theCandleStickData['EDFwd4DayClosePercentDelta']),
+                                 panel=3, type='scatter', color='y')
+        #,  mpf.make_addplot(earningDayList,type='scatter',markersize=200,marker='^')
+                ]
 
-    mpf.plot(theCandleStickData,vlines=dict(vlines=earningDayList, colors=('r')))
+    #mpf.plot(theCandleStickData,vlines=dict(vlines=outDays, colors=('r')))
 
     mpf.plot(theCandleStickData, volume=True, type='candle', style='charles', title=theTitle,
-             addplot=plotEPS, figsize=(20, 10), savefig=pngPlotFileLocation)\
+             figsize=(15, 6),#addplot=plotEPS,
+             vlines=dict(vlines=earningDayList,linestyle='dotted', colors='red', linewidths=.8),
+             savefig=pngPlotFileLocation)
+
+    # mpf.plot(theCandleStickData, volume=True, type='candle', style='charles', title=theTitle,
+    #          addplot=plotEPS, figsize=(20, 10),
+    #          vlines=dict(vlines=earningDayList,linestyle='dotted', colors='red', linewidths=.5),
+    #          panel_ratios=(10,3,5,5), savefig=pngPlotFileLocation)
         # ,
         #      vlines=dict(vlines=outDays, colors=('c','g', 'c'), linewidths=1))
 
