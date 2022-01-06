@@ -101,7 +101,8 @@ def getWeeklyStockTabSummary(theFilePath, theSymbol):
 
     return returnList
 
-def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS, startday, theStock):
+def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS,
+                 startday, theStock):
 
     # Set date formatter
     locator = mdates.AutoDateLocator()
@@ -136,7 +137,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
 
     # setup plotting ----------------------------
     # single Plot for Earnings price moves // Main Plot
-    fig, earningsMovePlt = plt.subplots(figsize=(15, 6))
+    fig, earningsMovePlt = plt.subplots(2,1, figsize=(15, 6))
     # instantiate a second axes that shares the same x-axis
     # Setup Plot for a second axes that shares the same x-axis for EPS
     earningsEpsPlt = earningsMovePlt.twinx()
@@ -149,13 +150,13 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     # The ticks and label have already been
     # placed on the right by twinx above.
     # needs double parens to work -> (("axes", 1.06))
-    earningsEpsSuprisePlt.spines["right"].set_position(("axes", 1.06))
+    earningsEpsSuprisePlt.spines["left"].set_position(("axes", 1.06))
     # Having been created by twinx, earningsMovePlt has its frame off, so the line of its
     # detached spine is invisible.  First, activate the frame but make the patch
     # and spines invisible.
     make_patch_spines_invisible(earningsEpsSuprisePlt)
     # Second, show the right spine.
-    earningsEpsSuprisePlt.spines["right"].set_visible(True)
+    earningsEpsSuprisePlt.spines["left"].set_visible(True)
 
     # set titles/labels/ticks ----------------------
     earningsMovePlt.set_title(theTitle)
@@ -170,9 +171,9 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     earningsEpsPlt.tick_params(axis='y', labelcolor=colorLabel)
     earningsEpsSuprisePlt.tick_params(axis='y', labelcolor=colorSupriseEPS)
 
-    lines2, labels2 = earningsEpsPlt.get_legend_handles_labels()
-    # build Legend for 2nd Xaxis
-    lines1, labels1 = earningsMovePlt.get_legend_handles_labels()
+    # lines2, labels2 = earningsEpsPlt.get_legend_handles_labels()
+    # # build Legend for 2nd Xaxis
+    # lines1, labels1 = earningsMovePlt.get_legend_handles_labels()
 
     # set xaxis format -------------------------------
     earningsMovePlt.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
@@ -198,7 +199,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     # print("aDayMinRT: ", aDayMinRT, 'aDayMaxRT: ', aDayMaxRT)
     # print("aDayMinESP: ", aDayMinESP, "aDayMaxESP: ", aDayMaxESP)
     # print("aDayMinSup: ", aDayMinSup, 'aDayMaxSup: ', aDayMaxSup)
-    # earningsMovePlt.set_ylim(bottom=ylimBottom, top=ylimTop, auto=True)
+    #earningsMovePlt.set_ylim(bottom=ylimBottom, top=ylimTop, auto=True)
 
     #After plotting the data find the maximum absolute value between the min and max axis values.
     # Then set the min and max limits of the axis to the negative and positive (respectively) of that value.
@@ -215,9 +216,12 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     # Add dotted line for $0 - Price move ----------------------
     horzLine = earningsMovePlt.axhline(y=0, color='navy', linestyle=':', label=zeroPointLabel, zorder=1)
 
-    xBarRepEPS = earningsEpsPlt.bar(earningsMdate_np+6, earningsDayEPS.Reported_EPS, width=4, label=ax2LegendReportedEPS, color=colorReportedEPS, alpha=0.5)
-    xBarEstEPS = earningsEpsPlt.bar(earningsMdate_np-1, earningsDayEPS.EPS_Estimate, width=4, label=ax2LegendEstimatedEPS, color=colorEstimatedEPS, alpha=0.5)
-    xBarSupEPS = earningsEpsSuprisePlt.bar(earningsMdate_np+12, earningsDayEPS['Surprise(%)'], 4, label=ax2LegendSupriseEPS, color=colorSupriseEPS, alpha=0.5)
+    xBarRepEPS = earningsEpsPlt.bar(earningsMdate_np+6, earningsDayEPS.Reported_EPS, width=4,
+                                    label=ax2LegendReportedEPS, color=colorReportedEPS) #, alpha=0.5)
+    xBarEstEPS = earningsEpsPlt.bar(earningsMdate_np-1, earningsDayEPS.EPS_Estimate, width=4,
+                                    label=ax2LegendEstimatedEPS, color=colorEstimatedEPS) #, alpha=0.5)
+    xBarSupEPS = earningsEpsSuprisePlt.bar(earningsMdate_np+12, earningsDayEPS['Surprise(%)'], width=4,
+                                           label=ax2LegendSupriseEPS, color=colorSupriseEPS) #, alpha=0.5)
 
     lines = [label1Day[0],label4Day[0], horzLine, xBarEstEPS[0], xBarRepEPS[0], xBarSupEPS[0] ]
     lineLabel = [label1Day[0]._label, label4Day[0]._label,horzLine._label,  xBarEstEPS._label, xBarRepEPS._label, xBarSupEPS._label]
@@ -307,11 +311,291 @@ def plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock, earningDay
              vlines=dict(vlines=earningDayList,linestyle='dotted', colors='red', linewidths=.8),
              savefig=pngPlotFileLocation)
 
-    # mpf.plot(theCandleStickData, volume=True, type='candle', style='charles', title=theTitle,
-    #          addplot=plotEPS, figsize=(20, 10),
-    #          vlines=dict(vlines=earningDayList,linestyle='dotted', colors='red', linewidths=.5),
-    #          panel_ratios=(10,3,5,5), savefig=pngPlotFileLocation)
-        # ,
-        #      vlines=dict(vlines=outDays, colors=('c','g', 'c'), linewidths=1))
+def plotEarnings_EPS_Move(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS,
+                          startday, theStock):
+
+    # Set colors and labels - Earnings Move ----------------
+    color1DayStockMove = 'navy'
+    color4DayStockMove = 'maroon'
+    xLabel = 'Earnings Dates'
+    xLabelColor = 'slategray'
+    yLabelColor = 'indigo'
+    yLabelStockDeltaColor = color1DayStockMove
+    yLabel1DayStockMove = 'Stock % Delta @ 1 Day Close Price'
+    yLabel4DayStockMove = 'Stock % Delta @ 4 Day Close Price'
+    yLabelStockDeltaTitle = 'Stock % Delta'
+    ax1LegendLabel1Day = "1-Day % Move"
+    ax1LegendLabel4Day = "4-Day % Move"
+    zeroPointLabel = '@ $0.0 Move'
+
+    # set title ----------------
+    theTitle = theStock + '  -- 1-Day VS 4-Days Past Earnings $ Delta'
+    theEPSTitle = theStock + '  -- EPS Estimate/Reported/Surprise'
+
+    # Set colors and labels - EPS Move ----------------
+    colorReportedEPS = 'forestgreen'
+    colorEstimatedEPS = 'dodgerblue'
+    colorSupriseEPS = "crimson"
+    colorLabel = 'green'
+    # 'EPS_Estimate','Reported_EPS','Surprise(%) ----------------
+    ax2LegendReportedEPS = "Reported EPS"
+    ax2LegendEstimatedEPS = "Estimated EPS"
+    ax2LegendSupriseEPS = "Surprise(%)"
+
+    # setup plotting ----------------------------
+    # single Plot for Earnings price moves // Main Plot
+    fig, axs = plt.subplots(2, 1, figsize=(15, 6))
+    # Setup Plot for a another y-axes that shares the same x-axis for earning surprise
+    earningsEpsSuprisePlt = axs[0].twinx()
+    # =========================================================================================
+    # set the spacing between subplots
+    plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9,top=0.9,wspace=0.4,hspace=0.4)
+    # ========================================================================================
+
+    # Set date formatter
+    locator = mdates.AutoDateLocator()
+    formatter = mdates.ConciseDateFormatter(locator)
+    formatter.formats = ["%b-%d-%Y"]
+    # set xaxis format -------------------------------
+    axs[0].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    # axs[1].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    # axs[0].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    fig.autofmt_xdate()
+#    plt.xticks(earningsMdate_np)
+
+    # =========================================================================================
+
+    # set titles/labels/ticks - EPS --------------------------------------------
+    axs[0].set_title(theEPSTitle)
+    axs[0].set_xlabel(xLabel, color=xLabelColor)
+    axs[0].set_ylabel('EPS', color=colorLabel)
+    axs[0].tick_params(axis='y', labelcolor=colorLabel)
 
 
+    #make_patch_spines_invisible(earningsEpsSuprisePlt)
+    earningsEpsSuprisePlt.set_ylabel('EPS Suprise %', color=colorSupriseEPS)
+    earningsEpsSuprisePlt.tick_params(axis='y', labelcolor=colorSupriseEPS)
+
+    # set axes[1] titles/labels/ticks - Earnings Move ----------------------
+    axs[1].set_title(theTitle)
+    axs[1].set_xlabel(xLabel, color=xLabelColor)
+    axs[1].set_ylabel(yLabelStockDeltaTitle, color=yLabelStockDeltaColor)
+    axs[1].tick_params(axis='y', labelcolor=yLabelStockDeltaColor)
+    axs[1].tick_params(axis='x', labelcolor=xLabelColor)
+
+    # =============================================================================================
+    # find plot high/low boundary limits to center the 0 yAxis in the figure
+    # for Surprise EPS
+    aDayMinSup = np.round(np.nanmin(earningsDayEPS['Surprise(%)']), 2)
+    aDayMaxSup = np.round(np.nanmax(earningsDayEPS['Surprise(%)']), 2)
+
+    # Get Min/Max for EPS
+    aDayMinRT = np.round(np.nanmin(earningsDayEPS.Reported_EPS), 2)
+    aDayMaxRT = np.round(np.nanmax(earningsDayEPS.Reported_EPS), 2)
+    aDayMinESP = np.round(np.nanmin(earningsDayEPS.EPS_Estimate), 2)
+    aDayMaxESP = np.round(np.nanmax(earningsDayEPS.EPS_Estimate), 2)
+
+    # # After plotting the data find the maximum absolute value between the min and max axis values.
+    # # Then set the min and max limits of the axis to the negative and positive (respectively) of that value.
+    yabs_maxMoveSupr = max(abs(aDayMinSup), abs(aDayMaxSup))
+    earningsEpsSuprisePlt.set_ylim(ymin=-yabs_maxMoveSupr, ymax=yabs_maxMoveSupr)
+
+    yabs_maxMoveEPS = max(abs(aDayMinRT), abs(aDayMaxRT), abs(aDayMinESP), abs(aDayMaxESP))
+    axs[0].set_ylim(ymin=-yabs_maxMoveEPS, ymax=yabs_maxMoveEPS)
+
+    # ========================================================================================
+
+    # # Add dotted line for $0 - Price move ----------------------
+    horzLine1 = axs[1].axhline(y=0, color='pink', linestyle=':', label=zeroPointLabel, zorder=1)
+    horzLine0 = axs[0].axhline(y=0, color='pink', linestyle=':', label=zeroPointLabel, zorder=1)
+
+    xBarRepEPS = axs[0].bar(earningsMdate_np + 6, earningsDayEPS.Reported_EPS, width=4,
+                            label=ax2LegendReportedEPS, color=colorReportedEPS, alpha=0.5)
+    xBarEstEPS = axs[0].bar(earningsMdate_np - 1, earningsDayEPS['EPS_Estimate'], width=4,
+                            label=ax2LegendEstimatedEPS, color=colorEstimatedEPS, alpha=0.5)
+    xBarSupEPS = axs[0].bar(earningsMdate_np + 12, earningsDayEPS['Surprise(%)'], 4,
+                                           label=ax2LegendSupriseEPS, color=colorSupriseEPS, alpha=0.5)
+
+    # ========================================================================================
+    # plot 1Day and 4Day move
+    axs[1].plot(earningsMdate_np, earnings1DayMove_np, color=color1DayStockMove,
+                            label=ax1LegendLabel1Day, linestyle='--', marker='o', zorder=1)
+    axs[1].plot(earningsMdate_np, earnings4DayMove_np, color=color4DayStockMove,
+                            label=ax1LegendLabel4Day, linestyle='-', marker='o', zorder=1)
+    # ========================================================================================
+    # Set date formatter
+    locator = mdates.AutoDateLocator()
+    formatter = mdates.ConciseDateFormatter(locator)
+    formatter.formats = ["%b-%d-%Y"]
+    plt.xticks(earningsMdate_np)
+    # set xaxis format -------------------------------
+    axs[1].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    #axs[1].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    #fig.autofmt_xdate()
+    print('earningsMdate_np:  \n', earningsMdate_np)
+    # ========================================================================================
+
+    companyEarningsWeek = startday + '/rawData/'
+
+    plotThisPNG = theBaseCompaniesDirectory + companyEarningsWeek + theStock + '.png'
+    plt.savefig(plotThisPNG)
+    plt.close(fig)
+
+def XXXXplotEarnings_EPS_Move(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS,
+                          startday, theStock):
+
+    # Set colors and labels - Earnings Move ----------------
+    color1DayStockMove = 'navy'
+    color4DayStockMove = 'maroon'
+    xLabel = 'Earnings Dates'
+    xLabelColor = 'slategray'
+    yLabelStockDeltaColor = color1DayStockMove
+    yLabel1DayStockMove = 'Stock % Delta @ 1 Day Close Price'
+    yLabel4DayStockMove = 'Stock % Delta @ 4 Day Close Price'
+    yLabelStockDeltaTitle = 'Stock % Delta'
+    ax1LegendLabel1Day = "1-Day % Move"
+    ax1LegendLabel4Day = "4-Day % Move"
+    zeroPointLabel = '@ $0.0 Move'
+
+    # set title ----------------
+    theTitle = theStock + '  -- 1-Day VS 4-Days Past Earnings $ Delta'
+    theEPSTitle = theStock + '  -- EPS Estimate/Reported/Surprise'
+
+    # Set colors and labels - EPS Move ----------------
+    colorReportedEPS = 'forestgreen'
+    colorEstimatedEPS = 'dodgerblue'
+    colorSupriseEPS = "crimson"
+    ycolorLabel = 'indigo'
+    # 'EPS_Estimate','Reported_EPS','Surprise(%) ----------------
+    ax2LegendReportedEPS = "Reported EPS"
+    ax2LegendEstimatedEPS = "Estimated EPS"
+    ax2LegendSupriseEPS = "Surprise(%)"
+
+    # setup plotting ----------------------------
+    # single Plot for Earnings price moves // Main Plot
+    fig, axs = plt.subplots(2, 1, figsize=(15, 6))
+    # instantiate a second axes that shares the same x-axis
+    # Setup Plot for a second axes that shares the same x-axis for EPS
+    #earningsEpsPlt = axs[0].twinx()
+    # Setup Plot for a the EPS Surprise axes that shares the same x-axis for earning surprise
+    earningsEpsSuprisePlt = axs[0].twinx()
+
+    # =========================================================================================
+    # Set date formatter
+    locator = mdates.AutoDateLocator()
+    formatter = mdates.ConciseDateFormatter(locator)
+    formatter.formats = ["%b-%d-%Y"]
+    # set xaxis format -------------------------------
+    axs[1].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    #axs[1].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    #axs[0].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    fig.autofmt_xdate()
+    plt.xticks(earningsMdate_np)
+    # =========================================================================================
+
+    # Offset the right spine of Surprise ---------------------------
+    # The ticks and label have already been
+    # placed on the right by twinx above.
+    # needs double parens to work -> (("axes", 1.06))
+    earningsEpsSuprisePlt.spines["left"].set_position(("axes", 1.06))
+    # Having been created by twinx, axs has its frame off, so the line of its
+    # detached spine is invisible.  First, activate the frame but make the patch
+    # and spines invisible.
+    make_patch_spines_invisible(earningsEpsSuprisePlt)
+    # Second, show the right spine.
+    earningsEpsSuprisePlt.spines["left"].set_visible(True)
+    # set fig 1 ==============================================================
+    # set titles/labels/ticks ----------------------
+    axs[1].set_title(theTitle)
+    axs[1].set_xlabel(xLabel, color=xLabelColor)
+    axs[1].set_ylabel(yLabelStockDeltaTitle, color=yLabelStockDeltaColor)
+    axs[1].tick_params(axis='y', labelcolor=yLabelStockDeltaColor)
+    axs[1].tick_params(axis='x', labelcolor=xLabelColor)
+
+    #set fig 2 ==============================================================
+    # set titles/labels/ticks ----------------------
+    axs[0].set_title(theEPSTitle)
+    axs[0].set_xlabel(xLabel, color=xLabelColor)
+    axs[0].set_ylabel('EPS', color=ycolorLabel)
+    axs[0].tick_params(axis='y', labelcolor=ycolorLabel)
+
+    earningsEpsSuprisePlt.set_ylabel('EPS Suprise %', color=colorSupriseEPS)
+    earningsEpsSuprisePlt.tick_params(axis='y', labelcolor=colorSupriseEPS)
+
+    axs[0].tick_params(axis='y', labelcolor=ycolorLabel)
+    axs[0].tick_params(axis='y', labelcolor=colorSupriseEPS)
+    axs[0].tick_params(axis='x', labelcolor=xLabelColor)
+
+    # lines2, labels2 = earningsEpsPlt.get_legend_handles_labels()
+    # # build Legend for 2nd Xaxis
+    # lines1, labels1 = axs[1].get_legend_handles_labels()
+
+    # Set date formatter
+    locator = mdates.AutoDateLocator()
+    formatter = mdates.ConciseDateFormatter(locator)
+    formatter.formats = ["%b-%d-%Y"]
+    plt.xticks(earningsMdate_np)
+    # set xaxis format -------------------------------
+    axs[1].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    #axs[1].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    #axs[0].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    fig.autofmt_xdate()
+
+    # plt.grid(color=colorSupriseEPS) # grid not needed at this point
+
+    # plot 1Day and 4Day move
+    label1Day = axs[1].plot(earningsMdate_np, earnings1DayMove_np, color=color1DayStockMove,
+                            label=ax1LegendLabel1Day, linestyle='--', marker='o', zorder=1)
+    label4Day = axs[1].plot(earningsMdate_np, earnings4DayMove_np, color=color4DayStockMove,
+                            label=ax1LegendLabel4Day, linestyle='-', marker='o', zorder=1)
+    # =============================================================================================
+
+    # find plot high/low boundary limits to center the 0 yAxis in the figure
+    aDayMinRT = np.round(np.nanmin(earningsDayEPS.Reported_EPS), 2)
+    aDayMaxRT = np.round(np.nanmax(earningsDayEPS.Reported_EPS), 2)
+    aDayMinSup = np.round(np.nanmin(earningsDayEPS['Surprise(%)']), 2)
+    aDayMaxSup = np.round(np.nanmax(earningsDayEPS['Surprise(%)']), 2)
+    aDayMinESP = np.round(np.nanmin(earningsDayEPS.EPS_Estimate), 2)
+    aDayMaxESP = np.round(np.nanmax(earningsDayEPS.EPS_Estimate), 2)
+
+    # print("aDayMinRT: ", aDayMinRT, 'aDayMaxRT: ', aDayMaxRT)
+    # print("aDayMinESP: ", aDayMinESP, "aDayMaxESP: ", aDayMaxESP)
+    # print("aDayMinSup: ", aDayMinSup, 'aDayMaxSup: ', aDayMaxSup)
+    #axs[0].set_ylim(bottom=ylimBottom, top=ylimTop, auto=True)
+
+    # # After plotting the data find the maximum absolute value between the min and max axis values.
+    # # Then set the min and max limits of the axis to the negative and positive (respectively) of that value.
+    yabs_maxEPSPlt = max(abs(aDayMinESP), abs(aDayMaxESP), abs(aDayMinRT), abs(aDayMaxRT))
+    axs[0].set_ylim(ymin=-yabs_maxEPSPlt, ymax=yabs_maxEPSPlt)
+    #
+    yabs_maxMoveSupr = max(abs(aDayMinSup), abs(aDayMaxSup))
+    axs[0].set_ylim(ymin=-yabs_maxMoveSupr, ymax=yabs_maxMoveSupr)
+    #
+    yabs_maxMovePlt = abs(max(axs[1].get_ylim(), key=abs))
+    axs[1].set_ylim(ymin=-yabs_maxMovePlt, ymax=yabs_maxMovePlt)
+    # # print("yabs_maxMoveSupr:  ", earningsEpsSuprisePlt.get_ylim(),'   ', yabs_maxMoveSupr)
+    #
+    # # Add dotted line for $0 - Price move ----------------------
+    horzLine1 = axs[1].axhline(y=0, color='pink', linestyle=':', label=zeroPointLabel, zorder=1)
+    horzLine0 = axs[0].axhline(y=0, color='pink', linestyle=':', label=zeroPointLabel, zorder=1)
+    #
+    xBarRepEPS = axs[0].bar(earningsMdate_np + 6, earningsDayEPS.Reported_EPS, width=4,
+                            label=ax2LegendReportedEPS, color=colorReportedEPS, alpha=0.5)
+    xBarEstEPS = axs[0].bar(earningsMdate_np - 1, earningsDayEPS['EPS_Estimate'], width=4,
+                            label=ax2LegendEstimatedEPS, color=colorEstimatedEPS, alpha=0.5)
+    xBarSupEPS = axs[0].bar(earningsMdate_np + 12, earningsDayEPS['Surprise(%)'], 4,
+                                           label=ax2LegendSupriseEPS, color=colorSupriseEPS, alpha=0.5)
+    #
+    lines = [label1Day[0], label4Day[0], horzLine0, xBarEstEPS[0], xBarRepEPS[0], xBarSupEPS[0]]
+    lineLabel = [label1Day[0]._label, label4Day[0]._label, horzLine0._label, xBarEstEPS._label, xBarRepEPS._label,
+                  xBarSupEPS._label]
+    # set legend placement - lower left - mrk 12/21/21
+    axs[1].legend(lines, lineLabel, bbox_to_anchor=(0.02, 0.04))
+
+    # cursor = Cursor(axs, useblit=True, color='red', linewidth=2) #, horizOn=True, vertOn=True, color='green')
+
+    companyEarningsWeek = startday + '/rawData/'
+
+    plotThisPNG = theBaseCompaniesDirectory + companyEarningsWeek + theStock + '.png'
+    plt.savefig(plotThisPNG)
+    plt.close(fig)

@@ -253,7 +253,12 @@ def plotEarningPngFile_matplotlib(aStock, startDay, numDaysAroundED=10):
     # # this will be used for plotting candlestick data
     # theCandleStickData = getHistoricCandlestickData(aStock, theEarningsDataList[5], numDaysAroundED)
     # now plot all this stuff...
-    getEarningsData.plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,earningsDayEPS, startDay, aStock)
+    #getEarningsData.plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,earningsDayEPS, startDay, aStock)
+
+    getEarningsData.plotEarnings_EPS_Move(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS,
+                                          startDay, aStock)
+
+
 #    Original plot
 #    getEarningsData.plotEarnings(theCandleStickData, earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,earningsDayEPS, startDay, aStock)
 

@@ -79,8 +79,24 @@ def getPastEarnings(stock="AAPL"):
     earningsDataDF['Earnings_Date'] = earningsDataDF.Earnings_Date.apply(
         lambda date: datetime.datetime.strptime(date, '%b %d, %Y, %I %p %Z'))
 
-    # Drop future earnings dates and reindex
+    # Drop future earnings dates and reindex ===================================
     earningsDataDF.drop(earningsDataDF[earningsDataDF['Earnings_Date'] > datetime.datetime.today()].index, inplace=True)
     earningsDataDF = earningsDataDF.reset_index(drop=True)
+
+    # Check to see if there is a Dup for last Earnings
+    # This Dup was coming from Yahoo - two earnings dates with different times
+    # - So need to clean it out...
+    # Drop one of the Dup dates and reindex
+    # drop Dup based on 'Earnings_Date'
+    # get the Day w/out any time - normalized
+    if earningsDataDF.empty: # first check if DF is empty
+        print("in getPastEarnings -- earningsDataDF is empty" )
+        return earningsDataDF
+    else:
+        theNormalizedDates = earningsDataDF['Earnings_Date'].dt.normalize()
+        # if first 2 dates are the same remove and reindex
+        if theNormalizedDates.at[0] == theNormalizedDates.at[1]:
+            earningsDataDF = earningsDataDF.drop(0, axis=0)
+            earningsDataDF = earningsDataDF.reset_index(drop=True)
 
     return earningsDataDF
