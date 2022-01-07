@@ -283,33 +283,95 @@ def getWeeklyStockTabSummary_mpl(theFilePath, theSymbol):
     return earningsDay
 
 
-def plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock, earningDayList, outDays):
+def plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, theStock, earningDayList, outDays):
 #https://github.com/matplotlib/mplfinance/blob/master/examples/panels.ipynb
-    print('theCandleStickData:  \n', theCandleStickData, '\n\n')
-    theTitle = aStock + '  -- Stock at Earnings - Red dotted Line'
+
+    #=================================================================================
+    # Set colors and labels - Earnings Move ----------------
+    color1DayStockMove = 'navy'
+    color4DayStockMove = 'maroon'
+    xLabel = 'Earnings Dates'
+    xLabelColor = 'slategray'
+    yLabelColor = 'indigo'
+    yLabelStockDeltaColor = color1DayStockMove
+    yLabel1DayStockMove = 'Stock % Delta @ 1 Day Close Price'
+    yLabel4DayStockMove = 'Stock % Delta @ 4 Day Close Price'
+    yLabelStockDeltaTitle = 'Stock % Delta'
+    ax1LegendLabel1Day = "1-Day % Move"
+    ax1LegendLabel4Day = "4-Day % Move"
+    zeroPointLabel = '@ $0.0 Move'
+
+    # set title ----------------
+    theMplTitle = theStock + '  -- Stock at Earnings @ the Red dotted Line'
+    theMoveTitle = theStock + '  -- 1-Day VS 4-Days Past Earnings $ Delta'
+    theEPSTitle = theStock + '  -- EPS Estimate/Reported/Surprise'
+
+    # Set colors and labels - EPS Move ----------------
+    colorReportedEPS = 'forestgreen'
+    colorEstimatedEPS = 'dodgerblue'
+    colorSupriseEPS = "crimson"
+    colorLabel = 'green'
+    # 'EPS_Estimate','Reported_EPS','Surprise(%) ----------------
+    ax2LegendReportedEPS = "Reported EPS"
+    ax2LegendEstimatedEPS = "Estimated EPS"
+    ax2LegendSupriseEPS = "Surprise(%)"
+
+    #=================================================================================
+    #setup chart stuff
     bar_width = 0.4
     theEDaysData = theCandleStickData[~theCandleStickData['Earnings_Date'].isna()]
+    # =================================================================================
+    # setup plotting ----------------------------
+    # fig = mpf.plot(theCandleStickData, volume=True, type='candle', style='charles', title=theMplTitle,
+    #                figsize=(15, 6), returnfig=True,  # addplot=plotEPS,
+    #                vlines=dict(vlines=earningDayList, linestyle='dotted', colors='red', linewidths=.8),
+    #                savefig=pngPlotFileLocation)
 
-    # setup the plot
-    plotEPS = [ mpf.make_addplot(theCandleStickData[['EPS_Estimate']],
-                                 width=0.4,  type='bar', color= 'r', panel=2, alpha=.5),
-                mpf.make_addplot(theCandleStickData[['Reported_EPS']],
-                                 width=0.4,  type='bar', color= 'g', panel=2, alpha=.5),
-                mpf.make_addplot(theCandleStickData[['Surprise(%)']],
-                                 width=0.4,  type='bar', color= 'b', panel=2, alpha=.5),
-                mpf.make_addplot((theCandleStickData['EDFwd1DayClosePercentDelta']),
-                                 panel=3, type='scatter', color='pink'),
-                mpf.make_addplot((theCandleStickData['EDFwd4DayClosePercentDelta']),
-                                 panel=3, type='scatter', color='y')
-        #,  mpf.make_addplot(earningDayList,type='scatter',markersize=200,marker='^')
-                ]
+    # single Plot for Earnings price moves // Main Plot
+    fig = mpf.figure( figsize=(7, 8))
+    candleStickAx = fig.add_subplot(4,1,1)
+    volumeAx      = fig.add_subplot(4,1,2)
+    earningsAx    = fig.add_subplot(4,1,3)
+    # =========================================================================================
+    # set axes[1] titles/labels/ticks - Earnings Move ----------------------
+    earningsAx.set_title(theMoveTitle)
+    earningsAx.set_xlabel(xLabel, color=xLabelColor)
+    earningsAx.set_ylabel(yLabelStockDeltaTitle, color=yLabelStockDeltaColor)
+    earningsAx.tick_params(axis='y', labelcolor=yLabelStockDeltaColor)
+    earningsAx.tick_params(axis='x', labelcolor=xLabelColor)
+
+    # plot 1Day and 4Day move
+    earningsAx.plot(earningsMdate_np, earnings1DayMove_np, color=color1DayStockMove,
+                     label=ax1LegendLabel1Day, linestyle='--', marker='o', zorder=1)
+    earningsAx.plot(earningsMdate_np, earnings4DayMove_np, color=color4DayStockMove,
+                   label=ax1LegendLabel4Day, linestyle='-', marker='o', zorder=1)
+
+    mpf.plot(theCandleStickData, volume=True, returnfig=True,savefig=pngPlotFileLocation,
+             vlines=dict(vlines=earningDayList, linestyle='dotted', colors='red', linewidths=.8),
+             title=theMplTitle,figsize=(15, 6),type='candle', style='charles')
+
+    # =========================================================================================
+
+    mpf.show()
+
+
+# # setup the plot
+#     plotEPS = [ mpf.make_addplot(theCandleStickData[['EPS_Estimate']],
+#                                  width=0.4,  type='bar', color= 'r', panel=2, alpha=.5),
+#                 mpf.make_addplot(theCandleStickData[['Reported_EPS']],
+#                                  width=0.4,  type='bar', color= 'g', panel=2, alpha=.5),
+#                 mpf.make_addplot(theCandleStickData[['Surprise(%)']],
+#                                  width=0.4,  type='bar', color= 'b', panel=2, alpha=.5),
+#                 mpf.make_addplot((theCandleStickData['EDFwd1DayClosePercentDelta']),
+#                                  panel=3, type='scatter', color='green'),
+#                 mpf.make_addplot((theCandleStickData['EDFwd4DayClosePercentDelta']),
+#                                  panel=3, type='scatter', color='purple')
+#         #,  mpf.make_addplot(earningDayList,type='scatter',markersize=200,marker='^')
+#                 ]
 
     #mpf.plot(theCandleStickData,vlines=dict(vlines=outDays, colors=('r')))
 
-    mpf.plot(theCandleStickData, volume=True, type='candle', style='charles', title=theTitle,
-             figsize=(15, 6), addplot=plotEPS,
-             vlines=dict(vlines=earningDayList,linestyle='dotted', colors='red', linewidths=.8),
-             savefig=pngPlotFileLocation)
+
 
 def XXXXplotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock, earningDayList, outDays):
 
