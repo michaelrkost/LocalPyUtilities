@@ -129,12 +129,12 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
     imageWorksheet = fundamentalsWorkbook.add_worksheet(aStock + '-Earnings History Plot mpl')
     imageWorksheet.insert_image('B3',aStockEarningsPlot_mpl)
 
-    plotEarningPngFile_matplotlib(aStock, startday)
-    # # Get Plot file path
-    aStockEarningsPlot = theBaseCompaniesDirectory + startday + '/rawData/' + aStock + '.png'
-    # # create image worksheet then add image
-    imageWorksheet = fundamentalsWorkbook.add_worksheet(aStock + '-Earnings History Plot')
-    imageWorksheet.insert_image('B3',aStockEarningsPlot)
+    #plotEarningPngFile_matplotlib(aStock, startday)
+    # # # Get Plot file path
+    # aStockEarningsPlot = theBaseCompaniesDirectory + startday + '/rawData/' + aStock + '.png'
+    # # # create image worksheet then add image
+    # imageWorksheet = fundamentalsWorkbook.add_worksheet(aStock + '-Earnings History Plot')
+    # imageWorksheet.insert_image('B3',aStockEarningsPlot)
 
 
     # ------------------------------------------------------------------
@@ -237,7 +237,29 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
     return aWebDriver
 
 
-def plotEarningPngFile_matplotlib(aStock, startDay, numDaysAroundED=10):
+def plotEarningsMove(aStock, startDay):
+    # was method -> plotEarningPngFile_matplotlib(aStock, startDay, numDaysAroundED=10):
+    #This is the original plotting in matplotlib
+    # Get weekly earnings
+    theEarningsDataList = getEarningsData.getWeeklyExcelSummary(startDay, aStock, mpl=False)
+    # drop dups based on 'Earnings_Date'
+    #theEarningsDataList.drop_duplicates(subset=['Earnings_Date'], inplace=True)
+
+    # break down the excel into display units
+    earnings1DayMove_np = theEarningsDataList[0]
+    earnings4DayMove_np = theEarningsDataList[1]
+    earningsMdate_np = theEarningsDataList[2]
+    earningsDayEPS = theEarningsDataList[4]
+    # # Get historic stock price data around earnings date
+    # # this will be used for plotting candlestick data
+    # theCandleStickData = getHistoricCandlestickData(aStock, theEarningsDataList[5], numDaysAroundED)
+
+    # Return data
+    return [earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS, theEarningsDataList]
+
+
+#    Original plot
+def XXXXplotEarningPngFile_matplotlib(aStock, startDay, numDaysAroundED=10):
     #This is the original plotting in matplotlib
     # Get weekly earnings
     theEarningsDataList = getEarningsData.getWeeklyExcelSummary(startDay, aStock, mpl=False)
@@ -254,7 +276,6 @@ def plotEarningPngFile_matplotlib(aStock, startDay, numDaysAroundED=10):
     # theCandleStickData = getHistoricCandlestickData(aStock, theEarningsDataList[5], numDaysAroundED)
     # now plot all this stuff...
     #getEarningsData.plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,earningsDayEPS, startDay, aStock)
-
     getEarningsData.plotEarnings_EPS_Move(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,
                                           earningsDayEPS, startDay, aStock)
 
@@ -299,7 +320,7 @@ def plotEarningPngFile_mpl(aStock, startDay, numDaysAroundED=10):
     pngPlotFileLocation = theBaseCompaniesDirectory +  companyEarningsWeek + aStock + '_mpl' + '.png'
 
     # now plot all this stuff... im mpl
-    getEarningsData.plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock,
+    getEarningsData.plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock, #startDay,
                                      earningDayList, outDays)
 
 
