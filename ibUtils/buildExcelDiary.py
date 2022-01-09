@@ -21,7 +21,7 @@ def saveSummaryToExcel(yahooEarningsDF, startday ):
     Parameters
     ----------
     yahooEarningsDF: the Yahoo earnings DF
-    startday : Earnings week startday
+    startday : Earnings week startDay
 
     Returns
     -------
@@ -122,12 +122,12 @@ def saveDiary2Excel(startday):
     # Save Week Summary
     companySummaryListFile = 'SummaryOfWeek-' + startday + csvSuffix
 
-    # read in CSV summary file based on startday
+    # read in CSV summary file based on startDay
     yahooEarningsDF = pd.read_csv(earningWeekDir / companySummaryListFile, index_col=0)
 
     # todo determine if we need Put/Call MinMaxVolsSav
     # save Put/Call Volumes to CSV files
-    # getMinMaxVolsSaveAsCSV(ib, yahooEarningsDF, startday)
+    # getMinMaxVolsSaveAsCSV(ib, yahooEarningsDF, startDay)
     # save the weeks earning Summary to Excel
     saveSummaryToExcel(yahooEarningsDF, startday)
 

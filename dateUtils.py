@@ -722,5 +722,5 @@ def getNeededExpiry(daysOut):
     # print('Today + ', daysOut, ' expiryDate:  ', expiryDate)
     # print(type(todayIs))
     neededExpiry = getNextThirdFriday(expiryDate)
-    print('Next expiryDate: ', neededExpiry)
+    #print('Next expiryDate: ', neededExpiry)
     return neededExpiry

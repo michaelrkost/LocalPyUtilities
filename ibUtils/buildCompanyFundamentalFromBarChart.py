@@ -8,6 +8,8 @@ from localUtilities.webScrape import getBarChartData as companyInfo
 from localUtilities.webScrape import getBarChartOptionsSelenium as companyOptions
 from localUtilities import dateUtils
 import pandas as pd
+import datetime
+from yahoofinancials import YahooFinancials as yf
 
 #plot imports
 from localUtilities.plotEarnings import getEarningsData
@@ -120,12 +122,20 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
     # Create Plot and save as png file
     # Setup plot Worksheet
     # ------------------------------------------------------------------
-    plotEarningPngFile(aStock, startday)
+    plotEarningPngFile_mpl(aStock, startday)
     # Get Plot file path
-    aStockEarningsPlot = theBaseCompaniesDirectory + startday + '/rawData/' + aStock + '.png'
+    aStockEarningsPlot_mpl = theBaseCompaniesDirectory + startday + '/rawData/' + aStock + '_mpl' + '.png'
     # create image worksheet then add image
-    imageWorksheet = fundamentalsWorkbook.add_worksheet(aStock + '-Earnings History Plot')
-    imageWorksheet.insert_image('B3',aStockEarningsPlot)
+    imageWorksheet = fundamentalsWorkbook.add_worksheet(aStock + '-Earnings History Plot mpl')
+    imageWorksheet.insert_image('B3',aStockEarningsPlot_mpl)
+
+    #plotEarningPngFile_matplotlib(aStock, startday)
+    # # # Get Plot file path
+    # aStockEarningsPlot = theBaseCompaniesDirectory + startday + '/rawData/' + aStock + '.png'
+    # # # create image worksheet then add image
+    # imageWorksheet = fundamentalsWorkbook.add_worksheet(aStock + '-Earnings History Plot')
+    # imageWorksheet.insert_image('B3',aStockEarningsPlot)
+
 
     # ------------------------------------------------------------------
     # Setup Trade Plan Worksheet
@@ -227,18 +237,131 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
     return aWebDriver
 
 
-def plotEarningPngFile(aStock, startday):
-
+def plotEarningsMove(aStock, startDay):
+    # was method -> plotEarningPngFile_matplotlib(aStock, startDay, numDaysAroundED=10):
+    #This is the original plotting in matplotlib
     # Get weekly earnings
-    theEarningsDataList = getEarningsData.getWeeklyExcelSummary(startday, aStock)
+    theEarningsDataList = getEarningsData.getWeeklyExcelSummary(startDay, aStock, mpl=False)
+    # drop dups based on 'Earnings_Date'
+    #theEarningsDataList.drop_duplicates(subset=['Earnings_Date'], inplace=True)
 
+    # break down the excel into display units
     earnings1DayMove_np = theEarningsDataList[0]
     earnings4DayMove_np = theEarningsDataList[1]
     earningsMdate_np = theEarningsDataList[2]
-    earnings1DayCandlestick = theEarningsDataList[3]
     earningsDayEPS = theEarningsDataList[4]
+    # # Get historic stock price data around earnings date
+    # # this will be used for plotting candlestick data
+    # theCandleStickData = getHistoricCandlestickData(aStock, theEarningsDataList[5], numDaysAroundED)
 
-    # earningsDayEPS
-    getEarningsData.plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,
-                                 earningsDayEPS, startday, aStock)
+    # Return data
+    return [earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS, theEarningsDataList]
+
+
+#    Original plot
+def XXXXplotEarningPngFile_matplotlib(aStock, startDay, numDaysAroundED=10):
+    #This is the original plotting in matplotlib
+    # Get weekly earnings
+    theEarningsDataList = getEarningsData.getWeeklyExcelSummary(startDay, aStock, mpl=False)
+    # drop dups based on 'Earnings_Date'
+    #theEarningsDataList.drop_duplicates(subset=['Earnings_Date'], inplace=True)
+
+    # break down the excel into display units
+    earnings1DayMove_np = theEarningsDataList[0]
+    earnings4DayMove_np = theEarningsDataList[1]
+    earningsMdate_np = theEarningsDataList[2]
+    earningsDayEPS = theEarningsDataList[4]
+    # # Get historic stock price data around earnings date
+    # # this will be used for plotting candlestick data
+    # theCandleStickData = getHistoricCandlestickData(aStock, theEarningsDataList[5], numDaysAroundED)
+    # now plot all this stuff...
+    #getEarningsData.plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,earningsDayEPS, startDay, aStock)
+    getEarningsData.plotEarnings_EPS_Move(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,
+                                          earningsDayEPS, startDay, aStock)
+
+
+#    Original plot
+#    getEarningsData.plotEarnings(theCandleStickData, earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,earningsDayEPS, startDay, aStock)
+
+def plotEarningPngFile_mpl(aStock, startDay, numDaysAroundED=10):
+    #This is the  plotting in mplfinance
+    # Get weekly earnings
+    theEarningsDataList = getEarningsData.getWeeklyExcelSummary(startDay, aStock, mpl=True)
+    # drop dups based on 'Earnings_Date'
+    theEarningsDataList.drop_duplicates(subset=['Earnings_Date'], inplace=True)
+
+    # Get historic stock price data around earnings date
+    # this will be used for plotting candlestick data
+    theCandleStickData = getHistoricCandlestickData(aStock, theEarningsDataList, numDaysAroundED)
+    # get rid of any Dups
+    theCandleStickData.drop_duplicates(inplace=True)
+
+    #convert date column to pandas dateime
+    theEarningsDataList.index = pd.DatetimeIndex(theEarningsDataList['Earnings_Date'])
+    mlpPlotStuff = theEarningsDataList[['Earnings_Date','EPS_Estimate', 'Reported_EPS',
+    'Surprise(%)', 'EDFwd1DayClosePercentDelta', 'EDFwd4DayClosePercentDelta']]
+
+    # get list of ED, ED's out to numDaysAroundED/2
+    earningDayList = []
+    outDays = []
+    for aDate in mlpPlotStuff['Earnings_Date']:
+        #earningDayList.append(aDate)
+        theEDDate = dateUtils.getDateFromISO8601(aDate)
+        daysOut = int(numDaysAroundED/2)
+        outDays.append(dateUtils.getDateStringDashSeprtors(dateUtils.goOutXWeekdays(theEDDate, -daysOut)))
+        earningDayList.append(theEDDate)
+        outDays.append(dateUtils.getDateStringDashSeprtors(dateUtils.goOutXWeekdays(theEDDate, daysOut)))
+
+    # join the ED data with historic data
+    theCandleStickData = theCandleStickData.join(mlpPlotStuff)
+
+    # build png file path
+    companyEarningsWeek =  startDay  + '/rawData/'
+    pngPlotFileLocation = theBaseCompaniesDirectory +  companyEarningsWeek + aStock + '_mpl' + '.png'
+
+    # now plot all this stuff... im mpl
+    getEarningsData.plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock, #startDay,
+                                     earningDayList, outDays)
+
+
+
+def getHistoricCandlestickData(aStock, theEarningsDataList, numDaysAroundED):
+    # Get earnings dates for Candlesticks plots
+    earningsCandlestickData = theEarningsDataList.Earnings_Date
+    # define DataFrame and columns
+    earningsCandlestickDataDF = pd.DataFrame(columns=[ 'date', 'high', 'low', 'open', 'close', 'volume', 'adjclose', 'formatted_date' ])
+
+    # loop thru ED dates in earningsCandlestickData
+    for earningDate in earningsCandlestickData:
+        # Earnings Data / startAtED
+        # get start / end - dates out 5 days
+        # todo: make 5+/- dates a variable
+        startAtED= dateUtils.getDateFromISO8601(earningDate)
+        # get start/end dates to pull historic stock info from yf
+        earnDateStart = dateUtils.getDateStringDashSeprtors(startAtED + datetime.timedelta(days=-numDaysAroundED))
+        earnDateEnd = dateUtils.getDateStringDashSeprtors(startAtED + datetime.timedelta(days=+numDaysAroundED))
+        # get yf historic stock data from start/end dates
+        historicStockDataAroundED =  yf(aStock).get_historical_price_data(earnDateStart, earnDateEnd, 'daily')
+        # Get the Stock Name
+        theStock = list(historicStockDataAroundED.keys())[0]
+        # Get all the yf data for aStock
+        theStockData = historicStockDataAroundED.get(theStock)
+        # break it down to get prices in the dictionary
+        # get price data for this stock
+        aroundEDStockPrices = theStockData.get('prices')
+        # keep appending to theDF
+        for aPrice in aroundEDStockPrices:
+            earningsCandlestickDataDF = earningsCandlestickDataDF.append(aPrice, ignore_index=True)
+
+    earningsCandlestickDataDF = earningsCandlestickDataDF.drop(['date', 'adjclose'], axis = 1)
+    earningsCandlestickDataDF = earningsCandlestickDataDF[[ 'formatted_date', 'open', 'high', 'low', 'close', 'volume']]
+    earningsCandlestickDataDF.rename(columns={'formatted_date':'Date', 'open':'Open', 'high': 'High',
+                                              'low':'Low', 'close':'Close','volume':'Volume'}, inplace=True)
+    #convert date column to pandas dateime
+    earningsCandlestickDataDF.index = pd.DatetimeIndex(earningsCandlestickDataDF['Date'])
+    earningsCandlestickDataDF = earningsCandlestickDataDF[['Open', 'High','Low', 'Close','Volume']]
+    # sort on date index
+    earningsCandlestickDataDF = earningsCandlestickDataDF.sort_index()
+
+    return earningsCandlestickDataDF
 
