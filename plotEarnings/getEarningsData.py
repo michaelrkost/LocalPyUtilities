@@ -60,6 +60,7 @@ def getWeeklyExcelSummary(startday, theStock, mpl):
         return x
 
 def getWeeklyStockTabSummary(theFilePath, theSymbol):
+    #todo: why is this needed?
 
     # Get theSymbol excel TAB and put in DF
     excelEarningsDateDF = pd.read_excel(theFilePath, theSymbol)
@@ -378,28 +379,52 @@ def plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock, earningDay
 
     theTitle = aStock + '  -- Stock at Earnings @ Red dotted Line'
     bar_width = 0.4
-    theEDateDaysData = theCandleStickData[~theCandleStickData['Earnings_Date'].isna()]
+    theED_Data = theCandleStickData[~theCandleStickData['Earnings_Date'].isna()]
 
+    # After plotting the data find the maximum absolute value between the min and max axis values.
+    # Then set the min and max limits of the axis to the negative and positive (respectively)
+    # of that value.
+    # get the y data Max for ylimit
+    yabs_maxEPSPlt, yabs_maxEPSSupr, yabs_DayMoveClose = get_ED_ylim(theED_Data)
+    # ylim= where the value must be a len=2 tuple (min,max).
+    earningsEpsPltSet_ylim        = (-yabs_maxEPSPlt, yabs_maxEPSPlt)
+    earningsEpsSuprisePltSet_ylim = (-yabs_maxEPSSupr, yabs_maxEPSSupr)
+    earningsMovePltSet_ylim       = (-yabs_DayMoveClose, yabs_DayMoveClose)
+
+    # Add dotted line for $0 - Price move ----------------------
+    # ylim((bottom, top))  # set the ylim to bottom, top
+    # matplotlib/mplfinance ---workaround till
+    #     Feature Request: HLines on AddPlot #204
+    #     https://github.com/matplotlib/mplfinance/issues/204
+    # for now need a hline=0
+    theEPS0line = [0] * theCandleStickData.shape[0] # hline=0
+
+    # set styles
     styleMPF = mpf.make_mpf_style(base_mpf_style = 'charles', edgecolor='grey')
-    # setup the plot
+
     plotEPS = [ mpf.make_addplot(theCandleStickData[['EPS_Estimate']], ylabel='EPS_Estimate',
-                                 width=0.5, type='scatter', color='r', marker='<', panel=2, alpha=.2),
+                                 width=0.5, type='scatter', color='r', marker='<', panel=2, alpha=.2,
+                                 ylim=earningsEpsPltSet_ylim),
 
                 mpf.make_addplot(theCandleStickData[['Reported_EPS']], ylabel='Reported_EPS', y_on_right=False,
-                                 width=0.5,  type='scatter', color='g', marker='>', panel=2, alpha=.2),
+                                 width=0.5,  type='scatter', color='g', marker='>', panel=2, alpha=.2,
+                                 ylim=earningsEpsPltSet_ylim),
 
                 mpf.make_addplot(theCandleStickData[['Surprise(%)']], ylabel='Surprise(%)',
-                                 width=0.5,  type='scatter', color= 'b', marker='D', panel=2, alpha=.2),
+                                 width=0.5,  type='scatter', color= 'b', marker='D', panel=2, alpha=.2,
+                                 ylim=earningsEpsSuprisePltSet_ylim),
+
+                mpf.make_addplot(theEPS0line, linestyle='dotted', panel=2, width=1, color='orange'),
+                mpf.make_addplot(theEPS0line, linestyle='dotted', panel=3, width=1, color='orange'),
 
                 mpf.make_addplot(theCandleStickData['EDFwd1DayClosePercentDelta'], ylabel='1Day Fwd Close',
-                                 alpha=.5, panel=3, type='scatter',  marker='3', color='pink'),
+                                 alpha=.5, panel=3, type='scatter',  marker='3', color='pink',
+                                 ylim=earningsMovePltSet_ylim),
 
-                mpf.make_addplot(theCandleStickData['EDFwd4DayClosePercentDelta'], ylabel='1Day Fwd Close',
-                                 alpha=.5, panel=3, type='scatter',  marker='3',color='y')]
-        #,  mpf.make_addplot(earningDayList,type='scatter',markersize=200,marker='^')
+                mpf.make_addplot(theCandleStickData['EDFwd4DayClosePercentDelta'], ylabel='4Day Fwd Close',
+                                 alpha=.5, panel=3, type='scatter',  marker='4',color='y',
+                                 ylim=earningsMovePltSet_ylim)]
 
-    print("theEDaysData[['EPS_Estimate']]:  \n", type(theEDateDaysData[['EPS_Estimate']].values.tolist()))
-    #mpf.plot(theCandleStickData, alines=theEDateDaysData[['EPS_Estimate']], panel=2)
 
     mpf.plot(theCandleStickData, volume=True, type='candle', title=theTitle, style=styleMPF,
              figsize=(15, 6), addplot=plotEPS,
@@ -698,3 +723,35 @@ def XXXXplotEarnings_EPS_Move(earningsMdate_np, earnings1DayMove_np, earnings4Da
     plotThisPNG = theBaseCompaniesDirectory + companyEarningsWeek + theStock + '.png'
     plt.savefig(plotThisPNG)
     plt.close(fig)
+
+def get_ED_ylim(earningsDayEPS):
+    # =============================================================================================
+
+    # find plot high/low boundary limits to center the 0 yAxis in the figure
+    # for EPS Data
+    aDayMinREPS = np.round(np.nanmin(earningsDayEPS.Reported_EPS), 2)
+    aDayMaxREPS = np.round(np.nanmax(earningsDayEPS.Reported_EPS), 2)
+    aDayMinSup  = np.round(np.nanmin(earningsDayEPS['Surprise(%)']), 2)
+    aDayMaxESP  = np.round(np.nanmax(earningsDayEPS.EPS_Estimate), 2)
+    # for EPS Surprise
+    aDayMaxSup = np.round(np.nanmax(earningsDayEPS['Surprise(%)']), 2)
+    aDayMinESP = np.round(np.nanmin(earningsDayEPS.EPS_Estimate), 2)
+    #for days 1 & 4 Day Move data
+    a1DayMaxClose = np.round(np.nanmax(earningsDayEPS.EDFwd1DayClosePercentDelta), 2)
+    a1DayMinClose = np.round(np.nanmin(earningsDayEPS.EDFwd1DayClosePercentDelta), 2)
+    a4DayMaxClose = np.round(np.nanmax(earningsDayEPS.EDFwd4DayClosePercentDelta), 2)
+    a4DayMinClose = np.round(np.nanmin(earningsDayEPS.EDFwd4DayClosePercentDelta), 2)
+
+
+    #After plotting the data find the maximum absolute value between the min and max axis values.
+    # Plotting EPS ymin/ymax we need all the data from Rreported and Estimated
+    # Then set the min and max limits of the axis to the negative and positive (respectively) of that value.
+    yabs_maxEPSPlt    = max(abs(aDayMinESP),abs(aDayMaxESP),abs(aDayMaxREPS),abs(aDayMinREPS))
+    yabs_maxEPSSupr   = max(abs(aDayMinSup),abs(aDayMaxSup))
+    yabs_DayMoveClose = max(abs(a1DayMaxClose), abs(a1DayMinClose),
+                            abs(a4DayMaxClose), abs(a4DayMinClose))
+
+    # print('earningsDayEPS 1st and last:  \n\n', earningsDayEPS.iloc[0].Earnings_Date, '\n',
+    #       earningsDayEPS.iloc[-1].Earnings_Date, '\n\n' )
+
+    return yabs_maxEPSPlt, yabs_maxEPSSupr, yabs_DayMoveClose
