@@ -443,8 +443,8 @@ def plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock, earningDay
     # axlist[0].xaxis.set_major_formatter(formatter)
     mpf.show()
 
-def plotEarnings_EPS_Move(theCandleStickData, earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS,
-                          startday, theStock):
+def plotEarnings_EPS_Move(theCandleStickData, earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,
+                          earningsDayEPS, startday, theStock):
 
     # Set colors and labels - Earnings Move ----------------
     color1DayStockMove = 'navy'
@@ -461,10 +461,11 @@ def plotEarnings_EPS_Move(theCandleStickData, earningsMdate_np, earnings1DayMove
     zeroPointLabel = '@ $0.0 Move'
 
     # set title ----------------
-    theTitle = theStock + '  -- 1-Day VS 4-Days Past Earnings $ Delta'
+    theMoveTitle = theStock + '  -- 1-Day VS 4-Days Past Earnings $ Delta'
     theEPSTitle = theStock + '  -- EPS Estimate/Reported/Surprise'
 
-    # Set colors and labels - EPS Move ----------------
+    # Set colors and labels - EPS Move ------------
+    # ----
     colorReportedEPS = 'forestgreen'
     colorEstimatedEPS = 'dodgerblue'
     colorSupriseEPS = "crimson"
@@ -485,19 +486,7 @@ def plotEarnings_EPS_Move(theCandleStickData, earningsMdate_np, earnings1DayMove
     earningsEpsSuprisePlt = axEPS.twinx()
     # =========================================================================================
     # set the spacing between subplots
-    plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9,top=0.9,wspace=0.4,hspace=0.4)
-    # ========================================================================================
-
-    # Set date formatter
-    locator = mdates.AutoDateLocator()
-    formatter = mdates.ConciseDateFormatter(locator)
-    formatter.formats = ["%b-%d-%Y"]
-    # set xaxis format -------------------------------
-    axEPS.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
-    # axEPS.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
-    # axEPS.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
-    fig.autofmt_xdate()
-    plt.xticks(earningsMdate_np)
+    plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9,top=0.9,wspace=0.4,hspace=1)
 
     # =========================================================================================
 
@@ -513,7 +502,7 @@ def plotEarnings_EPS_Move(theCandleStickData, earningsMdate_np, earnings1DayMove
     earningsEpsSuprisePlt.tick_params(axis='y', labelcolor=colorSupriseEPS)
 
     # set axes[1] titles/labels/ticks - Earnings Move ----------------------
-    axMove.set_title(theTitle)
+    axMove.set_title(theMoveTitle)
     axMove.set_xlabel(xLabel, color=xLabelColor)
     axMove.set_ylabel(yLabelStockDeltaTitle, color=yLabelStockDeltaColor)
     axMove.tick_params(axis='y', labelcolor=yLabelStockDeltaColor)
@@ -563,20 +552,37 @@ def plotEarnings_EPS_Move(theCandleStickData, earningsMdate_np, earnings1DayMove
         axEPS.axvline(x=xc, color='orange',linestyle='--', lw=1)
     # ========================================================================================
     # Set date formatter
-    locator = mdates.AutoDateLocator()
-    formatter = mdates.ConciseDateFormatter(locator)
-    formatter.formats = ["%b-%d-%Y"]
-    plt.xticks(earningsMdate_np)
+    xtick_locator = mdates.AutoDateLocator()
+    xtick_formatter = mdates.ConciseDateFormatter(xtick_locator)
+    xtick_formatter.formats = ["%b-%d-%Y"]
+
     # set xaxis format -------------------------------
+    axCandleStick.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+
+    axVolume.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    axVolume.set_xticks(earningsMdate_np)
     axEPS.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
-    #axs[1].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
-    #fig.autofmt_xdate()
+    axEPS.set_xticks(earningsMdate_np)
+    axMove.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    axMove.set_xticks(earningsMdate_np)
+
+    # for i in range(4):
+    #     ax = plt.subplot(2, 2, i + 1)
+    #     ax.xaxis.set_major_locator(xtick_locator)
+    #     ax.xaxis.set_major_formatter(xtick_formatter)
+    #     ax.plot(earningsMdate_np, axEPS.)
+
+    # set xaxis format -------------------------------
+    # plt.xticks(earningsMdate_np)
+
     print('earningsMdate_np:  \n', earningsMdate_np)
     # ========================================================================================
 
     companyEarningsWeek = startday + '/rawData/'
     #mpf.plot(theCandleStickData, ax=axs[3], volume=axs[4])
     plotThisPNG = theBaseCompaniesDirectory + companyEarningsWeek + theStock + '.png'
+
+    mpf.plot(theCandleStickData,ax=axCandleStick,volume=axVolume,xrotation=10,type='candle')
     plt.savefig(plotThisPNG)
     plt.close(fig)
 
