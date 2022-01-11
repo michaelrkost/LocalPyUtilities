@@ -122,7 +122,9 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
     # Create Plot and save as png file
     # Setup plot Worksheet
     # ------------------------------------------------------------------
-    plotEarningPngFile_mpl(aStock, startday)
+    # working 1/10/22
+    #plotEarningPngFile_mpl(aStock, startday)
+    XXXXplotEarningPngFile_matplotlib(aStock, startday)
     # Get Plot file path
     aStockEarningsPlot_mpl = theBaseCompaniesDirectory + startday + '/rawData/' + aStock + '_mpl' + '.png'
     # create image worksheet then add image
@@ -252,7 +254,8 @@ def plotEarningsMove(aStock, startDay):
     earningsDayEPS = theEarningsDataList[4]
     # # Get historic stock price data around earnings date
     # # this will be used for plotting candlestick data
-    # theCandleStickData = getHistoricCandlestickData(aStock, theEarningsDataList[5], numDaysAroundED)
+    # theCandleStickData = getHistoricCandlestickData(aStock,
+    #  theEarningsDataList[5], numDaysAroundED)
 
     # Return data
     return [earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, earningsDayEPS, theEarningsDataList]
@@ -261,11 +264,21 @@ def plotEarningsMove(aStock, startDay):
 #    Original plot
 def XXXXplotEarningPngFile_matplotlib(aStock, startDay, numDaysAroundED=10):
     #This is the original plotting in matplotlib
-    # Get weekly earnings
-    theEarningsDataList = getEarningsData.getWeeklyExcelSummary(startDay, aStock, mpl=False)
-    # drop dups based on 'Earnings_Date'
-    #theEarningsDataList.drop_duplicates(subset=['Earnings_Date'], inplace=True)
 
+    theEarningsDataList = getEarningsData.getWeeklyExcelSummary(startDay, aStock, mpl=True)
+    # drop dups based on 'Earnings_Date'
+    theEarningsDataList.drop_duplicates(subset=['Earnings_Date'], inplace=True)
+
+    # Get historic stock price data around earnings date
+    # this will be used for plotting candlestick data
+    theCandleStickData = getHistoricCandlestickData(aStock, theEarningsDataList, numDaysAroundED)
+    # get rid of any Dups
+    theCandleStickData.drop_duplicates(inplace=True)
+
+
+    # Get weekly earnings
+    theEarningsDataList = getEarningsData.getWeeklyExcelSummary(startDay, aStock,
+                                                                mpl=False)
     # break down the excel into display units
     earnings1DayMove_np = theEarningsDataList[0]
     earnings4DayMove_np = theEarningsDataList[1]
@@ -275,10 +288,13 @@ def XXXXplotEarningPngFile_matplotlib(aStock, startDay, numDaysAroundED=10):
     # # this will be used for plotting candlestick data
     # theCandleStickData = getHistoricCandlestickData(aStock, theEarningsDataList[5], numDaysAroundED)
     # now plot all this stuff...
-    #getEarningsData.plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,earningsDayEPS, startDay, aStock)
-    getEarningsData.plotEarnings_EPS_Move(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,
+    # getEarningsData.plotEarnings(earningsMdate_np, earnings1DayMove_np,
+    #                              earnings4DayMove_np,earningsDayEPS, startDay, aStock)
+    getEarningsData.plotEarnings_EPS_Move(theCandleStickData, earningsMdate_np,
+                                          earnings1DayMove_np, earnings4DayMove_np,
                                           earningsDayEPS, startDay, aStock)
-
+    # getEarningsData.XXXXplotEarnings_EPS_Move(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,
+    #                           earningsDayEPS, startDay, aStock)
 
 #    Original plot
 #    getEarningsData.plotEarnings(theCandleStickData, earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,earningsDayEPS, startDay, aStock)
@@ -329,7 +345,8 @@ def getHistoricCandlestickData(aStock, theEarningsDataList, numDaysAroundED):
     # Get earnings dates for Candlesticks plots
     earningsCandlestickData = theEarningsDataList.Earnings_Date
     # define DataFrame and columns
-    earningsCandlestickDataDF = pd.DataFrame(columns=[ 'date', 'high', 'low', 'open', 'close', 'volume', 'adjclose', 'formatted_date' ])
+    earningsCandlestickDataDF = pd.DataFrame(columns=[ 'date', 'high', 'low', 'open', 'close', 'volume',
+                                                       'adjclose', 'formatted_date' ])
 
     # loop thru ED dates in earningsCandlestickData
     for earningDate in earningsCandlestickData:
