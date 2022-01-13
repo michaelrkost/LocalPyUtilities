@@ -17,13 +17,15 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Cursor
 import matplotlib.dates as mdates
 
+#https://github.com/highfestiva/finplot
+# todo: add import finplot as fplt - get interactive graphing
+
 # mplfinance -
 # matplotlib utilities for the visualization,
 # and visual analysis, of financial data
 # most common usage =======================
 #     mpf.plot(data)
 # where data is a Pandas DataFrame object
-#
 # containing Open, High, Low and Close data, with a Pandas DatetimeIndex.
 import mplfinance as mpf
 import mplcursors
@@ -443,8 +445,8 @@ def plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock, earningDay
     # axlist[0].xaxis.set_major_formatter(formatter)
     mpf.show()
 
-def plotEarnings_EPS_Move(theCandleStickData, earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,
-                          earningsDayEPS, startday, theStock):
+def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,
+                              earningsDayEPS, startday, theStock):
 
     # Set colors and labels - Earnings Move ----------------
     color1DayStockMove = 'navy'
@@ -477,29 +479,26 @@ def plotEarnings_EPS_Move(theCandleStickData, earningsMdate_np, earnings1DayMove
 
     # setup plotting ----------------------------
     # single Plot for Earnings price moves // Main Plot
-    fig = mpf.figure(style='yahoo', figsize=(15, 6))
+    fig = mpf.figure(theCandleStickData, volume=True, style='yahoo', figsize=(15, 10))
     axCandleStick = fig.add_subplot(4, 1, 1)
     axVolume      = fig.add_subplot(4, 1, 2)
     axEPS         = fig.add_subplot(4, 1, 3)
     axMove        = fig.add_subplot(4, 1, 4)
     # Setup Plot for a another y-axes that shares the same x-axis for earning surprise
-    earningsEpsSuprisePlt = axEPS.twinx()
+    earningsEpsSurprisePlt = axEPS.twinx()
     # =========================================================================================
     # set the spacing between subplots
-    plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9,top=0.9,wspace=0.4,hspace=1)
-
+    plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9,top=0.9,wspace=2,hspace=1)
     # =========================================================================================
-
     # set titles/labels/ticks - EPS --------------------------------------------
     axEPS.set_title(theEPSTitle)
     axEPS.set_xlabel(xLabel, color=xLabelColor)
     axEPS.set_ylabel('EPS', color=colorLabel)
     axEPS.tick_params(axis='y', labelcolor=colorLabel)
 
-
     #make_patch_spines_invisible(earningsEpsSuprisePlt)
-    earningsEpsSuprisePlt.set_ylabel('EPS Suprise %', color=colorSupriseEPS)
-    earningsEpsSuprisePlt.tick_params(axis='y', labelcolor=colorSupriseEPS)
+    earningsEpsSurprisePlt.set_ylabel('EPS Suprise %', color=colorSupriseEPS)
+    earningsEpsSurprisePlt.tick_params(axis='y', labelcolor=colorSupriseEPS)
 
     # set axes[1] titles/labels/ticks - Earnings Move ----------------------
     axMove.set_title(theMoveTitle)
@@ -523,7 +522,7 @@ def plotEarnings_EPS_Move(theCandleStickData, earningsMdate_np, earnings1DayMove
     # # After plotting the data find the maximum absolute value between the min and max axis values.
     # # Then set the min and max limits of the axis to the negative and positive (respectively) of that value.
     yabs_maxMoveSupr = max(abs(aDayMinSup), abs(aDayMaxSup))
-    earningsEpsSuprisePlt.set_ylim(ymin=-yabs_maxMoveSupr, ymax=yabs_maxMoveSupr)
+    earningsEpsSurprisePlt.set_ylim(ymin=-yabs_maxMoveSupr, ymax=yabs_maxMoveSupr)
 
     yabs_maxMoveEPS = max(abs(aDayMinRT), abs(aDayMaxRT), abs(aDayMinESP), abs(aDayMaxESP))
     axEPS.set_ylim(ymin=-yabs_maxMoveEPS, ymax=yabs_maxMoveEPS)
@@ -558,31 +557,28 @@ def plotEarnings_EPS_Move(theCandleStickData, earningsMdate_np, earnings1DayMove
 
     # set xaxis format -------------------------------
     axCandleStick.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
-
     axVolume.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
-    axVolume.set_xticks(earningsMdate_np)
+
+    # set xTicks to Earnings Day
     axEPS.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
     axEPS.set_xticks(earningsMdate_np)
     axMove.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
     axMove.set_xticks(earningsMdate_np)
 
-    # for i in range(4):
-    #     ax = plt.subplot(2, 2, i + 1)
-    #     ax.xaxis.set_major_locator(xtick_locator)
-    #     ax.xaxis.set_major_formatter(xtick_formatter)
-    #     ax.plot(earningsMdate_np, axEPS.)
-
-    # set xaxis format -------------------------------
-    # plt.xticks(earningsMdate_np)
+    # axCandleStick.vlines(earningsDayEPS["Earnings_Date"].tolist(), 0, 1, linestyles='dashed', colors='red')
 
     print('earningsMdate_np:  \n', earningsMdate_np)
+
+    #print('axCandleStick.axes.Axes.get_xticks():  ', axCandleStick.axes.Axes.get_xticks() )
     # ========================================================================================
 
     companyEarningsWeek = startday + '/rawData/'
     #mpf.plot(theCandleStickData, ax=axs[3], volume=axs[4])
     plotThisPNG = theBaseCompaniesDirectory + companyEarningsWeek + theStock + '.png'
+    aList=earningsDayEPS["Earnings_Date"].tolist()
+    mpf.plot(theCandleStickData,ax=axCandleStick,volume=axVolume,xrotation=10,type='candle',
+             vlines=dict(vlines=aList,linewidths=(1,2,3)))
 
-    mpf.plot(theCandleStickData,ax=axCandleStick,volume=axVolume,xrotation=10,type='candle')
     plt.savefig(plotThisPNG)
     plt.close(fig)
 

@@ -290,9 +290,9 @@ def XXXXplotEarningPngFile_matplotlib(aStock, startDay, numDaysAroundED=10):
     # now plot all this stuff...
     # getEarningsData.plotEarnings(earningsMdate_np, earnings1DayMove_np,
     #                              earnings4DayMove_np,earningsDayEPS, startDay, aStock)
-    getEarningsData.plotEarnings_EPS_Move(theCandleStickData, earningsMdate_np,
-                                          earnings1DayMove_np, earnings4DayMove_np,
-                                          earningsDayEPS, startDay, aStock)
+    getEarningsData.plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np,
+                                              earnings1DayMove_np, earnings4DayMove_np,
+                                              earningsDayEPS, startDay, aStock)
     # getEarningsData.XXXXplotEarnings_EPS_Move(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,
     #                           earningsDayEPS, startDay, aStock)
 
