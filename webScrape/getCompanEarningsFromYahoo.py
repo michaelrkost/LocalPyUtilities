@@ -93,10 +93,15 @@ def getPastEarnings(stock="AAPL"):
         print("in getPastEarnings -- earningsDataDF is empty" )
         return earningsDataDF
     else:
-        theNormalizedDates = earningsDataDF['Earnings_Date'].dt.normalize()
-        # if first 2 dates are the same remove and reindex
-        if theNormalizedDates.at[0] == theNormalizedDates.at[1]:
-            earningsDataDF = earningsDataDF.drop(0, axis=0)
-            earningsDataDF = earningsDataDF.reset_index(drop=True)
+        try:
+            theNormalizedDates = earningsDataDF['Earnings_Date'].dt.normalize()
+            # if first 2 dates are the same remove and reindex
+            if theNormalizedDates.at[0] == theNormalizedDates.at[1]:
+                earningsDataDF = earningsDataDF.drop(0, axis=0)
+                earningsDataDF = earningsDataDF.reset_index(drop=True)
+        except KeyError:
+            print('     Stock: ', stock)
+            print('         ', KeyError, )
+
 
     return earningsDataDF

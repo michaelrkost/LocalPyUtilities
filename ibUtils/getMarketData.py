@@ -26,7 +26,8 @@ from localUtilities.ibUtils.getClosest import Closest as close
 
 def addCurrentMarketData(earningsDF, anIndex, symbol):
     mktData = YahooFinancials(symbol)
-    aTicker = yf.Ticker(symbol)
+    # The Ticker module, which allows you to access yfinance ticker data in a more Pythonic way
+    ayfTicker = yf.Ticker(symbol)
 
 
     earningsDF.at[anIndex, 'High'] = mktData.get_daily_high()
@@ -38,20 +39,20 @@ def addCurrentMarketData(earningsDF, anIndex, symbol):
     currentPrice = mktData.get_current_price()
     earningsDF.at[anIndex, 'Last'] = currentPrice
 
-    allOptions, callOptions, putOptions = getOptionVolume(aTicker)
+    allOptions, callOptions, putOptions = getOptionVolume(ayfTicker)
     earningsDF.at[anIndex, 'Option_Volume'] = allOptions
     earningsDF.at[anIndex, 'CallOpenInterest'] = callOptions
     earningsDF.at[anIndex, 'PutOpenInterest'] = putOptions
 
     neededExpiry = dateUtils.getNeededExpiry(30)
 
-    if allOptions == 0: # no options cant calculate these
+    if allOptions == 0: # no options - cant calculate these
         earningsDF.at[anIndex, 'impliedVolatility'] = 0
         earningsDF.at[anIndex, 'Expected_Range'] = 0
         earningsDF.at[anIndex, 'histVolatility'] = getHistoricVol(symbol, neededExpiry)
     else:
         try:
-            iv, expectedRange = getIV_and_ExpectedRange(aTicker, currentPrice, neededExpiry)
+            iv, expectedRange = getIV_and_ExpectedRange(ayfTicker, currentPrice, neededExpiry)
             earningsDF.at[anIndex, 'impliedVolatility'] = iv
             earningsDF.at[anIndex, 'Expected_Range'] = expectedRange
             earningsDF.at[anIndex, 'histVolatility'] = getHistoricVol(symbol, neededExpiry)
@@ -68,14 +69,14 @@ def addCurrentMarketData(earningsDF, anIndex, symbol):
             earningsDF.at[anIndex, 'Expected_Range'] = 0
             earningsDF.at[anIndex, 'histVolatility'] = 0
 
-def getIV_and_ExpectedRange(aTicker, currentPrice, neededExpiry):
+def getIV_and_ExpectedRange(aYFTicker, currentPrice, neededExpiry):
 
-    optionExpiry = aTicker.option_chain(dateUtils.getDateStringDashSeprtors(dateUtils.getDate(neededExpiry)))
+    optionExpiry = aYFTicker.option_chain(dateUtils.getDateStringDashSeprtors(dateUtils.getDate(neededExpiry)))
     #print("next monthly pass 2 Weeks  // optionExpiry: ", optionExpiry)
 
     aCloseStrike = close.get_closestInDFCol(optionExpiry.calls, "strike", currentPrice)
 
-    aChain = aTicker.option_chain(dateUtils.getDateStringDashSeprtors(dateUtils.getDate(neededExpiry)))
+    aChain = aYFTicker.option_chain(dateUtils.getDateStringDashSeprtors(dateUtils.getDate(neededExpiry)))
     ivC = aChain.calls.at[aCloseStrike, "impliedVolatility"]
     strikeC = aChain.calls.at[aCloseStrike, "strike"]
     lastPriceC = aChain.calls.at[aCloseStrike, "lastPrice"]
@@ -127,8 +128,7 @@ def getHistoricVol(symbol, expiryDate):
     start = start_time.strftime('%Y-%m-%d')
 
     # get daily stock prices over date range
-    json_prices = YahooFinancials(symbol
-                                  ).get_historical_price_data(start, end, 'daily')
+    json_prices = YahooFinancials(symbol).get_historical_price_data(start, end, 'daily')
 
     # transform json file to dataframe
     prices = pd.DataFrame(json_prices[symbol]

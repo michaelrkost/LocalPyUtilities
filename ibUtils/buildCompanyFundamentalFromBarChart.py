@@ -8,10 +8,7 @@ from localUtilities.webScrape import getBarChartData as companyInfo
 from localUtilities.webScrape import getBarChartOptionsSelenium as companyOptions
 from localUtilities import dateUtils
 import pandas as pd
-import datetime
 from yahoofinancials import YahooFinancials as yf
-
-#plot imports
 from localUtilities.plotEarnings import getEarningsData
 
 theBaseCompaniesDirectory = '/home/michael/jupyter/earningDateData/Companies/'
@@ -20,7 +17,7 @@ excelSuffix = '.xlsx'
 
 def buildExcelFile(aStock, startday, theExpiryDateText):
 
-    # Get the company info from BarChart.com
+    # Get the company info from BarChart.com // getBarChartData as companyInfo
     stockInfo = companyInfo.getCompanyStockInfo(aStock)
     stockOverview = companyInfo.getCompanyOverview(aStock)
     stockFundamentals = companyInfo.getCompanyFundamentals(aStock)
@@ -264,7 +261,6 @@ def plotEarningsMove(aStock, startDay):
 #    Original plot
 def XXXXplotEarningPngFile_matplotlib(aStock, startDay, numDaysAroundED=10):
     #This is the original plotting in matplotlib
-
     theEarningsDataList = getEarningsData.getWeeklyExcelSummary(startDay, aStock, mpl=True)
     # drop dups based on 'Earnings_Date'
     theEarningsDataList.drop_duplicates(subset=['Earnings_Date'], inplace=True)
@@ -351,12 +347,14 @@ def getHistoricCandlestickData(aStock, theEarningsDataList, numDaysAroundED):
     # loop thru ED dates in earningsCandlestickData
     for earningDate in earningsCandlestickData:
         # Earnings Data / startAtED
-        # get start / end - dates out 5 days
-        # todo: make 5+/- dates a variable
+        # get start / end - dates out numDaysAroundED days
+        # todo: make numDaysAroundED consistant around methods
         startAtED= dateUtils.getDateFromISO8601(earningDate)
         # get start/end dates to pull historic stock info from yf
-        earnDateStart = dateUtils.getDateStringDashSeprtors(startAtED + datetime.timedelta(days=-numDaysAroundED))
-        earnDateEnd = dateUtils.getDateStringDashSeprtors(startAtED + datetime.timedelta(days=+numDaysAroundED))
+        earnDateEnd = dateUtils.getDateStringDashSeprtors(dateUtils.goOutXWeekdays(startAtED,
+                                                                                   numDaysAroundED))
+        earnDateStart = dateUtils.getDateStringDashSeprtors(dateUtils.goOutXWeekdays(startAtED,
+                                                                                     -numDaysAroundED))
         # get yf historic stock data from start/end dates
         historicStockDataAroundED =  yf(aStock).get_historical_price_data(earnDateStart, earnDateEnd, 'daily')
         # Get the Stock Name

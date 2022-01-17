@@ -33,7 +33,6 @@ def addMarketData(earningsDF):
     Parameters
     ----------
     earningsDF: DF of 'Symbol', 'Earnings_Date', 'Company', 'Earnings Call Time'
-    startDay: the starting date
 
     Returns
     -------
@@ -76,10 +75,9 @@ def addMarketData(earningsDF):
     return earningsDFOptionVolGood.reset_index(drop=True), earningsDF
 
 
-def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10, maxQtrs = 6):
+def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings, maxQtrs):
     """
     Add Market Data to companies in  stocksPastEarningsDF
-    #todo remove daysAroundEarnings = 10 // should be 5??
     Parameters
     ----------
     stocksPastEarningsDF: DF of 'Symbol', 'Earnings_Date', 'Company', 'Earnings Call Time'
@@ -151,13 +149,6 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10, maxQtrs = 6
         else:
             lenDF = lenDF - 1
 
-        # set start and end Date
-        # set to format 2018-09-29 // String Dash Separator
-        endDateTime = dateUtils.getDateStringDashSeprtors(earnDateRow.Earnings_Date
-                                                          +datetime.timedelta(days=daysAroundEarnings))
-        startDateTime = dateUtils.getDateStringDashSeprtors(earnDateRow.Earnings_Date
-                                                            -datetime.timedelta(days=daysAroundEarnings))
-
         # Drop future earnings dates
         if earnDateRow.Earnings_Date + datetime.timedelta(days=daysAroundEarnings) > datetime.datetime.today():
             # todo can append the dictionary to the DF as well.
@@ -168,6 +159,17 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10, maxQtrs = 6
             stocksPastEarningsDF.at[earnDateRow.Index, 'Close']  = np.nan
             # stocksPastEarningsDF.at[earnDateRow.Index, 'Last']   = np.nan
             continue
+
+
+        endDateTime = dateUtils.getDateStringDashSeprtors(dateUtils.goOutXWeekdays(earnDateRow.Earnings_Date,
+                                                                                   daysAroundEarnings))
+
+
+        startDateTime = dateUtils.getDateStringDashSeprtors(dateUtils.goOutXWeekdays(earnDateRow.Earnings_Date,
+                                                                                     -daysAroundEarnings))
+
+        # print('startDateTime / endDateTime', startDateTime, ' / ',  earnDateRow.Earnings_Date, ' / ', endDateTime)
+
 
         # Get historic stock prices from yahoofinancials within daysAroundEarnings timeframe
         historical_stock_prices = yahoo_financials.get_historical_price_data(startDateTime, endDateTime, 'daily')
@@ -213,6 +215,15 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings = 10, maxQtrs = 6
     stocksPastEarningsDF = formatForCSVFile(stocksPastEarningsDF, pruneDF)
 
     return stocksPastEarningsDF.head(maxQtrs)
+def calcTotalMarketOpenDays(startDate, EndDate, daysAroundEarnings = 10):
+    """
+    Calculate the Market Open Dates - drop Weekends, Holidays
+    :return: startDate1, EndDate1
+    :rtype: Date
+    """
+
+
+
 
 def calcPriceDeltas(stocksPastEarningsDF):
     """

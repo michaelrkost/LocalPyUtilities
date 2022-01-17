@@ -6,17 +6,11 @@ sys.path.append('/home/michael/jupyter/local-packages')
 
 import numpy as np
 import pandas as pd
-
-import matplotlib
-# Matplotlib renderers (there is an eponymous backend for each;
-# these are non-interactive backends, capable of writing to a file):
-# https://matplotlib.org/stable/users/explain/backends.html
-# use Cario or AGG for png files
-#
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Cursor
 import matplotlib.dates as mdates
-
+import matplotlib.gridspec as gridspec
+from localUtilities import dateUtils
 #https://github.com/highfestiva/finplot
 # todo: add import finplot as fplt - get interactive graphing
 
@@ -288,92 +282,6 @@ def getWeeklyStockTabSummary_mpl(theFilePath, theSymbol):
     return earningsDay
 
 
-def XXXXplotEarnings_mpl(theCandleStickData, pngPlotFileLocation, theStock,
-                     startDay, earningDayList, outDays):
-    #https://github.com/matplotlib/mplfinance/blob/master/examples/panels.ipynb
-
-    #=================================================================================
-    # Set colors and labels - Earnings Move ----------------
-    color1DayStockMove = 'navy'
-    color4DayStockMove = 'maroon'
-    xLabel = 'Earnings Dates'
-    xLabelColor = 'slategray'
-    yLabelColor = 'indigo'
-    yLabelStockDeltaColor = color1DayStockMove
-    yLabel1DayStockMove = 'Stock % Delta @ 1 Day Close Price'
-    yLabel4DayStockMove = 'Stock % Delta @ 4 Day Close Price'
-    yLabelStockDeltaTitle = 'Stock % Delta'
-    ax1LegendLabel1Day = "1-Day % Move"
-    ax1LegendLabel4Day = "4-Day % Move"
-    zeroPointLabel = '@ $0.0 Move'
-
-    # set title ----------------
-    theMplTitle = theStock + '  -- Stock at Earnings @ the Red dotted Line'
-    theMoveTitle = theStock + '  -- 1-Day VS 4-Days Past Earnings $ Delta'
-    theEPSTitle = theStock + '  -- EPS Estimate/Reported/Surprise'
-
-    # Set colors and labels - EPS Move ----------------
-    colorReportedEPS = 'forestgreen'
-    colorEstimatedEPS = 'dodgerblue'
-    colorSupriseEPS = "crimson"
-    colorLabel = 'green'
-    # 'EPS_Estimate','Reported_EPS','Surprise(%) ----------------
-    ax2LegendReportedEPS = "Reported EPS"
-    ax2LegendEstimatedEPS = "Estimated EPS"
-    ax2LegendSupriseEPS = "Surprise(%)"
-
-    #=================================================================================
-    #setup chart stuff
-    bar_width = 0.4
-    theEDaysData = theCandleStickData[~theCandleStickData['Earnings_Date'].isna()]
-    # =================================================================================
-    # setup plotting ----------------------------
-    # fig = mpf.plot(theCandleStickData, volume=True, type='candle', style='charles', title=theMplTitle,
-    #                figsize=(15, 6), returnfig=True,  # addplot=plotEPS,
-    #                vlines=dict(vlines=earningDayList, linestyle='dotted', colors='red', linewidths=.8),
-    #                savefig=pngPlotFileLocation)
-
-    # single Plot for Earnings price moves // Main Plot
-    fig = mpf.figure( figsize=(7, 8))
-    candleStickAx = fig.add_subplot(4,1,1)
-    volumeAx      = fig.add_subplot(4,1,2)
-    earningsAx    = fig.add_subplot(4,1,3)
-    # =========================================================================================
-    # set axes[1] titles/labels/ticks - Earnings Move ----------------------
-    earningsAx.set_title(theMoveTitle)
-    earningsAx.set_xlabel(xLabel, color=xLabelColor)
-    earningsAx.set_ylabel(yLabelStockDeltaTitle, color=yLabelStockDeltaColor)
-    earningsAx.tick_params(axis='y', labelcolor=yLabelStockDeltaColor)
-    earningsAx.tick_params(axis='x', labelcolor=xLabelColor)
-
-    # plot 1Day and 4Day move
-    earningMovesDataList = plotEarningsMove(theStock, startDay)
-    earningsMdate_np    = earningMovesDataList[0]
-    earnings1DayMove_np = earningMovesDataList[1]
-    earnings4DayMove_np = earningMovesDataList[2]
-    earningsDayEPS      = earningMovesDataList[3]
-    theEarningsDatalist = earningMovesDataList[4]
-
-    # plotEarnings = [mpf.make_addplot(theCandleStickData[['EPS_Estimate']], ax=earningsAx, panel=3,
-    #                 width=0.5,  type='bar', color= 'r', alpha=.5)]
-    # earningsAx.plot(theEarningsDatalist, color=color4DayStockMove,
-    #                label=ax1LegendLabel4Day, linestyle='-', marker='o', zorder=1)
-
-    # mpf.plot(theCandleStickData, returnfig=True, #addplot= plotEarnings,
-    #          ax=candleStickAx, volume=volumeAx, savefig=pngPlotFileLocation,
-    #          vlines=dict(vlines=earningDayList, linestyle='dotted', colors='red', linewidths=.8),
-    #          type='candle', style='charles')
-
-    plotEarnings = [mpf.make_addplot(theCandleStickData, ax=candleStickAx,ylabel='OHLC Price'),
-                    mpf.make_addplot(theCandleStickData,ax=volumeAx) ]
-
-    mpf.plot(theCandleStickData, ax=candleStickAx, volume=volumeAx, returnfig=True, savefig=pngPlotFileLocation,
-             vlines=dict(vlines=earningDayList, linestyle='dotted', colors='red', linewidths=.8),
-             title=theMplTitle, figsize=(15, 6), type='candle', style='charles')
-
-    # =========================================================================================
-    mpf.show()
-
 
 def plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock, earningDayList, outDays):
 #   ********************************************************
@@ -446,7 +354,8 @@ def plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock, earningDay
     mpf.show()
 
 def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,
-                              earningsDayEPS, startday, theStock):
+                              earningsDayEPS, startday, theStock, numDaysAroundED=10):
+    #todo: get the numDaysAroundED parameter set properly around the different methods
 
     # Set colors and labels - Earnings Move ----------------
     color1DayStockMove = 'navy'
@@ -478,17 +387,29 @@ def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1Day
     ax2LegendSupriseEPS = "Surprise(%)"
 
     # setup plotting ----------------------------
-    # single Plot for Earnings price moves // Main Plot
-    fig = mpf.figure(theCandleStickData, volume=True, style='yahoo', figsize=(15, 10))
-    axCandleStick = fig.add_subplot(4, 1, 1)
-    axVolume      = fig.add_subplot(4, 1, 2)
-    axEPS         = fig.add_subplot(4, 1, 3)
-    axMove        = fig.add_subplot(4, 1, 4)
+    fig = mpf.figure(style='charles', constrained_layout=False, figsize=(20, 20),facecolor='0.9')
+
+    gsSpecCandle = gridspec.GridSpec(nrows=20, ncols=20, figure=fig,
+                                     hspace=.05, wspace=0.05)
+
+    axCandleStick = fig.add_subplot(gsSpecCandle[0:10,0:20])
+    axVolume      = fig.add_subplot(gsSpecCandle[10:12,0:20], sharex=axCandleStick)
+
+    axMove        = fig.add_subplot(gsSpecCandle[13:15,1:19])
+    axEPS         = fig.add_subplot(gsSpecCandle[16:18,1:19], sharex=axMove)
+
+    axEPS.text(0.1, 0.5, "left", fontsize=18,
+                     ha='center')
+
+    axCandleStick.set_xticklabels([])
+    axCandleStick.set_xticks([])
+    # axVolume.set_xticklabels([])
+    # axVolume.set_xticks([])
     # Setup Plot for a another y-axes that shares the same x-axis for earning surprise
     earningsEpsSurprisePlt = axEPS.twinx()
     # =========================================================================================
     # set the spacing between subplots
-    plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9,top=0.9,wspace=2,hspace=1)
+    #plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9,top=0.9,wspace=2,hspace=1)
     # =========================================================================================
     # set titles/labels/ticks - EPS --------------------------------------------
     axEPS.set_title(theEPSTitle)
@@ -533,11 +454,11 @@ def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1Day
     axMove.axhline(y=0, color='pink', linestyle=':', label=zeroPointLabel, zorder=1)
     axEPS.axhline(y=0, color='pink', linestyle=':', label=zeroPointLabel, zorder=1)
 
-    axEPS.bar(earningsMdate_np + 6, earningsDayEPS.Reported_EPS, width=4,
+    axEPS.bar(earningsMdate_np + 4, earningsDayEPS.Reported_EPS, width=4,
                label=ax2LegendReportedEPS, color=colorReportedEPS, alpha=0.5)
     axEPS.bar(earningsMdate_np - 1, earningsDayEPS['EPS_Estimate'], width=4,
                label=ax2LegendEstimatedEPS, color=colorEstimatedEPS, alpha=0.5)
-    axEPS.bar(earningsMdate_np + 12, earningsDayEPS['Surprise(%)'], 4,
+    axEPS.bar(earningsMdate_np + 8, earningsDayEPS['Surprise(%)'], 4,
                                            label=ax2LegendSupriseEPS, color=colorSupriseEPS, alpha=0.5)
 
     # ========================================================================================
@@ -549,14 +470,22 @@ def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1Day
     for xc in zip(earningsMdate_np):
         axMove.axvline(x=xc, color='orange',linestyle='--', lw=1)
         axEPS.axvline(x=xc, color='orange',linestyle='--', lw=1)
+        #dosent work
+        # axVolume.axvline(x=xc, color='orange',linestyle='--', lw=1)
+        # axCandleStick.axvline(x=xc, color='orange',linestyle='--', lw=1)
     # ========================================================================================
+    #The default formatter will use an offset to reduce the length of the ticklabels.
+    # To turn this feature off on a per-axis basis:    #
+    # ax.get_xaxis().get_major_formatter().set_useOffset(False)
+    # set rcParams["axes.formatter.useoffset"] (default: True), or use a different formatter. See ticker for details.
+    #axCandleStick.get_xaxis().get_major_formatter().set_useOffset(False)
     # Set date formatter
     xtick_locator = mdates.AutoDateLocator()
     xtick_formatter = mdates.ConciseDateFormatter(xtick_locator)
     xtick_formatter.formats = ["%b-%d-%Y"]
 
     # set xaxis format -------------------------------
-    axCandleStick.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    #axCandleStick.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
     axVolume.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
 
     # set xTicks to Earnings Day
@@ -565,23 +494,51 @@ def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1Day
     axMove.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
     axMove.set_xticks(earningsMdate_np)
 
-    # axCandleStick.vlines(earningsDayEPS["Earnings_Date"].tolist(), 0, 1, linestyles='dashed', colors='red')
-
-    print('earningsMdate_np:  \n', earningsMdate_np)
-
-    #print('axCandleStick.axes.Axes.get_xticks():  ', axCandleStick.axes.Axes.get_xticks() )
     # ========================================================================================
-
+    # get file location
     companyEarningsWeek = startday + '/rawData/'
-    #mpf.plot(theCandleStickData, ax=axs[3], volume=axs[4])
     plotThisPNG = theBaseCompaniesDirectory + companyEarningsWeek + theStock + '.png'
-    aList=earningsDayEPS["Earnings_Date"].tolist()
-    mpf.plot(theCandleStickData,ax=axCandleStick,volume=axVolume,xrotation=10,type='candle',
-             vlines=dict(vlines=aList,linewidths=(1,2,3)))
+    # get list of string dates for vlines plot
+    aList=getMdatesListForPlotEPS_Move(earningsDayEPS, numDaysAroundED)
+
+    mpf.plot(theCandleStickData,ax=axCandleStick, volume=axVolume, xrotation=10,type='candle',
+             vlines=dict(vlines=aList,linewidths=(.5,1,.5), colors=('lightblue', 'orange', 'lightblue'),
+                         linestyle=('dashed', 'dotted', 'dashed')),
+             scale_width_adjustment = dict(volume=0.6,candle=1.35))
 
     plt.savefig(plotThisPNG)
     plt.close(fig)
 
+def getMdatesListForPlotEPS_Move(earningsDayEPS, numDaysAroundED):
+    # Get datetime representation of ED for use in plotting vlines
+
+    # create an Empty DataFrame object
+    earningsDividerSectionsList = pd.DataFrame(earningsDayEPS["Earnings_Date"], columns=['Earnings_Date'])
+
+    # First get the Datetime representation
+    earningsDividerSectionsList['ED_datetime'] = \
+        earningsDividerSectionsList['Earnings_Date'].map(lambda aEDate: dateUtils.getDateFromISO8601(aEDate))
+    # Plus X Days out
+    earningsDividerSectionsList['ED_PlusDays'] = \
+        earningsDividerSectionsList['ED_datetime'].map(
+            lambda aEDate: dateUtils.goOutXWeekdays(aEDate, numDaysAroundED))
+    # Minus X Days out
+    earningsDividerSectionsList['ED_MinusDays'] = \
+        earningsDividerSectionsList['ED_datetime'].map(
+            lambda aEDate: dateUtils.goOutXWeekdays(aEDate, -numDaysAroundED))
+    # make list to return
+    list_Ed      = earningsDividerSectionsList['ED_datetime'].tolist()
+    list_EdPlus  = earningsDividerSectionsList['ED_MinusDays'].tolist()
+    list_EdMinus = earningsDividerSectionsList['ED_PlusDays'].tolist()
+    # combine and sort lists
+    list_final = list_Ed+list_EdMinus+list_EdPlus
+    list_final.sort()
+    #seems the last item cannot be plotted - remove
+    list_final.pop()
+    # change list from Date format to string format '2018-07-18'
+    list_final = list(map(dateUtils.getDateStringDashSeprtors, list_final))
+
+    return list_final
 
 
 def get_ED_ylim(earningsDayEPS):
