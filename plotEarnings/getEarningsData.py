@@ -11,21 +11,10 @@ from matplotlib.widgets import Cursor
 import matplotlib.dates as mdates
 import matplotlib.gridspec as gridspec
 from localUtilities import dateUtils
-#https://github.com/highfestiva/finplot
-# todo: add import finplot as fplt - get interactive graphing
-
-# mplfinance -
-# matplotlib utilities for the visualization,
-# and visual analysis, of financial data
-# most common usage =======================
-#     mpf.plot(data)
-# where data is a Pandas DataFrame object
-# containing Open, High, Low and Close data, with a Pandas DatetimeIndex.
 import mplfinance as mpf
-import mplcursors
 
-# Save the data
-from pathlib import Path
+# https://github.com/highfestiva/finplot
+# todo: add import finplot as fplt - get interactive graphing
 
 theBaseCompaniesDirectory = '/home/michael/jupyter/earningDateData/Companies/'
 csvSuffix = '.csv'
@@ -78,7 +67,7 @@ def getWeeklyStockTabSummary(theFilePath, theSymbol):
                                                         'Surprise(%)','EDFwd1DayClosePercentDelta',
                                                          'EDFwd4DayClosePercentDelta']]
 
-    # create to np array to display in matplotlib!!!!
+    # create to np array to display in matplotlib
     # Past earnings
     earningsMdate_np = excelPastEarningsDateDF.Earnings_Date.values
     earnings1DayMove_np = excelPastEarningsDateDF.EDFwd1DayClosePercentDelta.values*100
@@ -142,10 +131,8 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     earningsEpsPlt = earningsMovePlt.twinx()
     # Setup Plot for a third axes that shares the same x-axis for earning surprise
     earningsEpsSuprisePlt = earningsMovePlt.twinx()
-
 #=========================================================================================
-
-    # Offset the right spine of Suprise ---------------------------
+    # Offset the right spine of Surprise ---------------------------
     # The ticks and label have already been
     # placed on the right by twinx above.
     # needs double parens to work -> (("axes", 1.06))
@@ -178,8 +165,6 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     earningsMovePlt.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
     fig.autofmt_xdate()
 
-    #plt.grid(color=colorSupriseEPS) # grid not needed at this point
-
     # plot 1Day and 4Day move
     label1Day = earningsMovePlt.plot(earningsMdate_np, earnings1DayMove_np, color=color1DayStockMove,
              label=ax1LegendLabel1Day, linestyle='--', marker='o', zorder=1)
@@ -195,11 +180,6 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     aDayMinESP = np.round(np.nanmin(earningsDayEPS.EPS_Estimate), 2)
     aDayMaxESP = np.round(np.nanmax(earningsDayEPS.EPS_Estimate), 2)
 
-    # print("aDayMinRT: ", aDayMinRT, 'aDayMaxRT: ', aDayMaxRT)
-    # print("aDayMinESP: ", aDayMinESP, "aDayMaxESP: ", aDayMaxESP)
-    # print("aDayMinSup: ", aDayMinSup, 'aDayMaxSup: ', aDayMaxSup)
-    #earningsMovePlt.set_ylim(bottom=ylimBottom, top=ylimTop, auto=True)
-
     #After plotting the data find the maximum absolute value between the min and max axis values.
     # Then set the min and max limits of the axis to the negative and positive (respectively) of that value.
     yabs_maxEPSPlt = max(abs(aDayMinESP),abs(aDayMaxESP),abs(aDayMinRT),abs(aDayMaxRT))
@@ -210,7 +190,6 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
 
     yabs_maxMovePlt = abs(max(earningsMovePlt.get_ylim(), key=abs))
     earningsMovePlt.set_ylim(ymin=-yabs_maxMovePlt, ymax=yabs_maxMovePlt)
-    # print("yabs_maxMoveSupr:  ", earningsEpsSuprisePlt.get_ylim(),'   ', yabs_maxMoveSupr)
 
     # Add dotted line for $0 - Price move ----------------------
     horzLine = earningsMovePlt.axhline(y=0, color='navy', linestyle=':', label=zeroPointLabel, zorder=1)
@@ -227,8 +206,6 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     # set legend placement - lower left - mrk 12/21/21
     earningsMovePlt.legend(lines, lineLabel,bbox_to_anchor=(0.02, 0.04))
 
-    #cursor = Cursor(earningsMovePlt, useblit=True, color='red', linewidth=2) #, horizOn=True, vertOn=True, color='green')
-
     companyEarningsWeek =  startday  + '/rawData/'
 
     plotThisPNG = theBaseCompaniesDirectory +  companyEarningsWeek + theStock + '.png'
@@ -242,46 +219,25 @@ def getWeeklyStockTabSummary_mpl(theFilePath, theSymbol):
 
     # From theSymbol excel TAB separate out the current earnings line
     # from the past earning lines from Excel
-    excelCurrentEarningsDateDF = excelEarningsDateDF.iloc[0:1, ]
     excelPastEarningsDateDF = excelEarningsDateDF.iloc[2:, ]
 
     # pull out the headers then save the remaining Past Earnings DF
     headers = excelPastEarningsDateDF.iloc[0]
     # add the headers to DF
     excelPastEarningsDateDF = pd.DataFrame(excelPastEarningsDateDF.values[1:], columns=headers)
-
     # reindex new DF
     excelPastEarningsDateDF.reindex
 
-    # create to np array to display in mpl!!!!
-    # Past earnings
-    # earningsMdate_np = excelPastEarningsDateDF.Earnings_Date.values
-    # earnings1DayMove_np = excelPastEarningsDateDF.EDFwd1DayClosePercentDelta.values*100
-    # earnings4DayMove_np = excelPastEarningsDateDF.EDFwd4DayClosePercentDelta.values*100
-
     #need to set up index with Datetime
-    earningsDay =  excelPastEarningsDateDF[['Earnings_Date','Open','High','Low', 'Close',
-                                                        'Volume','EPS_Estimate','Reported_EPS',
-                                                        'Surprise(%)','EDFwd1DayClosePercentDelta',
-                                                         'EDFwd4DayClosePercentDelta']]
+    earningsDay =  excelPastEarningsDateDF[['Earnings_Date','Open','High','Low', 'Close','Volume',
+                                            'EPS_Estimate','Reported_EPS','Surprise(%)','EDFwd1DayClosePercentDelta',
+                                             'EDFwd4DayClosePercentDelta']]
     earningsDay['EDFwd1DayClosePercentDelta'] \
         = earningsDay['EDFwd1DayClosePercentDelta'].map(lambda a: round((a*100),2))
     earningsDay['EDFwd4DayClosePercentDelta'] \
         = earningsDay['EDFwd4DayClosePercentDelta'].map(lambda a: round((a*100),2))
-    # Get EPS data
-    # earningsDayEPS =  excelPastEarningsDateDF[['Earnings_Date','EPS_Estimate','Reported_EPS','Surprise(%)']]
-    #
-    # earnings1DayCandlestick.set_index(pd.DatetimeIndex(earnings1DayCandlestick['Earnings_Date']))
-    # earningsDayEPS.set_index(pd.DatetimeIndex(earningsDayEPS['Earnings_Date']))
-    #
-    # # Convert date string to a datenum using dateutil.parser.parse().
-    # earningsMdate_np = mdates.datestr2num(earningsMdate_np)  # np.core.defchararray.rstrip(earningsDate_np, 10))
-    #
-    # returnList = [earnings1DayMove_np, earnings4DayMove_np, earningsMdate_np, earnings1DayCandlestick, earningsDayEPS]
 
     return earningsDay
-
-
 
 def plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock, earningDayList, outDays):
 #   ********************************************************
@@ -302,19 +258,8 @@ def plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock, earningDay
     earningsEpsSuprisePltSet_ylim = (-yabs_maxEPSSupr, yabs_maxEPSSupr)
     earningsMovePltSet_ylim       = (-yabs_DayMoveClose, yabs_DayMoveClose)
 
-    # Add dotted line for $0 - Price move ----------------------
-    # ylim((bottom, top))  # set the ylim to bottom, top
-    # matplotlib/mplfinance ---workaround till
-    #     Feature Request: HLines on AddPlot #204
-    #     https://github.com/matplotlib/mplfinance/issues/204
-    # for now need a hline=0
+     # for now need a hline=0
     theEPS0line = [0] * theCandleStickData.shape[0] # hline=0
-
-    # # Configure the axes
-    # ax1 = fig.add_subplot(4, 1, (1, 2))
-    # ax2 = fig.add_subplot(4, 1, 3, sharex=ax1)
-    # ax3 = fig.add_subplot(4, 1, 4, sharex=ax1)
-
 
     # set styles
     styleMPF = mpf.make_mpf_style(base_mpf_style = 'charles', edgecolor='grey')
@@ -350,7 +295,6 @@ def plotEarnings_mpl(theCandleStickData, pngPlotFileLocation, aStock, earningDay
                            vlines=dict(vlines=earningDayList,linestyle='dotted', colors='red', linewidths=.8),
                            savefig=pngPlotFileLocation)
 
-    # axlist[0].xaxis.set_major_formatter(formatter)
     mpf.show()
 
 def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np,
@@ -502,8 +446,8 @@ def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1Day
     aList=getMdatesListForPlotEPS_Move(earningsDayEPS, numDaysAroundED)
 
     mpf.plot(theCandleStickData,ax=axCandleStick, volume=axVolume, xrotation=10,type='candle',
-             vlines=dict(vlines=aList,linewidths=(.5,1,.5), colors=('lightblue', 'orange', 'lightblue'),
-                         linestyle=('dashed', 'dotted', 'dashed')),
+             vlines=dict(vlines=aList,linewidths=(.25,1,.25), colors=('lightblue', 'orange', 'lightblue'),
+                         linestyle=('dotted', 'dotted', 'dotted')),
              scale_width_adjustment = dict(volume=0.6,candle=1.35))
 
     plt.savefig(plotThisPNG)
