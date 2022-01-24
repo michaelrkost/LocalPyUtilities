@@ -321,7 +321,7 @@ def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1Day
     colorEarnDayHorzLine = 'orange'
 
     # set title ----------------
-    theCandleStickTitle = theStock + ' -- Candlestick and Volume'
+    theCandleStickTitle = theStock + ' -- Candlestick Chart and Volume'
     theMoveTitle = theStock + '  -- 1-Day vs 4-Days After Earnings - $ Delta'
     theEPSTitle = theStock + '  -- EPS Estimate/Reported/Surprise'
 
@@ -369,6 +369,7 @@ def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1Day
     axEPS.set_xlabel(xLabel, color=xLabelColor)
     axEPS.set_ylabel('EPS', color=colorLabel)
     axEPS.tick_params(axis='y', labelcolor=colorLabel)
+    axEPS.set_xticklabels(axEPS.get_xticks(), rotation=45)
 
     #make_patch_spines_invisible(earningsEpsSuprisePlt)
     earningsEpsSurprisePlt.set_ylabel('EPS Suprise %', color=colorSupriseEPS)
@@ -439,8 +440,8 @@ def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1Day
     axEPS.set_xticks(earningsMdate_np)
     axMove.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
     axMove.set_xticks(earningsMdate_np)
-    axVolume.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
-    axVolume.set_xticks(earningsMdate_np)
+    axCandleStick.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    axCandleStick.set_xticks(earningsMdate_np)
     # ========================================================================================
     # Build EPS Legend
     axEPSLines = [xBarEstEPS[0], xBarRepEPS[0], xBarSupEPS[0] ]
@@ -461,31 +462,31 @@ def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1Day
 
     axMove.annotate(
         # Label and coordinate
-        "Earning's Day", xy=(earningsMdate_np[firstLineOnLeft], yabs_maxMoveEPS/2),
+        "Earning's Day", xy=(earningsMdate_np[firstLineOnLeft], yabs_maxMoveEPS-2),
                             xytext=(x2,y2), textcoords='offset points',
                             # Custom arrow
                             arrowprops=dict(arrowstyle="->",
                                             connectionstyle="arc3"),
-                            ha='left', va='center')
+                            ha='left', va='center', alpha=.5)
 
     axEPS.annotate(
         # Label and coordinate
-        "Earning's Day", xy=(earningsMdate_np[firstLineOnLeft], yabs_maxMoveEPS/2),
+        "Earning's Day", xy=(earningsMdate_np[firstLineOnLeft], yabs_maxMoveEPS-1),
                             xytext=(x2,y2), textcoords='offset points',
                             # Custom arrow
                             arrowprops=dict(arrowstyle="->",
                                             connectionstyle="arc3"),
-                            ha='left', va='center')
+                            ha='left', va='center', zorder=5, alpha=.5)
 
-    print('earningsDayEPS.iloc[0,0]:  ', earningsDayEPS.iloc[0,0])
-    axCandleStick.annotate(
-        # Label and coordinate
-        "Earning's Day", xy=(earningsMdate_np[firstLineOnLeft], 40),
-                            xytext=(x2,y2), textcoords='offset points',
-                            # Custom arrow
-                            arrowprops=dict(arrowstyle="->",
-                                            connectionstyle="arc3"),
-                            ha='left', va='center')
+    # print('earningsDayEPS.iloc[0,0]:  ', earningsDayEPS.iloc[0,0])
+    # axCandleStick.annotate(
+    #     # Label and coordinate
+    #     "Earning's Day", xy=(earningsMdate_np[firstLineOnLeft], 40),
+    #                         xytext=(x2,y2), textcoords='offset points',
+    #                         # Custom arrow
+    #                         arrowprops=dict(arrowstyle="->",
+    #                                         connectionstyle="arc3"),
+    #                         ha='left', va='center')
 
 
     # ========================================================================================
