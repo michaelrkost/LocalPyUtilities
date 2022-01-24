@@ -121,12 +121,12 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
     # ------------------------------------------------------------------
     # working 1/10/22
     #plotEarningPngFile_mpl(aStock, startday)
-    XXXXplotEarningPngFile_matplotlib(aStock, startday)
+    plotEarningPngFile_matplotlib(aStock, startday)
     # Get Plot file path
-    aStockEarningsPlot_mpl = theBaseCompaniesDirectory + startday + '/rawData/' + aStock + '_mpl' + '.png'
+    aStockEarningsPlot = theBaseCompaniesDirectory + startday + '/rawData/' + aStock + '.png'
     # create image worksheet then add image
-    imageWorksheet = fundamentalsWorkbook.add_worksheet(aStock + '-Earnings History Plot mpl')
-    imageWorksheet.insert_image('B3',aStockEarningsPlot_mpl)
+    imageWorksheet = fundamentalsWorkbook.add_worksheet(aStock + '-Earnings History Plot')
+    imageWorksheet.insert_image('B3',aStockEarningsPlot)
 
     #plotEarningPngFile_matplotlib(aStock, startday)
     # # # Get Plot file path
@@ -259,7 +259,7 @@ def plotEarningsMove(aStock, startDay):
 
 
 #    Original plot
-def XXXXplotEarningPngFile_matplotlib(aStock, startDay, numDaysAroundED=10):
+def plotEarningPngFile_matplotlib(aStock, startDay, numDaysAroundED=10):
     #This is the original plotting in matplotlib
     theEarningsDataList = getEarningsData.getWeeklyExcelSummary(startDay, aStock, mpl=True)
     # drop dups based on 'Earnings_Date'

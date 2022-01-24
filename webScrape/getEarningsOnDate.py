@@ -93,12 +93,15 @@ def getEarningsOnDate(aDay):
 
     # get earnings per page
     if numPages is None:
+        print('getEarningsOnDate: numPages=0 earningCount/100 : ')
         return oneEarningDateDF, earningCount
     # one page
     elif numPages < 1:
+        print('getEarningsOnDate: numPages < 1 : earningCount/100 : ')
         oneEarningDateDF = getEarningPage(aURL, earningsDataDF, aDay)
     # more than one page
     else:
+        print('getEarningsOnDate: numPages > 1 : earningCount/100 : ')
         for i in range(numPages):
             aNewURL = aURL + "&offset=" + str(i*100) + '&size=100'
             oneEarningDateDF = oneEarningDateDF.append(getEarningPage(aNewURL, earningsDataDF, aDay))

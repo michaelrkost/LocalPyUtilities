@@ -118,6 +118,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     colorEstimatedEPS = 'dodgerblue'
     colorSupriseEPS = "crimson"
     colorLabel = 'green'
+    colorHorzLine = 'indigo'
     #'EPS_Estimate','Reported_EPS','Surprise(%) ----------------
     ax2LegendReportedEPS  = "Reported EPS"
     ax2LegendEstimatedEPS = "Estimated EPS"
@@ -192,7 +193,7 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     earningsMovePlt.set_ylim(ymin=-yabs_maxMovePlt, ymax=yabs_maxMovePlt)
 
     # Add dotted line for $0 - Price move ----------------------
-    horzLine = earningsMovePlt.axhline(y=0, color='navy', linestyle=':', label=zeroPointLabel, zorder=1)
+    horzLine = earningsMovePlt.axhline(y=0, color=colorHorzLine, linestyle=':', label=zeroPointLabel, zorder=1)
 
     xBarRepEPS = earningsEpsPlt.bar(earningsMdate_np+6, earningsDayEPS.Reported_EPS, width=4,
                                     label=ax2LegendReportedEPS, color=colorReportedEPS) #, alpha=0.5)
@@ -201,8 +202,10 @@ def plotEarnings(earningsMdate_np, earnings1DayMove_np, earnings4DayMove_np, ear
     xBarSupEPS = earningsEpsSuprisePlt.bar(earningsMdate_np+12, earningsDayEPS['Surprise(%)'], width=4,
                                            label=ax2LegendSupriseEPS, color=colorSupriseEPS) #, alpha=0.5)
 
-    lines = [label1Day[0],label4Day[0], horzLine, xBarEstEPS[0], xBarRepEPS[0], xBarSupEPS[0] ]
-    lineLabel = [label1Day[0]._label, label4Day[0]._label,horzLine._label,  xBarEstEPS._label, xBarRepEPS._label, xBarSupEPS._label]
+    # lines = [label1Day[0],label4Day[0], horzLine, xBarEstEPS[0], xBarRepEPS[0], xBarSupEPS[0] ]
+    # lineLabel = [label1Day[0]._label, label4Day[0]._label,horzLine._label,  xBarEstEPS._label, xBarRepEPS._label, xBarSupEPS._label]
+    lines = [horzLine, xBarEstEPS[0], xBarRepEPS[0], xBarSupEPS[0] ]
+    lineLabel = [horzLine._label,  xBarEstEPS._label, xBarRepEPS._label, xBarSupEPS._label]
     # set legend placement - lower left - mrk 12/21/21
     earningsMovePlt.legend(lines, lineLabel,bbox_to_anchor=(0.02, 0.04))
 
@@ -314,9 +317,12 @@ def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1Day
     ax1LegendLabel1Day = "1-Day % Move"
     ax1LegendLabel4Day = "4-Day % Move"
     zeroPointLabel = '@ $0.0 Move'
+    colorZeroHorzLine = 'indigo'
+    colorEarnDayHorzLine = 'orange'
 
     # set title ----------------
-    theMoveTitle = theStock + '  -- 1-Day VS 4-Days Past Earnings $ Delta'
+    theCandleStickTitle = theStock + ' -- Candlestick and Volume'
+    theMoveTitle = theStock + '  -- 1-Day vs 4-Days After Earnings - $ Delta'
     theEPSTitle = theStock + '  -- EPS Estimate/Reported/Surprise'
 
     # Set colors and labels - EPS Move ------------
@@ -329,7 +335,7 @@ def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1Day
     ax2LegendReportedEPS = "Reported EPS"
     ax2LegendEstimatedEPS = "Estimated EPS"
     ax2LegendSupriseEPS = "Surprise(%)"
-
+    # =========================================================================================
     # setup plotting ----------------------------
     fig = mpf.figure(style='charles', constrained_layout=False, figsize=(20, 20),facecolor='0.9')
 
@@ -342,19 +348,22 @@ def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1Day
     axMove        = fig.add_subplot(gsSpecCandle[13:15,1:19])
     axEPS         = fig.add_subplot(gsSpecCandle[16:18,1:19], sharex=axMove)
 
-    axEPS.text(0.1, 0.5, "left", fontsize=18,
-                     ha='center')
-
-    axCandleStick.set_xticklabels([])
-    axCandleStick.set_xticks([])
+    # =========================================================================================
+    axEPS.text(0.1, 0.5, "left", fontsize=18, ha='center')
+    # axCandleStick.set_xticklabels([])
+    # axCandleStick.set_xticklabels([])
+    # axCandleStick.set_xticks([])
     # axVolume.set_xticklabels([])
     # axVolume.set_xticks([])
     # Setup Plot for a another y-axes that shares the same x-axis for earning surprise
     earningsEpsSurprisePlt = axEPS.twinx()
     # =========================================================================================
-    # set the spacing between subplots
-    #plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9,top=0.9,wspace=2,hspace=1)
-    # =========================================================================================
+    # set titles/labels/ticks - Candlestick --------------------------------------------
+    axCandleStick.set_title(theCandleStickTitle)
+    axCandleStick.set_xlabel(xLabel, color=xLabelColor)
+    axCandleStick.set_ylabel('Stock Price', color=colorLabel)
+    axCandleStick.tick_params(axis='y', labelcolor=colorLabel)
+
     # set titles/labels/ticks - EPS --------------------------------------------
     axEPS.set_title(theEPSTitle)
     axEPS.set_xlabel(xLabel, color=xLabelColor)
@@ -393,30 +402,26 @@ def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1Day
     axEPS.set_ylim(ymin=-yabs_maxMoveEPS, ymax=yabs_maxMoveEPS)
 
     # ========================================================================================
-
     # # Add dotted line for $0 - Price move ----------------------
-    axMove.axhline(y=0, color='pink', linestyle=':', label=zeroPointLabel, zorder=1)
-    axEPS.axhline(y=0, color='pink', linestyle=':', label=zeroPointLabel, zorder=1)
+    axMove.axhline(y=0, color=colorZeroHorzLine, linestyle='-', label=zeroPointLabel, lw=.5, zorder=1)
+    axEPS.axhline( y=0, color=colorZeroHorzLine, linestyle='-', label=zeroPointLabel, lw=.5, zorder=1)
+    # Make a bar plot
+    xBarRepEPS = axEPS.bar(earningsMdate_np + 4, earningsDayEPS.Reported_EPS, width=4,
+                            label=ax2LegendReportedEPS, color=colorReportedEPS, alpha=0.5)
+    xBarEstEPS = axEPS.bar(earningsMdate_np - 1, earningsDayEPS['EPS_Estimate'], width=4,
+                            label=ax2LegendEstimatedEPS, color=colorEstimatedEPS, alpha=0.5)
+    xBarSupEPS = axEPS.bar(earningsMdate_np + 8, earningsDayEPS['Surprise(%)'], 4,
+                            label=ax2LegendSupriseEPS, color=colorSupriseEPS, alpha=0.5)
 
-    axEPS.bar(earningsMdate_np + 4, earningsDayEPS.Reported_EPS, width=4,
-               label=ax2LegendReportedEPS, color=colorReportedEPS, alpha=0.5)
-    axEPS.bar(earningsMdate_np - 1, earningsDayEPS['EPS_Estimate'], width=4,
-               label=ax2LegendEstimatedEPS, color=colorEstimatedEPS, alpha=0.5)
-    axEPS.bar(earningsMdate_np + 8, earningsDayEPS['Surprise(%)'], 4,
-                                           label=ax2LegendSupriseEPS, color=colorSupriseEPS, alpha=0.5)
-
-    # ========================================================================================
     # plot 1Day and 4Day move
-    axMove.plot(earningsMdate_np, earnings1DayMove_np, color=color1DayStockMove,
-                            label=ax1LegendLabel1Day, linestyle='--', marker='o', zorder=1)
-    axMove.plot(earningsMdate_np, earnings4DayMove_np, color=color4DayStockMove,
+    x1DayMove = axMove.plot(earningsMdate_np, earnings1DayMove_np, color=color1DayStockMove,
+                            label=ax1LegendLabel1Day, linestyle='-', marker='o', zorder=1)
+    x4DayMove = axMove.plot(earningsMdate_np, earnings4DayMove_np, color=color4DayStockMove,
                             label=ax1LegendLabel4Day, linestyle='-', marker='o', zorder=1)
+    # Mark Earnings Day
     for xc in zip(earningsMdate_np):
-        axMove.axvline(x=xc, color='orange',linestyle='--', lw=1)
-        axEPS.axvline(x=xc, color='orange',linestyle='--', lw=1)
-        #dosent work
-        # axVolume.axvline(x=xc, color='orange',linestyle='--', lw=1)
-        # axCandleStick.axvline(x=xc, color='orange',linestyle='--', lw=1)
+        axMove.axvline(x=xc, color=colorEarnDayHorzLine,linestyle='--', lw=1)
+        axEPS.axvline(x=xc, color=colorEarnDayHorzLine,linestyle='--', lw=1)
     # ========================================================================================
     #The default formatter will use an offset to reduce the length of the ticklabels.
     # To turn this feature off on a per-axis basis:    #
@@ -429,14 +434,59 @@ def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1Day
     xtick_formatter.formats = ["%b-%d-%Y"]
 
     # set xaxis format -------------------------------
-    #axCandleStick.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
-    axVolume.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
-
     # set xTicks to Earnings Day
     axEPS.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
     axEPS.set_xticks(earningsMdate_np)
     axMove.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
     axMove.set_xticks(earningsMdate_np)
+    axVolume.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d-%Y"))
+    axVolume.set_xticks(earningsMdate_np)
+    # ========================================================================================
+    # Build EPS Legend
+    axEPSLines = [xBarEstEPS[0], xBarRepEPS[0], xBarSupEPS[0] ]
+    axEPSlineLabel = [xBarEstEPS._label, xBarRepEPS._label, xBarSupEPS._label]
+    # set legend placement - lower left - mrk 12/21/21
+    axEPS.legend(axEPSLines, axEPSlineLabel,bbox_to_anchor=(0.02, 0.04))
+    # Build Move Legend
+    axMoveLines = [x1DayMove[0], x4DayMove[0]]
+    axMovelineLabel = [ax1LegendLabel1Day, ax1LegendLabel4Day]
+    # set legend placement - lower left - mrk 12/21/21
+    # axMove.legend(axEPSLines, axEPSlineLabel,bbox_to_anchor=(0.02, 0.04))
+    axMove.legend(axMoveLines, axMovelineLabel, bbox_to_anchor=(0.02, 0.04))
+    # ========================================================================================
+    # annotate a line
+    firstLineOnLeft = len(earningsMdate_np)-1
+    #text offset in points
+    x2, y2 = -150, 0
+
+    axMove.annotate(
+        # Label and coordinate
+        "Earning's Day", xy=(earningsMdate_np[firstLineOnLeft], yabs_maxMoveEPS/2),
+                            xytext=(x2,y2), textcoords='offset points',
+                            # Custom arrow
+                            arrowprops=dict(arrowstyle="->",
+                                            connectionstyle="arc3"),
+                            ha='left', va='center')
+
+    axEPS.annotate(
+        # Label and coordinate
+        "Earning's Day", xy=(earningsMdate_np[firstLineOnLeft], yabs_maxMoveEPS/2),
+                            xytext=(x2,y2), textcoords='offset points',
+                            # Custom arrow
+                            arrowprops=dict(arrowstyle="->",
+                                            connectionstyle="arc3"),
+                            ha='left', va='center')
+
+    print('earningsDayEPS.iloc[0,0]:  ', earningsDayEPS.iloc[0,0])
+    axCandleStick.annotate(
+        # Label and coordinate
+        "Earning's Day", xy=(earningsMdate_np[firstLineOnLeft], 40),
+                            xytext=(x2,y2), textcoords='offset points',
+                            # Custom arrow
+                            arrowprops=dict(arrowstyle="->",
+                                            connectionstyle="arc3"),
+                            ha='left', va='center')
+
 
     # ========================================================================================
     # get file location
@@ -446,7 +496,7 @@ def plot_Earnings_EPS_DayMove(theCandleStickData, earningsMdate_np, earnings1Day
     aList=getMdatesListForPlotEPS_Move(earningsDayEPS, numDaysAroundED)
 
     mpf.plot(theCandleStickData,ax=axCandleStick, volume=axVolume, xrotation=10,type='candle',
-             vlines=dict(vlines=aList,linewidths=(.25,1,.25), colors=('lightblue', 'orange', 'lightblue'),
+             vlines=dict(vlines=aList,linewidths=(.25,1,.25), colors=('lightblue', colorEarnDayHorzLine, 'lightblue'),
                          linestyle=('dotted', 'dotted', 'dotted')),
              scale_width_adjustment = dict(volume=0.6,candle=1.35))
 
