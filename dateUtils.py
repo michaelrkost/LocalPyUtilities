@@ -1,6 +1,8 @@
 """
 module: dateUtils
 
+Python strftime cheatsheet  --   @ https://strftime.org/
+
 This file is intended to be imported as a module and contains the following
 functions:
 

@@ -5,15 +5,16 @@ import pandas as pd
 #get pandas HTML table support
 from pandas.io.html import read_html
 
-
-driver = webdriver.Chrome(executable_path="/usr/bin/chromedriver")
+# this makes the "driver" global and will initiate at startup...
+# move to jupyter and pass driver between methods if needed.
+#driver = webdriver.Chrome(executable_path="/usr/bin/chromedriver")
 
 #select for filling in forms
 from selenium.webdriver.support.ui import Select
 
 
-def downloadCompanyOptions(aStock="AAPL"):
-
+def downloadCompanyOptions(driver, aStock="AAPL"):
+# added driver to parameters to accomadate moving out of global variable
     # include stock in URL
     aURL = "http://www.barchart.com/stocks/quotes/" + aStock + "/options"
 
@@ -54,7 +55,7 @@ def downloadCompanyOptions(aStock="AAPL"):
 
     return driver
 
-def scrapeCompanyOptionData(aStock, theExpiryDateText ):
+def scrapeCompanyOptionData(driver, aStock, theExpiryDateText ):
 
     # include stock in URL
     aURL = "http://www.barchart.com/stocks/quotes/" + aStock + "/options"
@@ -109,7 +110,7 @@ def scrapeCompanyOptionData(aStock, theExpiryDateText ):
     return theCalls, thePuts, expiryText, driver
 
 
-def XXXXscrapeCompanyOptionData(aStock, theExpiryDateText ):
+def XXXXscrapeCompanyOptionData(driver, aStock, theExpiryDateText ):
 
     # include stock in URL
     aURL = "http://www.barchart.com/stocks/quotes/" + aStock + "/options"
