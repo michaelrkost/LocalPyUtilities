@@ -19,11 +19,47 @@ from localUtilities import dateUtils
 # TODO: Determine if yahoofinancials is adequate or if we should create a Database with this info.
 # ToDo: review investpy as an alternative to yahoofinancials // https://investpy.readthedocs.io
 from yahoofinancials import YahooFinancials
+import yahoo_fin.stock_info as si
+
 from localUtilities.ibUtils import getMarketData
 
 import numpy as np
 import pandas as pd
 # ================================================================
+
+def getEarningsForWeek(startday):
+
+    startday = '2022-02-14'
+    print("start Day: ", startday)
+
+    aStartDay = dateUtils.getDateFromISO8601(startday)
+
+    # total up the number of companies with earnings
+    totalEarnings = 0
+    theWeekDF = pd.DataFrame()
+    # output = output.append(dictionary, ignore_index=True)
+    # Start Monday go to Friday
+    for x in range(5):
+        aDay = aStartDay + datetime.timedelta(days=x)
+        anEarningDayDict = si.get_earnings_for_date(dateUtils.getDateStringDashSeprtors(aDay))
+        theLen = len(anEarningDayDict)
+        totalEarnings = totalEarnings + theLen
+        print('aDay:  ', aDay, ' Count: ', theLen)
+        theWeekDF = theWeekDF.append(anEarningDayDict, ignore_index=True)
+    print('totalEarnings: ', totalEarnings)
+
+
+    theWeekDF.drop(labels=['epsactual', 'epssurprisepct', 'timeZoneShortName', 'gmtOffsetMilliSeconds', 'quoteType'],
+                   axis=1, inplace=True)
+
+    theWeekDF.rename(columns={"ticker": "Symbol", "companyshortname": "Company", "startdatetime": 'Earnings_Date',
+                              "startdatetimetype": "Earnings Call Time", "epsestimate": 'EPS Estimate'}, inplace=True)
+
+    # clean up the date from: 2022-02-14T21:00:00.000Z to: 2022-02-14
+    theWeekDF['Earnings_Date'] = theWeekDF['Earnings_Date'].map(lambda a: a.split("T", 1)[0])
+
+    return theWeekDF
+
 
 def addMarketData(earningsDF):
     """

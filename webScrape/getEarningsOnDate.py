@@ -8,11 +8,51 @@ from localUtilities import dateUtils
 import pandas as pd
 import datetime
 
+import yahoo_fin.stock_info as si
+
+
 # Chrome linux User Agent - needed to not get blocked as a bot
 headers = {'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
 
 
+
+
 def getEarningsForWeek(startday):
+
+    startday = '2022-02-14'
+    print("start Day: ", startday)
+
+    aStartDay = dateUtils.getDateFromISO8601(startday)
+
+    # total up the number of companies with earnings
+    totalEarnings = 0
+    theWeekDF = pd.DataFrame()
+    # output = output.append(dictionary, ignore_index=True)
+    # Start Monday go to Friday
+    for x in range(5):
+        aDay = aStartDay + datetime.timedelta(days=x)
+        anEarningDayDict = si.get_earnings_for_date(dateUtils.getDateStringDashSeprtors(aDay))
+        theLen = len(anEarningDayDict)
+        totalEarnings = totalEarnings + theLen
+        print('aDay:  ', aDay, ' Count: ', theLen)
+        theWeekDF = theWeekDF.append(anEarningDayDict, ignore_index=True)
+    print('totalEarnings: ', totalEarnings)
+
+
+    theWeekDF.drop(labels=['epsactual', 'epssurprisepct', 'timeZoneShortName', 'gmtOffsetMilliSeconds', 'quoteType'],
+                   axis=1, inplace=True)
+
+    theWeekDF.rename(columns={"ticker": "Symbol", "companyshortname": "Company", "startdatetime": 'Earnings_Date',
+                              "startdatetimetype": "Earnings Call Time", "epsestimate": 'EPS Estimate'}, inplace=True)
+
+    return theWeekDF
+
+    # %%
+
+    theWeekDF['Earnings_Date'] = theWeekDF['Earnings_Date'].map(lambda a: a.split("T", 1)[0])
+
+
+def XXXXgetEarningsForWeek(startday):
     """
     This is the function that is called to start the Yahoo page scraping.
 
@@ -38,6 +78,7 @@ def getEarningsForWeek(startday):
         aNewEarningsDF, earningsCount = getEarningsOnDate(dateUtils.getDateStringDashSeprtors(aDay))
         try:
             anEarningsDF = anEarningsDF.append(aNewEarningsDF)
+            print('earningsCount: ', earningsCount)
         except TypeError:
             print("No Earnings on: ", aDay)
             continue
@@ -79,12 +120,13 @@ def getEarningsOnDate(aDay):
     try:
         for div_tag in soup.find_all('div', {'id': 'fin-cal-table'}):
             for aspan in div_tag.find('h3'):
+                print("\naspan = ", aspan)
                 for anotherSPan in aspan.find_all('span', {'data-reactid': '8'}):
-                    earningCount = int(aspan.text[aspan.text.find(front) + 2: aspan.text.find(back)])
+                    earningCount = int(anotherSPan.text[aspan.text.find(front) + 2: anotherSPan.text.find(back)])
                     numPages = math.ceil(earningCount/100)
                     print(aspan.text, "\nearningCount = ", earningCount)
     except TypeError:
-        print('No earnings found.')    # todo  - move this first aDay out of this loop
+        print('No earnings found.  TypeError: ', TypeError)    # todo  - move this first aDay out of this loop
         return 0, 0
 
     # Creating an empty Dataframe with column names only
@@ -93,15 +135,15 @@ def getEarningsOnDate(aDay):
 
     # get earnings per page
     if numPages is None:
-        print('getEarningsOnDate: numPages=0 earningCount/100 : ')
+        print('getEarningsOnDate: numPages=0 earningCount/100')
         return oneEarningDateDF, earningCount
     # one page
     elif numPages < 1:
-        print('getEarningsOnDate: numPages < 1 : earningCount/100 : ')
+        print('getEarningsOnDate: numPages < 1 : earningCount/100')
         oneEarningDateDF = getEarningPage(aURL, earningsDataDF, aDay)
     # more than one page
     else:
-        print('getEarningsOnDate: numPages > 1 : earningCount/100 : ')
+        print('getEarningsOnDate: numPages > 1 : earningCount/100')
         for i in range(numPages):
             aNewURL = aURL + "&offset=" + str(i*100) + '&size=100'
             oneEarningDateDF = oneEarningDateDF.append(getEarningPage(aNewURL, earningsDataDF, aDay))

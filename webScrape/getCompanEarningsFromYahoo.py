@@ -23,7 +23,7 @@ def getPastEarnings(stock="AAPL"):
     result = requests.get(aURL, headers = headers)
     result.close()
 
-    # print(result.status_code)
+    # print("getPastEarnings // Yahoo Status Code: ", result.status_code)
     # Todo capture 400 error and such
 
     src = result.content
@@ -66,8 +66,8 @@ def getPastEarnings(stock="AAPL"):
                     'EPS_Estimate': [epsE],
                     'Reported_EPS': [epsR],
                     'Surprise(%)': [susp]}
-                # except UnboundLocalError:
-                #     print('     ', UnboundLocalError, '       In getPastEarnings for: ', sym)
+
+                print('     ', UnboundLocalError, '       In getPastEarnings for: ', sym)
                 #     break
                 # create DF from one <td> scrape data
                 oneEarningDateDF = earningsDataDF.from_dict(aRow)

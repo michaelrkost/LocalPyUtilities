@@ -29,81 +29,75 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
     # Setup Fundamentals worksheet name
     sheetIsFundamentals = aStock + '-Fundamentals'
     #===========================================================================================
-    # Starting Excel row/col for displayed data
-    # start 4 down from top and at Col=0
-    dateHeaderRowMerge = 'A1:F1'
 
-    sheetHeaderRowStart = 4
-    sheetColumn0Start = 0
+
+    endOfTradeData = 14
+    stockHeaderRowMerge = 'B3:E3'
+
     # Options Expires
-    sheetOptionsRowStart = sheetHeaderRowStart+9
-    sheetOptionsRowHeader = 'A' + str(sheetOptionsRowStart) + ':F' + str(sheetOptionsRowStart)
-    # Ratings
-    sheetRatingsRowStart = sheetOptionsRowStart+4
-    sheetRatingsRowHeader = 'A' + str(sheetOptionsRowStart+4) + ':F' + str(sheetOptionsRowStart+4)
-    # fundamentals
-    sheetFundamentalsRowStart = sheetOptionsRowStart+9
-    sheetFundamentalsRowHeader = 'A' + str(sheetFundamentalsRowStart+1) + ':F' + str(sheetFundamentalsRowStart+1)
+    sheetOptionsRowStart = endOfTradeData
+
+
 
     #===========================================================================================
     # create writer and workbook
     # https://xlsxwriter.readthedocs.io/working_with_pandas.html
     writer = pd.ExcelWriter(outExcelFile, engine='xlsxwriter')
     fundamentalsWorkbook = writer.book
+    fundamentalsWorkbookSheet = fundamentalsWorkbook.add_worksheet(sheetIsFundamentals)
+    # hide excel background grid
+    fundamentalsWorkbookSheet.hide_gridlines(2)
     #===========================================================================================
-    # Set up Excel Formats
+    # Now set up Excel Formats ---------------------------
+    # Company Header and Name Formats
+    companyName_header_format = fundamentalsWorkbook.add_format({'font_color': 'red', 'bold': True,'bottom': 1,
+                                                                'valign': 'vcenter', 'align': 'left'})
+    tradeStock_name_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': '#BA131A','bottom': 1,
+                                                              'valign': 'vcenter', 'align': 'left'})
+    # set up Data Header and Data formats
+    tradeStock_DataHeader_format = fundamentalsWorkbook.add_format({'bottom': 1, 'right': 1,'valign': 'vcenter',
+                                                                    'font_color': 'navy', 'align': 'center'})
+    trade_text_format = fundamentalsWorkbook.add_format({'bottom': 1, 'valign': 'vcenter', 'align': 'center'})
+    # Expiry Header
+    # Option Header Format -
+    expiry_headerMerge_formatOptions = fundamentalsWorkbook.add_format({'bold': True, 'align': 'left','font_color': 'navy',
+                                                                 'bottom': 1,'valign': 'vcenter'})
     # format line like: 21 Days to expiration on 2020-07-17 -- Implied Volatility: 68.32%
-    header_text_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy'})
-    expiry_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'border': 2,
-                                                     'valign': 'vcenter', 'align': 'center', 'fg_color': '#FAF1D3', })
-    today_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': '#C00000', 'border': 2,
-                                                    'valign': 'vcenter', 'align': 'center', 'fg_color': '#FAF1D3', })
-    call_label_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#D7E4BC',
-                                                         'border': 2, 'valign': 'vcenter', 'align': 'center'})
-    put_label_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#f9cfb5',
-                                                        'border': 2, 'valign': 'vcenter', 'align': 'center'})
-    open_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#93D07B',
-                                                   'border': 2, 'valign': 'vcenter', 'align': 'center'})
-    close_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#eb813d',
-                                                    'border': 2, 'valign': 'vcenter', 'align': 'center'})
-    trade_header_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'fg_color': '#D7E4BC',
-                                                           'border': 2, 'valign': 'vcenter', 'align': 'center'})
-    trade_text_format = fundamentalsWorkbook.add_format({'border': 1, 'valign': 'vcenter', 'align': 'center'})
-    tradeStock_text_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': '#BA131A', 'border': 1,
-                                                              'valign': 'vcenter', 'align': 'center'})
-    empty_expiryW_format = fundamentalsWorkbook.add_format({'bold': True, 'font_color': 'navy', 'border': 2,
-                                                            'valign': 'vcenter', 'align': 'center',
-                                                            'fg_color': '#F2E1A9'})  # f2e1a9
-    empty_expiryM_format = fundamentalsWorkbook.add_format({'border': 2, 'fg_color': '#FAF1D3'})
-    empty_cell_format = fundamentalsWorkbook.add_format({'border': 2, 'valign': 'center'})
-    merge_formatOptions = fundamentalsWorkbook.add_format({'bold': 1, 'border': 1,'align': 'left','font_color': 'navy',
-                                        'valign': 'vcenter','fg_color': '#fcd3c1'})
-    merge_formatRating = fundamentalsWorkbook.add_format({'bold': 1, 'border': 1,'align': 'left','font_color': 'navy',
-                                        'valign': 'vcenter','fg_color': '#D7E4BC'})
-    merge_formatDate = fundamentalsWorkbook.add_format({'bold': 1, 'border': 1,'align': 'left','font_color': 'navy',
-                                        'valign': 'vcenter','fg_color': '#fcd3c1'})
-
-    # ========================================================================================
-    # set up fundamentals Worksheet
-    # Transpose
-    stockFundamentalsTranposed = stockFundamentals.T
-
-    # Add the fundamentals
-    stockInfo.to_excel(writer, sheet_name= sheetIsFundamentals,  startrow=sheetFundamentalsRowStart,
-                       startcol=sheetColumn0Start+1, header=False)
-    stockFundamentalsTranposed.to_excel(writer, sheet_name= sheetIsFundamentals, startrow=sheetFundamentalsRowStart,
-                                        startcol= sheetColumn0Start+3, header=False)
-    # stockOverview.to_excel(writer, sheet_name= sheetIsFundamentals,
-    #                        startrow=sheetFundamentalsRowStart+7, startcol= sheetColumn0Start+4, header=False)
-    #
-    fundamentalsWorkbookSheet = writer.sheets[sheetIsFundamentals]
+    expiry_RowHeader_format = fundamentalsWorkbook.add_format({'font_color': 'navy', 'bottom': 1,
+                                                     'valign': 'vcenter', 'align': 'center'})
+    # Expiry Text
+    expiry_Data_format = fundamentalsWorkbook.add_format({ 'bottom': 1,'valign': 'vcenter', 'align': 'center'})
+    # Rating Header and Grid Text
+    rating_Header_format = fundamentalsWorkbook.add_format({ 'bottom': 1,'right': 1, 'font_color': 'navy',
+                                                            'valign': 'vcenter', 'align': 'center'})
+    rating_Data_format = fundamentalsWorkbook.add_format({'bottom': 1,'right': 1,
+                                                            'valign': 'vcenter', 'align': 'center'})
+    # Today's Date Format
+    merge_formatDate = fundamentalsWorkbook.add_format({'align': 'left','font_color': 'navy',
+                                                        'valign': 'vcenter'})
+    empty_expiryW_format = fundamentalsWorkbook.add_format({'font_color': 'navy', 'bottom': 1,'right': 1,
+                                                            'valign': 'vcenter', 'align': 'center'})
+    # Fundamentals
+    fundamentals_headerMerge_formatOptions = fundamentalsWorkbook.add_format({'bold': True, 'align': 'left',
+                                                                              'font_color': 'navy', 'bottom': 1,
+                                                                              'valign': 'vcenter'})
+    fundamentals_headertText_format = fundamentalsWorkbook.add_format({'bottom': 1, 'valign': 'vcenter','font_color': 'navy',
+                                                                       'right': 1, 'align': 'center'})
+    fundamentals_text_format = fundamentalsWorkbook.add_format({'bottom': 1,  'valign': 'vcenter', 'align': 'center'})
     # =========================================================================================================
     # Add today's date as Header
-    todaysDateStr = '  ' + datetime.datetime.today().strftime('%B %-d, %A @ %-I:%-M %p') + ' / ET'
-    fundamentalsWorkbookSheet.merge_range(dateHeaderRowMerge, todaysDateStr, merge_formatDate)
+    # Starting Excel row/col for displayed data
+    # initialize starting point to write excel row
+    # start 2 down from top and at Col=0
+    sheetHeaderRowStart = 2
+    sheetHeaderColumn0Start = 0
+    dateHeaderRowMergeFormat = 'A' + str(sheetHeaderRowStart) + ':E' + str(sheetHeaderRowStart)
 
-     # =========================================================================================================
-    # Get aStock Fundamentals from its excel
+    todaysDateStr = '  ' + datetime.datetime.today().strftime('%A, %B %-d, %Y @ %-I:%M %P') + ' ET'
+    fundamentalsWorkbookSheet.merge_range(dateHeaderRowMergeFormat, todaysDateStr, merge_formatDate)
+    # =========================================================================================================
+    # setup aStock Data -
+    # Get aStock Data from its excel
     inExcelFile = theBaseCompaniesDirectory + startday +\
                           '/SummaryWeekOf-' + startday + excelSuffix
 
@@ -112,13 +106,13 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
     # get 2 rows of summary data
     summaryRow = yahooEarningsDf_aSymbol_Sheet.iloc[0:1,0:21]
 
-    summaryRow = summaryRow[["Symbol", "Company", "Earnings_Date", "Time", "Close", "Volume",
+    summaryRow = summaryRow[["Company", "Symbol", "Earnings_Date", "Time", "Close", "Volume",
                              "Option_Volume", "histVol", "impVol", "IV_Delta", "Exp$Range",
                              "stdFwd1%", "stdFwd1$TimesClose", "std25Fwd1%",  "std25Fwd1$TimesClose",
-                             "max1DayABS$Delta", "ABSFwd1MinusClose", "ABSFwd1PlusClose" ]].copy()
+                             "max1DayABS$Delta"]].copy() #, "ABSFwd1MinusClose", "ABSFwd1PlusClose" ]].copy()
 
-    summaryRow.rename(columns={'ABSFwd1MinusClose' : 'ABS $ Minus'}, inplace=True)
-    summaryRow.rename(columns={'ABSFwd1PlusClose' : 'ABS $ Plus'}, inplace=True)
+    # summaryRow.rename(columns={'ABSFwd1MinusClose' : 'ABS $ Minus'}, inplace=True)
+    # summaryRow.rename(columns={'ABSFwd1PlusClose' : 'ABS $ Plus'}, inplace=True)
     summaryRow.rename(columns={'stdFwd1%' : '1-SD % Move'}, inplace=True)
     summaryRow.rename(columns={"stdFwd1$TimesClose" : '1-SD $ Move'}, inplace=True)
     summaryRow.rename(columns={'std25Fwd1%' :'2.5-SD % Move'}, inplace=True)
@@ -131,45 +125,114 @@ def buildExcelFile(aStock, startday, theExpiryDateText):
 
     #  Change to Earning Date Format: "Mon, Jul 06"
     summaryRow['Earnings'] = summaryRow['Earnings'].apply(str.replace, args=('-', '')).apply(dateUtils.monthDayFormat)
-    # put in Fundamental's header
-    fundamentalsWorkbookSheet.merge_range(sheetFundamentalsRowHeader,
-                                          'Company Fundamentals: ', merge_formatOptions )
 
-    for col_num, value in enumerate(summaryRow.columns.values):
-        if col_num > 15:
-            fundamentalsWorkbookSheet.write(8, col_num-15, value, trade_header_format)
-            fundamentalsWorkbookSheet.write(9, col_num-15, summaryRow.iloc[0,col_num], trade_text_format)
-        elif col_num > 10:
-            fundamentalsWorkbookSheet.write(6, col_num-10, value, trade_header_format)
-            fundamentalsWorkbookSheet.write(7, col_num-10, summaryRow.iloc[0,col_num], trade_text_format)
-        elif col_num > 5:
-            fundamentalsWorkbookSheet.write(4, col_num-5, value, trade_header_format)
-            fundamentalsWorkbookSheet.write(5, col_num-5, summaryRow.iloc[0, col_num], trade_text_format)
-        elif col_num == 0:
-            fundamentalsWorkbookSheet.write(2, col_num, value, trade_header_format)
-            fundamentalsWorkbookSheet.write(3, col_num, summaryRow.iloc[0, col_num], tradeStock_text_format)
-        else:
-            fundamentalsWorkbookSheet.write(2, col_num, value, trade_header_format)
-            fundamentalsWorkbookSheet.write(3, col_num, summaryRow.iloc[0,col_num], trade_text_format)
+    # =========================================================================================================
+    # setup and write out Company name
+    # setup start row
+    sheetFundamentalCompanyNameHeaderRowStart = sheetHeaderRowStart + 1
+    sheetFundamentalCompanyNameHeaderRowMerge = 'A' + str(sheetFundamentalCompanyNameHeaderRowStart+1) + ':E' \
+                                                + str(sheetFundamentalCompanyNameHeaderRowStart+1)
+    # Write company name header
+    companyNameAndSymbol = summaryRow.iloc[0, 0] + ' (' + summaryRow.iloc[0, 1]+ ') '
+    fundamentalsWorkbookSheet.merge_range(sheetFundamentalCompanyNameHeaderRowMerge, companyNameAndSymbol, companyName_header_format)
+    # =========================================================================================================
+    # Fundamental's header
+    sheetFundamentalsRowStart = sheetFundamentalCompanyNameHeaderRowStart+3
+    sheetFundamentalsHeaderRowMerge = 'A' + str(sheetFundamentalsRowStart) + ':E' + str(sheetFundamentalsRowStart)
+    fundamentalsWorkbookSheet.merge_range(sheetFundamentalsHeaderRowMerge, summaryRow.iloc[0, 0] +
+                                          ' / Fundamentals: ', fundamentals_headerMerge_formatOptions)
+    # Set the width of Column A to display the Header "Company" properly
+    fundamentalsWorkbookSheet.set_column('A:A', 10)
+    # =========================================================================================================
+    # setup Fundamentals
+    stockOverview.drop(labels=['lowPrice', 'openPrice', 'highPrice', 'lastPrice', 'previousPrice', 'volume'],
+                       axis=0, inplace=True)
+    stockOverview.index = ['Average Volume', 'Stochastic Oscillator 14day', 'Weighted Alpha',
+                           '5day Price Change', '5day Percent Change', 'Low Price - 1Year', 'High Price - 1Year']
+    # change '5day Percent Change' to % rounded to 2 digits
+    stockOverview.at['5day Percent Change', 0] = round((stockOverview.iloc[4, 0] * 100), 2)
+    #
+    # aRowCount = 0
+    # print(stockFundamentals, stockOverview)
+    allFundamentalsRow = pd.concat([summaryRow, stockFundamentals, stockOverview.T], axis=1)
+    # print(pd.concat([df1, df2], axis=1))
+    theExcelHeaderRow = sheetFundamentalsRowStart + 1
+    theExcelDataRow = sheetFundamentalsRowStart + 2
+    theExcelCol = 0
+    aRowCount = theExcelHeaderRow
+    for col_num, value in enumerate(allFundamentalsRow.columns.values):
+        # print('theExcelCol: ', theExcelCol, '   theExcelHeaderRow: ', theExcelHeaderRow, ' theExcelDataRow: ',
+        #       theExcelDataRow,'  value: ', value )
+        theExcelCol = theExcelCol % 4 + 1
+        fundamentalsWorkbookSheet.write(theExcelHeaderRow, theExcelCol, value, tradeStock_DataHeader_format)
+        fundamentalsWorkbookSheet.write(theExcelDataRow, theExcelCol, allFundamentalsRow.iloc[0, col_num],
+                                        trade_text_format)
+        if col_num == 18:
+            print(col_num, value)
+            fundamentalsWorkbookSheet.write(theExcelDataRow, theExcelCol,
+                                            str(allFundamentalsRow.iloc[0, col_num]) + "%",
+                                            trade_text_format)
+        if theExcelCol == 4:
+            theExcelHeaderRow = theExcelHeaderRow + 3
+            theExcelDataRow = theExcelDataRow + 3
+        aRowCount = aRowCount+1
+
     # =========================================================================================================
     # Add next Expiry dates next Friday / next month
-    fundamentalsWorkbookSheet.merge_range(sheetOptionsRowHeader, 'Option Expires:', merge_formatOptions)
-    fundamentalsWorkbookSheet.write(sheetOptionsRowStart, sheetColumn0Start+1, "Next Option Expires ->", expiry_format)
-    fundamentalsWorkbookSheet.write(sheetOptionsRowStart, sheetColumn0Start+2,
-                                    'Friday:  ' + dateUtils.getNextFridayExpiryFormat(), empty_expiryW_format)
-    fundamentalsWorkbookSheet.write(sheetOptionsRowStart, sheetColumn0Start+3,
-                                    "Monthly:  " + dateUtils.month3Format(dateUtils.getNextExpiryDate()), empty_expiryW_format)
+    # sheetOptionsRowHeader = col_num + 2
+    sheetOptionsRowStart = col_num  + 2
+    sheetOptionsRowHeaderMerge = 'A' + str(sheetOptionsRowStart) + ':E' + str(sheetOptionsRowStart)
+    print('aRowCount:  ', aRowCount, '\ncol_num: ', col_num, '\nsheetOptionsRowHeader: ',
+          sheetOptionsRowStart,  '\nsheetOptionsRowHeaderMerge: ', sheetOptionsRowHeaderMerge,
+          '\naRowCount: ', aRowCount, '\ntheExcelHeaderRow: ', theExcelHeaderRow)
+
+    fundamentalsWorkbookSheet.merge_range(sheetOptionsRowHeaderMerge, 'Option Expires:', expiry_headerMerge_formatOptions)
+    fundamentalsWorkbookSheet.write(sheetOptionsRowStart, sheetHeaderColumn0Start+1, "Next Option Expires ->", expiry_RowHeader_format)
+    fundamentalsWorkbookSheet.write(sheetOptionsRowStart, sheetHeaderColumn0Start+2,
+                                    'Friday:  ' + dateUtils.getNextFridayExpiryFormat(), expiry_Data_format)
+    fundamentalsWorkbookSheet.write(sheetOptionsRowStart, sheetHeaderColumn0Start+3,
+                                    "Monthly:  " + dateUtils.month3Format(dateUtils.getNextExpiryDate()), expiry_Data_format)
     fundamentalsWorkbookSheet.set_column('B:G', 26)
     # =========================================================================================================
     # Add the Ratings next
-    stockRatings.to_excel(writer, sheet_name=sheetIsFundamentals,
-                          startrow=sheetRatingsRowStart,
-                          startcol=sheetColumn0Start + 1)
+    # Ratings
+    sheetRatingsRowStart = sheetOptionsRowStart+4
+    sheetRatingsRowHeaderMerge = 'A' + str(sheetOptionsRowStart+4) + ':E' + str(sheetOptionsRowStart+4)
+    sheetRatingsColStart = sheetHeaderColumn0Start+2
+
+    # iterating over the columns
+    aColCount = 0
+    for col in stockRatings.columns:
+        fundamentalsWorkbookSheet.write(sheetRatingsRowStart, sheetRatingsColStart + aColCount,
+                                        col, rating_Header_format)
+        aColCount=aColCount+1
+
+    # change index string to format title - 1st Caps - type "title" -> "Title"
+    stockRatings = stockRatings.rename(index=str.title)
+    # iterating over the Index
+    aRowCount = 1
+    for index in stockRatings.index:
+        fundamentalsWorkbookSheet.write(sheetRatingsRowStart + aRowCount, sheetRatingsColStart-1,
+                                        index, rating_Header_format)
+        aRowCount = aRowCount + 1
+
+    # stockRatings.iterrows will return Tuple: str & pd.Series
+    aRowCount = 1
+    for row in stockRatings.iterrows():
+        for index in row:
+            if isinstance(index, pd.Series):
+                colCount = sheetRatingsColStart
+                for anIndex, aValue in index.items():
+                    fundamentalsWorkbookSheet.write(sheetRatingsRowStart + aRowCount, colCount,
+                                                    aValue, rating_Data_format)
+                    colCount = colCount + 1
+                aRowCount = aRowCount + 1
+
     # Add header for Ratings....
-    fundamentalsWorkbookSheet.merge_range(sheetRatingsRowHeader,
-                                          'Analyst Rating: ' + aText, merge_formatRating)
-    # =========================================================================================================
-    # # Save excel
+    fundamentalsWorkbookSheet.merge_range(sheetRatingsRowHeaderMerge,
+                                          'Analyst Rating: ' + aText, expiry_headerMerge_formatOptions)
+
+    # Save excel
     writer.save()
 
 
@@ -218,7 +281,7 @@ def XXXXbuildExcelFile(aStock, startday, theExpiryDateText):
     # Add the text info on Expiry and Recommendations
     fundamentalsWorkbookSheet = writer.sheets[sheetIsFundamentals]
     fundamentalsWorkbookSheet.write(sheetRowStart+1,1, aText)
-    fundamentalsWorkbookSheet.write(sheetRowStart,1, expiryText)
+    fundamentalsWorkbookSheet.write(sheetRowStart,1, 'expiryText')
     fundamentalsWorkbookSheet.set_column('B:F', 25)
     fundamentalsWorkbookSheet.set_column('G:S', 18)
     # fundamentalsWorkbookSheet.conditional_format('B2:B8', {'type': '3_color_scale'})
