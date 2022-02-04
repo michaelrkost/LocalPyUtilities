@@ -17,10 +17,14 @@ from yahoofinancials import YahooFinancials
 import yfinance as yf
 import pandas as pd
 import numpy as np
+import math
 
 from localUtilities import dateUtils
 from datetime import date, timedelta
 from localUtilities.ibUtils.getClosest import Closest as close
+
+# to handle json errors
+from json.decoder import JSONDecodeError
 
 # ================================================================
 
@@ -44,18 +48,16 @@ def addCurrentMarketData(earningsDF, anIndex, symbol):
     earningsDF.at[anIndex, 'CallOpenInterest'] = callOptions
     earningsDF.at[anIndex, 'PutOpenInterest'] = putOptions
 
-    neededExpiry = dateUtils.getNeededExpiry(30)
-
     if allOptions == 0: # no options - cant calculate these
         earningsDF.at[anIndex, 'impliedVolatility'] = 0
         earningsDF.at[anIndex, 'Expected_Range'] = 0
-        earningsDF.at[anIndex, 'histVolatility'] = getHistoricVol(symbol, neededExpiry)
+        earningsDF.at[anIndex, 'histVolatility'] = getHistoricVol(symbol)
     else:
         try:
-            iv, expectedRange = getIV_and_ExpectedRange(ayfTicker, currentPrice, neededExpiry)
+            iv = getIV(ayfTicker, currentPrice)
             earningsDF.at[anIndex, 'impliedVolatility'] = iv
-            earningsDF.at[anIndex, 'Expected_Range'] = expectedRange
-            earningsDF.at[anIndex, 'histVolatility'] = getHistoricVol(symbol, neededExpiry)
+            earningsDF.at[anIndex, 'Expected_Range'] = getExpectedRange(iv, currentPrice)
+            earningsDF.at[anIndex, 'histVolatility'] = getHistoricVol(symbol)
         except KeyError:
             print('     Stock: ', symbol)
             print('         ', KeyError, )
@@ -69,27 +71,74 @@ def addCurrentMarketData(earningsDF, anIndex, symbol):
             earningsDF.at[anIndex, 'Expected_Range'] = 0
             earningsDF.at[anIndex, 'histVolatility'] = 0
 
-def getIV_and_ExpectedRange(aYFTicker, currentPrice, neededExpiry):
+    print('\thistVolatility: ', earningsDF.at[anIndex, 'histVolatility'],
+          '  Expected_Range: ', earningsDF.at[anIndex, 'Expected_Range'],
+          '  Option_Volume: ',    earningsDF.at[anIndex, 'Option_Volume'],
+          '  impliedVolatility', earningsDF.at[anIndex, 'impliedVolatility']
+          )
 
-    optionExpiry = aYFTicker.option_chain(dateUtils.getDateStringDashSeprtors(dateUtils.getDate(neededExpiry)))
-    #print("next monthly pass 2 Weeks  // optionExpiry: ", optionExpiry)
+def getIV(aYFTicker, currentPrice, pushDateOutNDays = 10):
+    #  Implied Volatility: The average implied volatility (IV) of the nearest monthly options contract.
+    #  IV is a forward looking prediction of the likelihood of price change of the underlying asset,
+    #  with a higher IV signifying that the market expects significant price movement, and a lower IV signifying
+    #  the market expects the underlying asset price to remain within the current trading range.
 
-    aCloseStrike = close.get_closestInDFCol(optionExpiry.calls, "strike", currentPrice)
+    # Find the next month Option - after - at least 10 days out -  at the current price
+    # Get the Put/Call IV - use this as the Stock IV
 
-    aChain = aYFTicker.option_chain(dateUtils.getDateStringDashSeprtors(dateUtils.getDate(neededExpiry)))
-    ivC = aChain.calls.at[aCloseStrike, "impliedVolatility"]
-    strikeC = aChain.calls.at[aCloseStrike, "strike"]
-    lastPriceC = aChain.calls.at[aCloseStrike, "lastPrice"]
-    # print("Call // iv: ", ivC, "strike: ", strikeC, "lastPrice: ", lastPriceC)
+    # get the date 'pushDateOutNDays' number of days out
+    startDate = dateUtils.getTodayOffsetDays(pushDateOutNDays)
+    # now find the next monthly option expiry date
+    optionExpiryDate = dateUtils.getNextThirdFridayFromStr(startDate)
+    # Get the option chain for next monthly option expiry date // optionExpiryDate
+    optionExpiryChain = aYFTicker.option_chain(optionExpiryDate)
+    # find the closest option strike to current price in option chain
+    closestStrike = close.get_closestInDFCol(optionExpiryChain.calls, "strike", currentPrice)
 
-    ivP = aChain.puts.at[aCloseStrike, "impliedVolatility"]
-    strikeP = aChain.calls.at[aCloseStrike, "strike"]
-    lastPriceP = aChain.calls.at[aCloseStrike, "lastPrice"]
-    # print("Put  // iv: ", ivP, "strike: ", strikeP, "lastPrice: ", lastPriceP)
+    aChain = aYFTicker.option_chain(optionExpiryDate)
+    # get the IV
+    ivC = aChain.calls.at[closestStrike, "impliedVolatility"]
 
-    expectedRange = (lastPriceC + lastPriceP) / currentPrice
+    return ivC
 
-    return ivP, expectedRange
+
+def getExpectedRange(iv, currentPrice, days2Expiration=None):
+    # A stock’s “expected move” represents the one standard deviation expected range
+    # for a stock’s price in the future.
+
+   # A one standard deviation range encompasses 68% of the expected outcomes, so a stock’s
+    # expected move is the magnitude of that stock’s future price movements with 68% certainty.
+
+    # There are three variables that go into the expected move formula:
+    # 1) The current stock price
+    # 2) The stock’s implied volatility
+    # 3) The desired expected move period (expressed as the number of days)
+    #       -- using 252 as this is the number of trading days in a year
+    # 4) using days to next months expiry / Days2Expiration
+
+    # Expected Range = StockPrice * IV * sqrt(Days2Expiration/ 252)
+    if days2Expiration == None:
+        days2Expiration = dateUtils.getDays2Expiration()
+
+    expectedRange = (currentPrice * iv) * math.sqrt(days2Expiration / 252)
+
+    return expectedRange
+
+def getExpectedRange4BinaryEvent():
+#     Calculating Expected Move
+# Expected move is the amount that a stock is predicted to increase or decrease from its current price,
+# based on the current level of implied volatility for binary events.
+#
+# We use this calculation on the day before the binary event or very close to the expiration date.
+# The expected move of a stock for a binary event can be found by calculating 85% of the value of the
+# front month at the money (ATM) straddle. Add the price of the front month ATM call and the price of
+# he front month ATM put, then multiply this value by 85%. Another easy way to calculate the expected
+# move for a binary event is to take the ATM straddle, plus the 1st OTM strangle and then divide the sum by 2.
+#
+# We only use this for a binary event because the accuracy of premium decay and all of the variables a
+# ssociated with implied volatility are too rich to accurately reflect expected move for a longer time period.
+
+    return None
 # ================================================================
 
 def getOptionVolume(aTicker):
@@ -104,24 +153,49 @@ def getOptionVolume(aTicker):
         return 0, 0, 0
 
     for anOptionExpiry in optionExpiry:
-        putsDF = aTicker.option_chain(anOptionExpiry).puts
-        callsDF = aTicker.option_chain(anOptionExpiry).calls
-        putsOptionVolCount = putsDF['openInterest'].sum() + putsOptionVolCount
-        callsOptionVolCount = callsDF['openInterest'].sum() + callsOptionVolCount
+        try:
+            putsDF = aTicker.option_chain(anOptionExpiry).puts
+            callsDF = aTicker.option_chain(anOptionExpiry).calls
+            putsOptionVolCount = putsDF['openInterest'].sum() + putsOptionVolCount
+            callsOptionVolCount = callsDF['openInterest'].sum() + callsOptionVolCount
+        except JSONDecodeError  as e:
+            print('     Stock: ', aTicker)
+            print('         ', JSONDecodeError, )
+            continue
+
 
     allOptionVolCount = callsOptionVolCount + putsOptionVolCount
 
     return allOptionVolCount, callsOptionVolCount, putsOptionVolCount
 
-def getHistoricVol(symbol, expiryDate):
-#todo make this 30 days rather than 365
+def getHistoricVol(symbol):
+    #
+    # 20-Day Historical Volatility:
+    # The average deviation from the average price over the last 20 days. Historical Volatility is a
+    # measurement of how fast the underlying security has been changing in price back in time.
+    #
+
+    # get Historic Volatility
+    # https://corporatefinanceinstitute.com/resources/knowledge/trading-investing/historical-volatility-hv/
+    # https://www.macroption.com/historical-volatility-calculation/
+
+    # The basic period (for which we calculate returns in the beginning) – often 1 day is used
+
+    # How many periods enter the calculation (we will refer to this as n) – often 20 or 21 days
+    # or 63 days (representing 1 month or 3 months)
+    # (the number of trading days and therefore the number of basic periods in one month)
+    calcPeriod = 21
+
+    # How many periods there are in a year (T; this is used for annualizing volatility in the end)
+    #
+    # Use 1 day (day-to-day returns), 21 or 63 days (representing 1 month or 3 months),
+    # and 252 (as there are 252 trading days per year on average).
+    yearTradingDays = 252
+
     # set date range for historical prices
     # using expiryDate Days
     end_time = date.today()
-    dateDiff1 = abs(((end_time - dateUtils.getDate(expiryDate)).days))
-    dateDiff = dateUtils.days_between_Date(end_time, dateUtils.getDate(expiryDate))
-    # print("\ndateDiff1:  ", type(dateDiff1), 'datediff :  ', dateDiff)
-    start_time = end_time - timedelta(days=60) #dateUtils.getDate(expiryDate) # end_time - timedelta(days=expiryDate)
+    start_time = end_time - timedelta(days=calcPeriod)
 
     # reformat date range
     end = end_time.strftime('%Y-%m-%d')
@@ -129,6 +203,7 @@ def getHistoricVol(symbol, expiryDate):
 
     # get daily stock prices over date range
     json_prices = YahooFinancials(symbol).get_historical_price_data(start, end, 'daily')
+
 
     # transform json file to dataframe
     prices = pd.DataFrame(json_prices[symbol]
@@ -145,5 +220,5 @@ def getHistoricVol(symbol, expiryDate):
     daily_std = np.std(prices.returns)
 
     # annualized daily standard deviation
-    annualStd = daily_std * 252 ** 0.5
+    annualStd = daily_std * yearTradingDays ** 0.5
     return annualStd

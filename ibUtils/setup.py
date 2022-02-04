@@ -9,15 +9,8 @@ sys.path.append('/home/michael/jupyter/local-packages')
 import datetime
 # Get my Utilities (localUtilities)
 from localUtilities import dateUtils
+import pyarrow.feather as feather
 
-# YahooFinancials
-# https://pypi.org/project/yahoofinancials/
-
-# A python module that returns stock, cryptocurrency,
-# forex, mutual fund, commodity futures, ETF,
-# and US Treasury financial data from Yahoo Finance.
-# TODO: Determine if yahoofinancials is adequate or if we should create a Database with this info.
-# ToDo: review investpy as an alternative to yahoofinancials // https://investpy.readthedocs.io
 from yahoofinancials import YahooFinancials
 import yahoo_fin.stock_info as si
 
@@ -25,12 +18,12 @@ from localUtilities.ibUtils import getMarketData
 
 import numpy as np
 import pandas as pd
+
+theBaseCompaniesDirectory = '/home/michael/jupyter/earningDateData/Companies/'
+csvSuffix = '.csv'
 # ================================================================
 
-def getEarningsForWeek(startday):
-
-    startday = '2022-02-14'
-    print("start Day: ", startday)
+def getEarningsForWeek(startday, theRange=5):
 
     aStartDay = dateUtils.getDateFromISO8601(startday)
 
@@ -39,19 +32,19 @@ def getEarningsForWeek(startday):
     theWeekDF = pd.DataFrame()
     # output = output.append(dictionary, ignore_index=True)
     # Start Monday go to Friday
-    for x in range(5):
+    for x in range(theRange):
         aDay = aStartDay + datetime.timedelta(days=x)
-        anEarningDayDict = si.get_earnings_for_date(dateUtils.getDateStringDashSeprtors(aDay))
+        anEarningDayDict = si.get_earnings_for_date(aDay)
         theLen = len(anEarningDayDict)
         totalEarnings = totalEarnings + theLen
         print('aDay:  ', aDay, ' Count: ', theLen)
         theWeekDF = theWeekDF.append(anEarningDayDict, ignore_index=True)
     print('totalEarnings: ', totalEarnings)
 
-
+    # remove unused columns
     theWeekDF.drop(labels=['epsactual', 'epssurprisepct', 'timeZoneShortName', 'gmtOffsetMilliSeconds', 'quoteType'],
                    axis=1, inplace=True)
-
+    # update the column names
     theWeekDF.rename(columns={"ticker": "Symbol", "companyshortname": "Company", "startdatetime": 'Earnings_Date',
                               "startdatetimetype": "Earnings Call Time", "epsestimate": 'EPS Estimate'}, inplace=True)
 
@@ -61,7 +54,7 @@ def getEarningsForWeek(startday):
     return theWeekDF
 
 
-def addMarketData(earningsDF):
+def addMarketData(earningsDF, startday, getFeather = False):
     """
     Add Market Data / 'histVolatility', 'impliedVolatility', 'avOptionVolume','Expected_Range' etc./
     to companies in passed DF
@@ -75,40 +68,43 @@ def addMarketData(earningsDF):
     DF w/ Market Data for companies w/ greater than some number, say 500,
     in Option Volume - worthwhile causes
     """
-# get info from the time of this run
-    earningsDF['Open'] = np.nan
-    earningsDF['Volume'] = np.nan
-    earningsDF['High'] = np.nan
-    earningsDF['Low'] = np.nan
-    earningsDF['Close'] = np.nan
+    addMarketDataFeather = theBaseCompaniesDirectory + startday + '/rawData/' + 'addMarketData.feather'
 
-    earningsDF['Option_Volume'] = np.nan
-    earningsDF['PutOpenInterest'] = np.nan
-    earningsDF['CallOpenInterest'] = np.nan
+    if getFeather:
+        earningsDF = feather.read_feather(addMarketDataFeather)
+        lenDF = len(earningsDF.index)
+    else:
+        # get info from the time of this run
+        earningsDF['Open'] = np.nan
+        earningsDF['Volume'] = np.nan
+        earningsDF['High'] = np.nan
+        earningsDF['Low'] = np.nan
+        earningsDF['Close'] = np.nan
 
-    earningsDF['histVolatility'] = np.nan
-    earningsDF['impliedVolatility'] = np.nan
-    earningsDF['Expected_Range'] = np.nan
+        earningsDF['Option_Volume'] = np.nan
+        earningsDF['PutOpenInterest'] = np.nan
+        earningsDF['CallOpenInterest'] = np.nan
 
-    lenDF = len(earningsDF)
+        earningsDF['histVolatility'] = np.nan
+        earningsDF['impliedVolatility'] = np.nan
+        earningsDF['Expected_Range'] = np.nan
+
+        lenDF = len(earningsDF)
 
     for row in earningsDF.itertuples():
-        # print(row.Symbol, ' @  ', lenDF,  end=", ")
         lenDF = lenDF - 1
-
-        # TODO - OCC change their Web Site -- need to rework if we want open interest
-        # putsOpenInterest, callsOpenInterest = getOptionInfo.getOptionVolumeNextFriExpiryCount(row.Symbol, startDay,lenDF)
-        # depreciated code 8/8/21: mktData = getMarketData.getMarketDataFromOptionistics(row.Symbol)
         print(lenDF, '|  add market data for: ', row.Symbol)
         # print("earningsDF befor == ", earningsDF)
         getMarketData.addCurrentMarketData(earningsDF, row.Index, row.Symbol)
+        earningsDF.to_feather(addMarketDataFeather)
 
+    readFeather = pd.read_feather(addMarketDataFeather, use_threads=True)
 
     print('\nDone - setup.addCurrentMarketData....')
     #remove companies w/ less that 300 in Call Open Interest
     earningsDFOptionVolGood = earningsDF[(earningsDF['Option_Volume'] >= 300)]
 
-    return earningsDFOptionVolGood.reset_index(drop=True), earningsDF
+    return earningsDFOptionVolGood.reset_index(drop=True), earningsDF, readFeather
 
 
 def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings, maxQtrs):
@@ -178,8 +174,6 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings, maxQtrs):
     yahoo_financials = YahooFinancials(theStock)
 
     for earnDateRow in stocksPastEarningsDF.itertuples():
-        #print(earnDateRow.Symbol, ' / theStock: ', theStock,  ' @  ', lenDF, 'earnDateRow.Index: ', earnDateRow.Index, end=", ")
-
         if lenDF == 0:
             break
         else:
@@ -196,20 +190,13 @@ def addPastMarketData(stocksPastEarningsDF, daysAroundEarnings, maxQtrs):
             # stocksPastEarningsDF.at[earnDateRow.Index, 'Last']   = np.nan
             continue
 
-
         endDateTime = dateUtils.getDateStringDashSeprtors(dateUtils.goOutXWeekdays(earnDateRow.Earnings_Date,
                                                                                    daysAroundEarnings))
-
-
         startDateTime = dateUtils.getDateStringDashSeprtors(dateUtils.goOutXWeekdays(earnDateRow.Earnings_Date,
                                                                                      -daysAroundEarnings))
 
-        # print('startDateTime / endDateTime', startDateTime, ' / ',  earnDateRow.Earnings_Date, ' / ', endDateTime)
-
-
         # Get historic stock prices from yahoofinancials within daysAroundEarnings timeframe
         historical_stock_prices = yahoo_financials.get_historical_price_data(startDateTime, endDateTime, 'daily')
-        #print("historical_stock_prices: ", historical_stock_prices)
 
         try:
             historical_stock_pricesDF = pd.DataFrame(historical_stock_prices[theStock]['prices'])

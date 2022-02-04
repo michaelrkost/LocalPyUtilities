@@ -2,10 +2,12 @@
 module: dateUtils
 
 Python strftime cheatsheet  --   @ https://strftime.org/
+Consider: python-dateutil 2.8.2 as alternative to date math
 
 This file is intended to be imported as a module and contains the following
 functions:
 
+    * getNeededExpiryXDaysOut(daysOut=10) - Get the next Monthly Expiry /getNextThirdFriday/ today + daysOut
     * goOutXWeekdays(startDay, nextXDays) - Get the next nextXDays weekdays - no weekends
                                             nextXDays: if positive go forward in time / Negative go backwards
     * getWorkdaysBetween(start, end) - get workdays(not Weekends) from start to end - return list datetime
@@ -41,9 +43,10 @@ functions:
     * toExpiryStr(2019, 'dec', 8) - integers for day and year, Str 3 day Month - 'dec' - case insensitive
                                     return Option expiry date str format '20191208'
     * getNextThirdFridayFromDate(aDate) - Return str for this or next monthly 3rd Friday option expiration given aDate(Date)
-    * def getNextThirdFriday(aDate): Return str for next monthly 3rd Friday option expiration given aDate(Date)
+    * getNextThirdFriday(aDate): Return str for next monthly 3rd Friday option expiration given aDate(Date)
     * breakDateToSting('20191004') - return tuple ( YYYY, MM, DD)
     * getListofFridayExpiryDate(num) - list of Friday Option Expiry Dates out "num" weeks / 10 is default
+    * def days_betweenStrDate(start_date, end_date): uses datetime.strptime to convert strings YYYY-MM-DD to datetime objects
 
 """
 
@@ -222,13 +225,10 @@ def ensureItsaWeekDay(aDate):
     """
 
     if aDate.weekday() == 5:
-        # print('back to: ', datetime.datetime.strftime((aDate - datetime.timedelta(days=1)), '%A'))
         returnDate = aDate - datetime.timedelta(days=1)
     elif aDate.weekday() == 6:
-        # print('back to: ', datetime.datetime.strftime((aDate - datetime.timedelta(days=2)), '%A'))
         returnDate = aDate - datetime.timedelta(days=2)
     else:
-        # print('Weekday is: ', datetime.datetime.strftime(aDate, '%A'))
         returnDate = aDate
 
     return returnDate
@@ -327,6 +327,14 @@ def month3Format(pickedDate):
 
 
 def monthDayFormat(pickedDate):
+    """Returns the date /20190406/ in format: Mon, Apr06
+
+    Keyword arguments:
+    pickedDate   -- datetime format
+    """
+    return datetime.datetime.strftime(getDate(pickedDate), "%a, %b %d")
+
+def month_Day_Format(pickedDate):
     """Returns the date /20190406/ in format: Mon, Apr06
 
     Keyword arguments:
@@ -585,7 +593,6 @@ def getNextThirdFridayFromDate(aDate):
 
     # if this months 3rd friday has passed
     if third_friday(aDate.year, aDate.month) < datetime.date.today():
-        print('aDate: ', aDate)
         third = third_friday(aDate.year, nextMonthDate(aDate))
     # if  Dec  need to get to next year
     elif aDate.month == 12:
@@ -596,7 +603,7 @@ def getNextThirdFridayFromDate(aDate):
 
     return datetime.date.strftime(third, "%Y%m%d")
 
-def getNextThirdFriday(aDate):
+def getNextThirdFridayFromStr(aDate):
     """
     Return str for next monthly 3rd Friday option expiration given Date.
     use getNextThirdFridayFromDate(aDate) to calculate on Month rather than Date
@@ -606,7 +613,7 @@ def getNextThirdFriday(aDate):
         - today is past this months third Friday / go to next month
 
     Keyword arguments:
-    aDate -- 'datetime.date' / '2019-12-30
+    aDate -- 'datetime.date' / '20191230
 
     Returns:
         str: "2020-01-17"
@@ -621,7 +628,7 @@ def getNextThirdFriday(aDate):
     else:
         third = third_friday(aDate.year, aDate.month)
 
-    return datetime.date.strftime(third, "%Y%m%d")
+    return datetime.date.strftime(third, "%Y-%m-%d")
 
 def daysToExpiry(theExpiry):
     """
@@ -637,6 +644,16 @@ def getTodayStr(): #Todo refactor Today in this module
 
     #returns : 'Sun, Aug 11'
     return datetime.date.today().strftime("%a, %b %d")
+
+def getTodayDateTime(): #Todo refactor Today in this module
+
+    return datetime.date.today()
+
+def getTodayOffsetDays(offsetDays):
+
+    todayIs = datetime.date.today()
+
+    return todayIs + datetime.timedelta(days=offsetDays)
 
 def get30DaysOutStr():
 
@@ -704,8 +721,6 @@ def breakDateToSting(dateStr):
     aDay = dateStr[6:8]
     return aYear, aMonth, aDay
 
-if __name__ == "__main__":
-    print(getTodayStr())
 def getListOfFridayExpiryDate(numOfWeeks=10):
     '''
     create a list of Friday option expiry dates in str format
@@ -735,24 +750,31 @@ def getListOfFridayExpiryDate(numOfWeeks=10):
 
     return listOfDates
 
-#todo should this be workdays or just days
-def days_between_Date(d1, d2):
-    return abs((d2 - d1).days)
 
+def days_between_Date(start_date, end_date):
+    # code uses datetime math
+    # return number of days
+    return abs((end_date - start_date).days)
 
-#todo check this
-def days_between_Str(d1, d2):
-    print("d1, d2 type:  ", type(d1), type(d2))
-    d1 = datetime.date.strftime(d1, "%Y-%m-%d")
-    d2 = datetime.date.strftime(d2, "%Y-%m-%d")
-    return abs((d2 - d1).days)
+def days_between_Str(start_date, end_date):
+    # The format of the date is YYYY-MM-DD
+    # code convert strings to datetime objects using getDateFromISO8601
+    # return number of days
 
-def getNeededExpiry(daysOut):
-    todayIs = datetime.date.today()
-    # print("todayIs: ", todayIs)
-    expiryDate = todayIs + datetime.timedelta(days=daysOut)
-    # print('Today + ', daysOut, ' expiryDate:  ', expiryDate)
-    # print(type(todayIs))
-    neededExpiry = getNextThirdFriday(expiryDate)
-    #print('Next expiryDate: ', neededExpiry)
-    return neededExpiry
+    start_date = getDateFromISO8601(start_date)
+    end_date = getDateFromISO8601(end_date)
+    return  days_between_Date(end_date, start_date)
+
+def getDays2Expiration(offsetDays = 14):
+    # Get the next monthly expiration date out offsetDays Days
+    # get offset day for daysOffset as: <class 'datetime.date'>
+    daysOffset = getTodayOffsetDays(offsetDays)
+    # get Monthly expiry getNextThirdFridayFromDate as: 20220218 <class 'str'>
+    # convert to datetime.date format
+    monthlyOptionExpiryDate = getDate(getNextThirdFridayFromDate(daysOffset))
+    # get today as:  2022-02-04 <class 'datetime.date'>
+    today = datetime.date.today()
+    # get number of days to expiry
+    days2Expiration = days_between_Date(today, monthlyOptionExpiryDate)
+
+    return days2Expiration
