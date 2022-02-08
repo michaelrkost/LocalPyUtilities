@@ -46,11 +46,12 @@ functions:
     * getNextThirdFriday(aDate): Return str for next monthly 3rd Friday option expiration given aDate(Date)
     * breakDateToSting('20191004') - return tuple ( YYYY, MM, DD)
     * getListofFridayExpiryDate(num) - list of Friday Option Expiry Dates out "num" weeks / 10 is default
-    * def days_betweenStrDate(start_date, end_date): uses datetime.strptime to convert strings YYYY-MM-DD to datetime objects
+    * days_betweenStrDate(start_date, end_date)- uses datetime.strptime to convert strings YYYY-MM-DD to datetime objects
 
 """
 
 #=============================================================
+from localUtilities import config
 import datetime
 
 # Stock Market Holidays 2020/2021
@@ -765,16 +766,24 @@ def days_between_Str(start_date, end_date):
     end_date = getDateFromISO8601(end_date)
     return  days_between_Date(end_date, start_date)
 
-def getDays2Expiration(offsetDays = 14):
-    # Get the next monthly expiration date out offsetDays Days
-    # get offset day for daysOffset as: <class 'datetime.date'>
-    daysOffset = getTodayOffsetDays(offsetDays)
+def getDays2ExpirationAndExpiry(offsetDays = config.offsetExpiryDays):
+    # Get an offsetDays - the number of days out from today where offsetDays is
+    # '0' is Today, '-2' is 2 days past, '5' is 5 days ahead
+    # using 10 offsetDays as default - mrk 2/5/22
+    # Parameters:
+    #   offsetDays - offset day for daysOffset as: <class 'datetime.date'> // default is in config.py
+    # return:
+    #   days2Expiration: the number/""int"" of abs(days) to expiration
+    #   monthlyOptionExpiryDate: the Expiry date as ""str""
+
+    # get the date ""offsetDays"" number of days out
+    startDate = getTodayOffsetDays(offsetDays)
     # get Monthly expiry getNextThirdFridayFromDate as: 20220218 <class 'str'>
     # convert to datetime.date format
-    monthlyOptionExpiryDate = getDate(getNextThirdFridayFromDate(daysOffset))
+    monthlyOptionExpiryDate = getDate(getNextThirdFridayFromDate(startDate))
     # get today as:  2022-02-04 <class 'datetime.date'>
     today = datetime.date.today()
     # get number of days to expiry
     days2Expiration = days_between_Date(today, monthlyOptionExpiryDate)
 
-    return days2Expiration
+    return days2Expiration, getDateStringDashSeprtors(monthlyOptionExpiryDate)
