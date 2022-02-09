@@ -6,9 +6,11 @@ sys.path.append('/home/michael/jupyter/local-packages')
 # and US Treasury financial data from Yahoo Finance.
 # todo: https://pypi.org/project/yahoofinancials/ or https://pypi.org/project/yfinance/
 # ToDo: review investpy as an alternative to yahoofinancials // https://investpy.readthedocs.io
+# todo: https://www.alphavantage.co/#about
 
 from yahoofinancials import YahooFinancials
 import yfinance as yf
+import yahoo_fin.stock_info as si  
 
 import pandas as pd
 import numpy as np
@@ -47,13 +49,15 @@ def addCurrentMarketData(earningsDF, anIndex, symbol):
     earningsDF.at[anIndex, 'Close'] = mktData.get_prev_close_price()
 
     currentPrice = mktData.get_current_price()
-    days2Expiry = 0
     earningsDF.at[anIndex, 'Last'] = currentPrice
 
     allOptions, callOptions, putOptions = getOptionVolume(ayfTicker)
     earningsDF.at[anIndex, 'Option_Volume'] = allOptions
     earningsDF.at[anIndex, 'CallOpenInterest'] = callOptions
     earningsDF.at[anIndex, 'PutOpenInterest'] = putOptions
+    
+    # Get Stock Stats
+    getStats(earningsDF, anIndex, symbol)
 
     if allOptions == 0: # no options - can't calculate these
         earningsDF.at[anIndex, 'impliedVolatility'] = 0
@@ -77,6 +81,48 @@ def addCurrentMarketData(earningsDF, anIndex, symbol):
             earningsDF.at[anIndex, 'impliedVolatility'] = 0
             earningsDF.at[anIndex, 'Expected_Range'] = 0
             earningsDF.at[anIndex, 'histVolatility'] = 0
+            
+def getStats(earningsDF, anIndex, symbol):
+    """
+    
+    :param earningsDF: DF of Stock's of interest
+    :type earningsDF: Dataframe
+    :param anIndex: 
+    :type anIndex: 
+    :param symbol: 
+    :type symbol: 
+    :return: 
+    :rtype: 
+    """
+    # get Stats from Yahoo
+    mktData = YahooFinancials(symbol)
+
+    # Company Stats                                          [0:-2]
+    earningsDF.at[anIndex, 'Beta (5Y Monthly)']          = YahooFinancials.get_beta(mktData)             #= aSI.at[0,'Value']
+    earningsDF.at[anIndex, '52 Week High']               = YahooFinancials.get_yearly_high(mktData)
+    earningsDF.at[anIndex, '52 Week Low']                = YahooFinancials.get_yearly_low(mktData)
+    earningsDF.at[anIndex, '50-Day Moving Average']      = YahooFinancials.get_50day_moving_avg(mktData)
+    earningsDF.at[anIndex, '200-Day Moving Average']     = YahooFinancials.get_200day_moving_avg(mktData)
+    earningsDF.at[anIndex, 'Avg Vol (3 month)']          = YahooFinancials.get_three_month_avg_daily_volume(mktData)
+    earningsDF.at[anIndex, 'Avg Vol (10 day)']           = YahooFinancials.get_ten_day_avg_daily_volume(mktData)
+    earningsDF.at[anIndex, 'Current Shares Outstanding'] = YahooFinancials.get_num_shares_outstanding(mktData, price_type='current')
+    earningsDF.at[anIndex,'Average Shares Outstanding']  = YahooFinancials.get_num_shares_outstanding(mktData, price_type='average')
+    # get key company share stats from YahooFinancials.get_key_statistics_data(mktData)
+    companyKeyStats = pd.DataFrame()
+    theStats = YahooFinancials.get_key_statistics_data(mktData)
+    companyKeyStats = companyKeyStats.from_dict(theStats, orient='index')
+
+    earningsDF.at[anIndex, '52-Week Change']                              = companyKeyStats.at[symbol, '52WeekChange']
+    earningsDF.at[anIndex, 'S&P500 52-Week Change']                       = companyKeyStats.at[symbol, 'SandP52WeekChange']
+    earningsDF.at[anIndex, 'Float Shares']                                = companyKeyStats.at[symbol, 'floatShares']
+    earningsDF.at[anIndex, '% Held by Insiders']                          = companyKeyStats.at[symbol, 'heldPercentInsiders']
+    earningsDF.at[anIndex, 'Shares Short (previous month)']               = companyKeyStats.at[symbol, 'sharesShort']
+    earningsDF.at[anIndex, 'Shares Ratio (previous month)']               = companyKeyStats.at[symbol, 'shortRatio']
+    earningsDF.at[anIndex, 'Short % of Float (previous month)']           = companyKeyStats.at[symbol, 'shortPercentOfFloat']
+    # earningsDF.at[anIndex, 'Short % Shares Outstanding (previous month)'] = companyKeyStats.at[symbol, 'sharesPercentSharesOut']
+    earningsDF.at[anIndex, 'Shares Short (prior month)']                  = companyKeyStats.at[symbol, 'sharesShortPriorMonth']
+
+
 
 def getIV_CallIV(aYFTicker, currentPrice, pushIVout = config.pushIVDateOutNDays):
     #  Implied Volatility: The average implied volatility (IV) of the ""nearest"" monthly options contract.

@@ -25,11 +25,18 @@ import pandas as pd
 
 def getEarningsForWeek(startday, theRange=5):
     """
+    get earnings currently scheduled on ""startday"" thru ""startdate + theRange""
+    si.get_earnings_for_date(aDay)
+    Returns a list of dictionaries. Each dictionary contains a ticker,
+    its corresponding EPS estimate, and the time of the earnings release.
+
+    Add each Earnings Dictionary to DF and return
 
     :param startday: The starting day for the Earnings week - usually a Monday
     :type startday: str # Format YYYY-MM-DD
     :param theRange: number of days to process; default is work week of 5
     :type theRange: integer
+
     :return: DF of Weekly earnings
     :rtype:
     """
@@ -39,7 +46,7 @@ def getEarningsForWeek(startday, theRange=5):
     # total up the number of companies with earnings
     totalEarnings = 0
     theWeekDF = pd.DataFrame()
-    # output = output.append(dictionary, ignore_index=True)
+
     # Start Monday go to Friday
     for x in range(theRange):
         aDay = aStartDay + datetime.timedelta(days=x)
@@ -47,6 +54,7 @@ def getEarningsForWeek(startday, theRange=5):
         theLen = len(anEarningDayDict)
         totalEarnings = totalEarnings + theLen
         print('On Day:  ', aDay, ' The Company Earnings Count: ', theLen)
+        #todo: pandas.DataFrame.from_dict with orient='index':
         theWeekDF = theWeekDF.append(anEarningDayDict, ignore_index=True)
     print('totalEarnings: ', totalEarnings)
 
@@ -83,29 +91,13 @@ def addMarketData(earningsDF, startday, getFeather = False):
     Path(addMarketDataFeather).mkdir(parents=True, exist_ok=True)
     addMarketDataFeather = addMarketDataFeather + 'addMarketData.feather'
 
-
     if getFeather:
         earningsDF = feather.read_feather(addMarketDataFeather)
         lenDF = len(earningsDF.index)
     else:
-        # get info from the time of this run
-        earningsDF['Open'] = np.nan
-        earningsDF['Volume'] = np.nan
-        earningsDF['High'] = np.nan
-        earningsDF['Low'] = np.nan
-        earningsDF['Close'] = np.nan
-
-        earningsDF['Option_Volume'] = np.nan
-        earningsDF['PutOpenInterest'] = np.nan
-        earningsDF['CallOpenInterest'] = np.nan
-
-        earningsDF['histVolatility'] = np.nan
-        earningsDF['impliedVolatility'] = np.nan
-        earningsDF['Expected_Range'] = np.nan
-
+        updateDFCols(earningsDF)
         lenDF = len(earningsDF)
 
-    print("addMarketDataFeather:  ", addMarketDataFeather)
     for row in earningsDF.itertuples():
         lenDF = lenDF - 1
         print(lenDF, '|  adding market data for: ', row.Symbol)
@@ -119,6 +111,41 @@ def addMarketData(earningsDF, startday, getFeather = False):
     earningsDFOptionVolGood = earningsDF[(earningsDF['Option_Volume'] >= 300)]
 
     return earningsDFOptionVolGood.reset_index(drop=True), earningsDF, readFeather
+
+def updateDFCols(earningsDF):
+    # add Columns to DF
+    earningsDF['Open'] = np.nan
+    earningsDF['Volume'] = np.nan
+    earningsDF['High'] = np.nan
+    earningsDF['Low'] = np.nan
+    earningsDF['Close'] = np.nan
+
+    earningsDF['Option_Volume'] = np.nan
+    earningsDF['PutOpenInterest'] = np.nan
+    earningsDF['CallOpenInterest'] = np.nan
+    # Calculated info
+    earningsDF['histVolatility'] = np.nan
+    earningsDF['impliedVolatility'] = np.nan
+    earningsDF['Expected_Range'] = np.nan
+    # Company Stats
+    earningsDF['Beta (5Y Monthly)'] = np.nan
+    earningsDF['52 Week High'] = np.nan
+    earningsDF['52 Week Low'] = np.nan
+    earningsDF['50-Day Moving Average'] = np.nan
+    earningsDF['200-Day Moving Average'] = np.nan
+    earningsDF['Avg Vol (3 month)'] = np.nan
+    earningsDF['Avg Vol (10 day)'] = np.nan
+    earningsDF['Current Shares Outstanding'] = np.nan
+    earningsDF['Average Shares Outstanding'] = np.nan
+    earningsDF['52-Week Change'] = np.nan
+    earningsDF['S&P500 52-Week Change'] = np.nan
+    earningsDF['Float'] = np.nan
+    earningsDF['% Held by Insiders'] = np.nan
+    earningsDF['Shares Short (previous month)'] = np.nan
+    earningsDF['Shares Ratio (previous month)'] = np.nan
+    earningsDF['Short % of Float (previous month)'] = np.nan
+    # earningsDF['Short % of Shares Outstanding (previous month)'] = np.nan
+    earningsDF['Shares Short (prior month)'] = np.nan
 
 
 def addPastMarketData(stocksPastEarningsDF, maxQtrs = config.maxQtrs):
@@ -134,37 +161,7 @@ def addPastMarketData(stocksPastEarningsDF, maxQtrs = config.maxQtrs):
 
     """
     # Add Columns to the DF
-    stocksPastEarningsDF['High'] = np.nan
-    stocksPastEarningsDF['Open'] = np.nan
-    stocksPastEarningsDF['Volume'] = np.nan
-    stocksPastEarningsDF['Low'] = np.nan
-    stocksPastEarningsDF['Close'] = np.nan
-    # ----- get historic closing price --------------------------------------------------------------
-    stocksPastEarningsDF['EDClose'] = np.nan         # Earning Day Closing Price
-    stocksPastEarningsDF['EDFwd1DayClose'] = np.nan  # Earning Day Forward 1 Day - Closing Price
-    stocksPastEarningsDF['EDFwd4DayClose'] = np.nan  # Earning Day Forward 4 Days - Closing Price
-    stocksPastEarningsDF['EDBak1DayClose'] = np.nan  # Earning Day Back 1 Day - Closing Price
-    stocksPastEarningsDF['EDBak4DayClose'] = np.nan  # Earning Day Back 4 Days - Closing Price
-    # ------ get Differences between forward closing prices for 1 & 4 Days ---------------------------
-    stocksPastEarningsDF['EDDiffFwd4Close'] = np.nan  # Earning Day Subtract the Forward 4 Days Closing Price
-    stocksPastEarningsDF['EDDiffFwd1Close'] = np.nan  # Earning Day Subtract the Forward 1 Day Closing Price
-    stocksPastEarningsDF['EDFwd1DayClosePercentDelta'] = np.nan  # Earning Day % Delta the Forward 1 Day Closing Price
-    stocksPastEarningsDF['EDFwd4DayClosePercentDelta'] = np.nan  # Earning Day % Delta the Forward 4 Day Closing Price
-    # ------ get Differences between backward looking closing prices for 1 & 4 Days ---------------------------
-    stocksPastEarningsDF['EDDiffBak4Close'] = np.nan  # Earning Day Subtract the Back 4 Days Closing Price
-    stocksPastEarningsDF['EDDiffBak1Close'] = np.nan  # Earning Day Subtract the Back 1 Day Closing Price
-    stocksPastEarningsDF['EDBak1DayClosePercentDelta'] = np.nan  # Earning Day % Delta the Back 1 Day Closing Price
-    stocksPastEarningsDF['EDBak4DayClosePercentDelta'] = np.nan  # Earning Day % Delta the Back 4 Day Closing Price
-    # ------ get Differences between forward looking opening prices for 1 & 4 Days ---------------------------
-    stocksPastEarningsDF['EDFwd1DayOpen'] = np.nan  # Earning Day Forward 1 Day Open Price
-    stocksPastEarningsDF['EDFwd4DayOpen'] = np.nan  # Earning Day Forward 1 Day Open Price
-    stocksPastEarningsDF['EDBak1DayOpenPercentDelta'] = np.nan  # Earning Day % Delta the Back 1 Day Closing Price
-    stocksPastEarningsDF['EDBak4DayOpenPercentDelta'] = np.nan  # Earning Day % Delta the Back 4 Day Closing Price
-    # ------ get Differences between backward looking opening prices for 1 & 4 Days ---------------------------
-    stocksPastEarningsDF['EDBak4DayOpen'] = np.nan  # Earning Day Back 1 Day Open Price
-    stocksPastEarningsDF['EDBak1DayOpen'] = np.nan  # Earning Day Back 1 Day Open Price
-    stocksPastEarningsDF['EDBak1DayOpenPercentDelta'] = np.nan  # Earning Day % Delta the Back 1 Day Closing Price
-    stocksPastEarningsDF['EDBak4DayOpenPercentDelta'] = np.nan  # Earning Day % Delta the Back 4 Day Closing Price
+    updateMarketDataCols(stocksPastEarningsDF)
 
     # is this DF empty?
     if (stocksPastEarningsDF.empty):
@@ -248,6 +245,39 @@ def addPastMarketData(stocksPastEarningsDF, maxQtrs = config.maxQtrs):
     stocksPastEarningsDF = formatForCSVFile(stocksPastEarningsDF, pruneDF)
 
     return stocksPastEarningsDF.head(maxQtrs)
+
+def updateMarketDataCols(stocksPastEarningsDF):
+    stocksPastEarningsDF['High'] = np.nan
+    stocksPastEarningsDF['Open'] = np.nan
+    stocksPastEarningsDF['Volume'] = np.nan
+    stocksPastEarningsDF['Low'] = np.nan
+    stocksPastEarningsDF['Close'] = np.nan
+    # ----- get historic closing price --------------------------------------------------------------
+    stocksPastEarningsDF['EDClose'] = np.nan  # Earning Day Closing Price
+    stocksPastEarningsDF['EDFwd1DayClose'] = np.nan  # Earning Day Forward 1 Day - Closing Price
+    stocksPastEarningsDF['EDFwd4DayClose'] = np.nan  # Earning Day Forward 4 Days - Closing Price
+    stocksPastEarningsDF['EDBak1DayClose'] = np.nan  # Earning Day Back 1 Day - Closing Price
+    stocksPastEarningsDF['EDBak4DayClose'] = np.nan  # Earning Day Back 4 Days - Closing Price
+    # ------ get Differences between forward closing prices for 1 & 4 Days ---------------------------
+    stocksPastEarningsDF['EDDiffFwd4Close'] = np.nan  # Earning Day Subtract the Forward 4 Days Closing Price
+    stocksPastEarningsDF['EDDiffFwd1Close'] = np.nan  # Earning Day Subtract the Forward 1 Day Closing Price
+    stocksPastEarningsDF['EDFwd1DayClosePercentDelta'] = np.nan  # Earning Day % Delta the Forward 1 Day Closing Price
+    stocksPastEarningsDF['EDFwd4DayClosePercentDelta'] = np.nan  # Earning Day % Delta the Forward 4 Day Closing Price
+    # ------ get Differences between backward looking closing prices for 1 & 4 Days ---------------------------
+    stocksPastEarningsDF['EDDiffBak4Close'] = np.nan  # Earning Day Subtract the Back 4 Days Closing Price
+    stocksPastEarningsDF['EDDiffBak1Close'] = np.nan  # Earning Day Subtract the Back 1 Day Closing Price
+    stocksPastEarningsDF['EDBak1DayClosePercentDelta'] = np.nan  # Earning Day % Delta the Back 1 Day Closing Price
+    stocksPastEarningsDF['EDBak4DayClosePercentDelta'] = np.nan  # Earning Day % Delta the Back 4 Day Closing Price
+    # ------ get Differences between forward looking opening prices for 1 & 4 Days ---------------------------
+    stocksPastEarningsDF['EDFwd1DayOpen'] = np.nan  # Earning Day Forward 1 Day Open Price
+    stocksPastEarningsDF['EDFwd4DayOpen'] = np.nan  # Earning Day Forward 1 Day Open Price
+    stocksPastEarningsDF['EDBak1DayOpenPercentDelta'] = np.nan  # Earning Day % Delta the Back 1 Day Closing Price
+    stocksPastEarningsDF['EDBak4DayOpenPercentDelta'] = np.nan  # Earning Day % Delta the Back 4 Day Closing Price
+    # ------ get Differences between backward looking opening prices for 1 & 4 Days ---------------------------
+    stocksPastEarningsDF['EDBak4DayOpen'] = np.nan  # Earning Day Back 1 Day Open Price
+    stocksPastEarningsDF['EDBak1DayOpen'] = np.nan  # Earning Day Back 1 Day Open Price
+    stocksPastEarningsDF['EDBak1DayOpenPercentDelta'] = np.nan  # Earning Day % Delta the Back 1 Day Closing Price
+    stocksPastEarningsDF['EDBak4DayOpenPercentDelta'] = np.nan  # Earning Day % Delta the Back 4 Day Closing Price
 
 
 def calcPriceDeltas(stocksPastEarningsDF):
