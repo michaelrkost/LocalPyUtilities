@@ -78,7 +78,7 @@ def createWeeklySummary(startday):
 
 
 def getVolAndUpdateMoveDelta(yahooEarningsDF, earningWeekDir):
-    print('in createWeekSummary // getVolAndUpdateMoveDelta() lenYahhDF', len(yahooEarningsDF))
+    print('in createWeekSummary // getVolAndUpdateMoveDelta() len: ', len(yahooEarningsDF))
     # Get % IV Delta
     yahooEarningsDF['IV_Delta'] = yahooEarningsDF.impliedVolatility - yahooEarningsDF.histVolatility
 
@@ -90,7 +90,7 @@ def getVolAndUpdateMoveDelta(yahooEarningsDF, earningWeekDir):
 
 
 def updateDiary(yahooEarningsDF, earningWeekDir):
-    print('in updateDiary')
+
 
     maxFwd4PercentDelta = []
     minFwd4PercentDelta = []
@@ -140,10 +140,10 @@ def updateDiary(yahooEarningsDF, earningWeekDir):
 
     anElse = 1
     for row in yahooEarningsDF.itertuples():
-        print(row.Symbol)
+        print('adding: ', row.Symbol)
         aCompanyFile = row.Symbol + csvSuffix
         filePath = earningWeekDir / aCompanyFile
-        print("  filePath:  ", filePath, '\n')
+        # print("  filePath:  ", filePath, '\n')
         ckForFile = Path(filePath)
         if ckForFile.is_file():
             # get company's CSV file with data

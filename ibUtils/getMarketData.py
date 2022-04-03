@@ -112,6 +112,7 @@ def getStats(earningsDF, anIndex, symbol):
     theStats = YahooFinancials.get_key_statistics_data(mktData)
     companyKeyStats = companyKeyStats.from_dict(theStats, orient='index')
 
+    # ToDo: check on 52-week change data - seems to not be coming in
     earningsDF.at[anIndex, '52-Week Change']                              = companyKeyStats.at[symbol, '52WeekChange']
     earningsDF.at[anIndex, 'S&P500 52-Week Change']                       = companyKeyStats.at[symbol, 'SandP52WeekChange']
     earningsDF.at[anIndex, 'Float Shares']                                = companyKeyStats.at[symbol, 'floatShares']
